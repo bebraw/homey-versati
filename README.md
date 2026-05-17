@@ -93,10 +93,12 @@ The Homey CLI will ask which Homey to use if no device is selected yet. Keep the
 2. Go to **Devices**.
 3. Select **Add device**.
 4. Choose **Gree Versati**.
-5. Pick the discovered heat pump.
+5. Choose **Scan network** and pick the discovered heat pump, or choose **Enter IP and MAC manually** if broadcast discovery does not find it.
 6. Complete pairing.
 
 During pairing, the app sends a local discovery request and then binds to the selected heat pump. The returned device key is saved in the Homey device settings and reused for later read-only polling.
+
+Manual pairing binds directly to the entered IP address, MAC address, and UDP port. The app reads one state snapshot before adding the device, so pairing fails early if the endpoint cannot be reached or bound.
 
 ## Repair And Diagnostics
 
@@ -132,15 +134,14 @@ After repeated polling failures, the device is marked unavailable. It becomes av
 
 Planned follow-up work, roughly in priority order:
 
-1. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked before the device is paired.
-2. Add guarded write support for low-risk toggles once each command is covered by protocol and live integration tests: Rapid, Silence, W-depend, and Disinfect schedule/state.
-3. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
-4. Expand integration tests against the live unit so command support can be verified without relying on the official app for every field probe.
-5. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-6. Add more Flow cards only where they create practical automation value, such as device unavailable events or newly mapped telemetry fields.
-7. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
-8. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
-9. Replace placeholder app images with proper app artwork before distribution outside local development.
+1. Add guarded write support for low-risk toggles once each command is covered by protocol and live integration tests: Rapid, Silence, W-depend, and Disinfect schedule/state.
+2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
+3. Expand integration tests against the live unit so command support can be verified without relying on the official app for every field probe.
+4. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
+5. Add more Flow cards only where they create practical automation value, such as device unavailable events or newly mapped telemetry fields.
+6. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
+7. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
+8. Replace placeholder app images with proper app artwork before distribution outside local development.
 
 ## Protocol Notes
 

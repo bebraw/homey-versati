@@ -1,8 +1,18 @@
 import Homey from 'homey';
-import { GreeVersatiClient, type BoundGreeVersatiDevice } from '../../src/lib/gree-versati-client';
+import {
+  GreeVersatiClient,
+  type BoundGreeVersatiDevice,
+  type GreeVersatiDeviceInfo,
+} from '../../src/lib/gree-versati-client';
 
 interface PairSession {
   setHandler(name: string, handler: (...args: unknown[]) => Promise<unknown> | unknown): void;
+}
+
+interface ManualPairInput {
+  ip?: unknown;
+  port?: unknown;
+  mac?: unknown;
 }
 
 interface FlowDevice {
@@ -29,24 +39,14 @@ class GreeVersatiDriver extends Homey.Driver {
 
       return boundDevices
         .filter((result): result is PromiseFulfilledResult<BoundGreeVersatiDevice> => result.status === 'fulfilled')
-        .map((result) => {
-          const device = result.value;
-          const title = friendlyName(device);
-          return {
-            name: title,
-            data: {
-              id: device.mac,
-            },
-            store: {
-              ip: device.ip,
-              port: device.port,
-              mac: device.mac,
-              key: device.key,
-              encryptionVersion: device.encryptionVersion,
-              name: title,
-            },
-          };
-      });
+        .map((result) => pairDevice(result.value));
+    });
+
+    session.setHandler('manual_pair', async (input) => {
+      const endpoint = manualEndpoint(input as ManualPairInput);
+      const bound = await client.bind(endpoint);
+      await client.getState(bound);
+      return pairDevice(bound);
     });
   }
 
@@ -93,6 +93,75 @@ function friendlyName(device: BoundGreeVersatiDevice): string {
   const rawName = device.name && !/^[0-9a-f]{8,12}$/i.test(device.name) ? device.name : undefined;
   const suffix = device.mac.replace(/[^0-9a-f]/gi, '').slice(-4).toUpperCase();
   return rawName ?? `Gree Versati${suffix ? ` ${suffix}` : ''}`;
+}
+
+function pairDevice(device: BoundGreeVersatiDevice): Record<string, unknown> {
+  const title = friendlyName(device);
+  return {
+    name: title,
+    data: {
+      id: device.mac,
+    },
+    store: {
+      ip: device.ip,
+      port: device.port,
+      mac: device.mac,
+      key: device.key,
+      encryptionVersion: device.encryptionVersion,
+      name: title,
+    },
+    settings: {
+      ip: device.ip,
+      port: device.port,
+      mac: device.mac,
+      key: device.key,
+      encryptionVersion: device.encryptionVersion,
+    },
+  };
+}
+
+function manualEndpoint(input: ManualPairInput): GreeVersatiDeviceInfo {
+  const ip = cleanString(input.ip);
+  const mac = normalizeMac(cleanString(input.mac));
+  const port = Number(input.port || 7000);
+
+  if (!ip) {
+    throw new Error('IP address is required.');
+  }
+  if (!isValidIpv4(ip)) {
+    throw new Error('IP address must be a valid IPv4 address.');
+  }
+  if (!mac || !/^[0-9a-f]{12}$/.test(mac)) {
+    throw new Error('MAC address must contain 12 hexadecimal characters.');
+  }
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error('UDP port must be between 1 and 65535.');
+  }
+
+  return {
+    ip,
+    port,
+    mac,
+  };
+}
+
+function cleanString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeMac(mac: string): string {
+  return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
+}
+
+function isValidIpv4(ip: string): boolean {
+  const parts = ip.split('.');
+  return parts.length === 4 && parts.every((part) => {
+    if (!/^\d{1,3}$/.test(part)) {
+      return false;
+    }
+    const value = Number(part);
+    return value >= 0 && value <= 255 && String(value) === String(Number(part));
+  });
 }
 
 function flowDevice(args: Record<string, unknown>): FlowDevice {

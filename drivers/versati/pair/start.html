@@ -1,0 +1,26 @@
+<main class="pair-start">
+  <button class="button" id="scan" type="button">Scan network</button>
+  <button class="button-secondary" id="manual" type="button">Enter IP and MAC manually</button>
+</main>
+
+<style>
+  .pair-start {
+    display: grid;
+    gap: 12px;
+    padding: 16px 0;
+  }
+
+  .pair-start button {
+    width: 100%;
+  }
+</style>
+
+<script>
+  document.getElementById('scan').addEventListener('click', () => {
+    Homey.showView('list_devices');
+  });
+
+  document.getElementById('manual').addEventListener('click', () => {
+    Homey.showView('manual');
+  });
+</script>

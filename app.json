@@ -10,7 +10,7 @@
     "name": "Juhovepsalainen"
   },
   "description": {
-    "en": "Read-only local monitoring for Gree Versati air-to-water heat pumps."
+    "en": "Local monitoring and limited control for Gree Versati air-to-water heat pumps."
   },
   "brandColor": "#0f766e",
   "category": ["energy"],
@@ -53,6 +53,9 @@
       ],
       "pair": [
         {
+          "id": "start"
+        },
+        {
           "id": "list_devices",
           "template": "list_devices",
           "navigation": {
@@ -65,6 +68,9 @@
         {
           "id": "add_devices",
           "template": "add_devices"
+        },
+        {
+          "id": "manual"
         }
       ]
     }

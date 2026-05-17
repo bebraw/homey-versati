@@ -1,0 +1,95 @@
+<form id="manual-pair" class="manual-pair">
+  <label>
+    <span>IP address</span>
+    <input id="ip" name="ip" inputmode="decimal" autocomplete="off" placeholder="192.168.1.50" required />
+  </label>
+
+  <label>
+    <span>MAC address</span>
+    <input id="mac" name="mac" autocomplete="off" placeholder="001122334455" required />
+  </label>
+
+  <label>
+    <span>UDP port</span>
+    <input id="port" name="port" inputmode="numeric" type="number" min="1" max="65535" value="7000" required />
+  </label>
+
+  <button id="submit" class="button" type="submit">Connect</button>
+  <p id="status" role="status"></p>
+</form>
+
+<style>
+  .manual-pair {
+    display: grid;
+    gap: 14px;
+    padding: 8px 0;
+  }
+
+  .manual-pair label {
+    display: grid;
+    gap: 6px;
+  }
+
+  .manual-pair span {
+    font-weight: 600;
+  }
+
+  .manual-pair input {
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .manual-pair button {
+    width: 100%;
+  }
+
+  #status {
+    min-height: 20px;
+    margin: 0;
+  }
+</style>
+
+<script>
+  const form = document.getElementById('manual-pair');
+  const submit = document.getElementById('submit');
+  const status = document.getElementById('status');
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    status.textContent = 'Connecting...';
+
+    try {
+      const device = await Homey.emit('manual_pair', {
+        ip: document.getElementById('ip').value,
+        mac: document.getElementById('mac').value,
+        port: Number(document.getElementById('port').value || 7000),
+      });
+
+      await createDevice(device);
+      Homey.done();
+    } catch (error) {
+      status.textContent = '';
+      Homey.alert(error && error.message ? error.message : String(error), 'error');
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  function createDevice(device) {
+    return new Promise((resolve, reject) => {
+      if (Homey.createDevice.length >= 2) {
+        Homey.createDevice(device, (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        });
+        return;
+      }
+
+      Promise.resolve(Homey.createDevice(device)).then(resolve, reject);
+    });
+  }
+</script>
