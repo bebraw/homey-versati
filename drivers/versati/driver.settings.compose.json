@@ -1,0 +1,84 @@
+[
+  {
+    "id": "ip",
+    "type": "text",
+    "label": {
+      "en": "IP address"
+    },
+    "hint": {
+      "en": "Current local IP address of the heat pump."
+    },
+    "value": ""
+  },
+  {
+    "id": "port",
+    "type": "number",
+    "label": {
+      "en": "UDP port"
+    },
+    "hint": {
+      "en": "Gree Versati LAN protocol port. Usually 7000."
+    },
+    "value": 7000
+  },
+  {
+    "id": "mac",
+    "type": "text",
+    "label": {
+      "en": "MAC address"
+    },
+    "hint": {
+      "en": "Device MAC address without separators also works."
+    },
+    "value": ""
+  },
+  {
+    "id": "key",
+    "type": "password",
+    "label": {
+      "en": "Device key"
+    },
+    "hint": {
+      "en": "Leave empty to rebind when changing endpoint details."
+    },
+    "value": ""
+  },
+  {
+    "id": "encryptionVersion",
+    "type": "dropdown",
+    "label": {
+      "en": "Encryption version"
+    },
+    "hint": {
+      "en": "Detected during binding. Use version 1 unless diagnostics show otherwise."
+    },
+    "value": 1,
+    "values": [
+      {
+        "id": 1,
+        "label": {
+          "en": "Version 1 (AES-ECB)"
+        }
+      },
+      {
+        "id": 2,
+        "label": {
+          "en": "Version 2 (AES-GCM)"
+        }
+      }
+    ]
+  },
+  {
+    "id": "pollInterval",
+    "type": "number",
+    "label": {
+      "en": "Poll interval"
+    },
+    "hint": {
+      "en": "Polling interval in seconds. Changes apply after app restart."
+    },
+    "value": 30,
+    "min": 15,
+    "max": 300
+  }
+]

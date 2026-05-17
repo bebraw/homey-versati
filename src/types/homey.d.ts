@@ -17,7 +17,9 @@ declare module 'homey' {
     log(...args: unknown[]): void;
     error(...args: unknown[]): void;
     getSettings(): Record<string, unknown>;
+    setSettings(settings: Record<string, unknown>): Promise<void>;
     getStore(): Record<string, unknown>;
+    setStoreValue(key: string, value: unknown): Promise<void>;
     hasCapability(capability: string): boolean;
     setAvailable(): Promise<void>;
     setUnavailable(message?: string): Promise<void>;

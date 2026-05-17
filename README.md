@@ -86,6 +86,29 @@ The Homey CLI will ask which Homey to use if no device is selected yet. Keep the
 
 During pairing, the app sends a local discovery request and then binds to the selected heat pump. The returned device key is saved in the Homey device settings and reused for later read-only polling.
 
+## Repair And Diagnostics
+
+The device settings page exposes the current local endpoint:
+
+- IP address
+- UDP port
+- MAC address
+- device key
+- encryption version
+- poll interval
+
+Changing the endpoint settings tests the connection before saving. If the device key is left empty, the app attempts to bind again and stores the returned key.
+
+The app also keeps internal diagnostics in the Homey device store:
+
+- last successful poll time
+- last poll error
+- consecutive poll failure count
+- raw `Pow`, `Mod`, `SvSt`, and `SwDisFct`
+- normalized mode
+
+After repeated polling failures, the device is marked unavailable. It becomes available again after the next successful poll.
+
 ## Troubleshooting
 
 - If no device appears during pairing, confirm Homey and the heat pump are on the same subnet.
@@ -97,17 +120,14 @@ During pairing, the app sends a local discovery request and then binds to the se
 
 Planned follow-up work, roughly in priority order:
 
-1. Add diagnostics for IP, MAC, firmware, encryption version, last poll time, raw `Pow`/`Mod`, raw `SvSt`, and recent poll errors.
-2. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
-3. Add configurable polling interval with conservative lower and upper bounds.
-4. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
-5. Add write commands only after protocol and integration tests cover them, starting with low-risk targets: heating target, hot water target, Rapid, Silence, W-depend, and Disinfect schedule/state.
-6. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
-7. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); cooling modes are intentionally untested.
-8. Add Homey Flow cards for defrosting changes, hot water thresholds, W-depend, Rapid, Disinfect, device unavailable events, and telemetry changes.
-9. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
-10. Replace placeholder app images with proper app artwork.
-11. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
+1. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked before the device is paired.
+2. Add write commands only after protocol and integration tests cover them, starting with low-risk targets: heating target, hot water target, Rapid, Silence, W-depend, and Disinfect schedule/state.
+3. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
+4. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); cooling modes are intentionally untested.
+5. Add Homey Flow cards for defrosting changes, hot water thresholds, W-depend, Rapid, Disinfect, device unavailable events, and telemetry changes.
+6. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
+7. Replace placeholder app images with proper app artwork.
+8. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
 
 ## Protocol Notes
 

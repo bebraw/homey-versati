@@ -6,24 +6,35 @@ import {
 } from '../../src/lib/gree-versati-client';
 
 const POLL_INTERVAL_MS = 30_000;
+const MIN_POLL_INTERVAL_MS = 15_000;
+const MAX_POLL_INTERVAL_MS = 300_000;
+const UNAVAILABLE_AFTER_FAILURES = 3;
 
 type VersatiSettings = BoundGreeVersatiDevice & {
   name?: string;
+  pollInterval?: number;
+};
+
+type SettingsValue = boolean | string | number | undefined | null;
+
+interface SettingsEvent {
+  oldSettings: Record<string, SettingsValue>;
+  newSettings: Record<string, SettingsValue>;
+  changedKeys: string[];
 };
 
 class GreeVersatiDevice extends Homey.Device {
   private client?: GreeVersatiClient;
   private pollTimer?: NodeJS.Timeout;
+  private consecutiveFailures = 0;
 
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
-    await this.refreshState().catch((error) => {
-      this.error('Initial Gree Versati refresh failed', error);
-      return this.setUnavailable('Could not read heat pump state yet');
-    });
+    await this.syncSettingsFromStore();
+    await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
-      this.refreshState().catch((error) => this.error('Failed to refresh Gree Versati state', error));
-    }, POLL_INTERVAL_MS);
+      this.refreshState().catch((error) => this.handleRefreshFailure(error, false));
+    }, this.pollIntervalMs());
   }
 
   async onDeleted(): Promise<void> {
@@ -33,10 +44,42 @@ class GreeVersatiDevice extends Homey.Device {
     }
   }
 
+  async onSettings({ newSettings, changedKeys }: SettingsEvent): Promise<string | void> {
+    if (!changedKeys.some((key) => ['ip', 'port', 'mac', 'key', 'encryptionVersion', 'pollInterval'].includes(key))) {
+      return;
+    }
+
+    const endpoint = endpointFromSettings(newSettings);
+    const client = this.clientOrThrow();
+    let bound: BoundGreeVersatiDevice;
+
+    if (endpoint.key) {
+      bound = {
+        ip: endpoint.ip,
+        port: endpoint.port,
+        mac: endpoint.mac,
+        key: endpoint.key,
+        encryptionVersion: endpoint.encryptionVersion,
+      };
+      await client.getState(bound);
+    } else {
+      bound = await client.bind(endpoint);
+      await client.getState(bound);
+    }
+
+    await this.persistEndpoint(bound);
+    this.consecutiveFailures = 0;
+    await this.refreshState();
+    return 'Gree Versati connection updated.';
+  }
+
   private async refreshState(): Promise<void> {
-    const state = await this.clientOrThrow().getState(this.boundDevice());
+    const device = this.boundDevice();
+    const state = await this.clientOrThrow().getState(device);
+    this.consecutiveFailures = 0;
     await this.setAvailable();
     await this.applyCapabilities(state);
+    await this.updateDiagnostics(device, state);
   }
 
   private async applyCapabilities(state: GreeVersatiState): Promise<void> {
@@ -71,17 +114,28 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private boundDevice(): BoundGreeVersatiDevice {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
     const stored = this.getStore() as Partial<VersatiSettings>;
-    if (!stored.ip || !stored.port || !stored.mac || !stored.key || !stored.encryptionVersion) {
+    const merged = {
+      ...stored,
+      ip: cleanString(settings.ip) || stored.ip,
+      port: Number(settings.port || stored.port),
+      mac: cleanString(settings.mac) || stored.mac,
+      key: cleanString(settings.key) || stored.key,
+      encryptionVersion: Number(settings.encryptionVersion || stored.encryptionVersion),
+      name: cleanString(settings.name) || stored.name,
+    };
+
+    if (!merged.ip || !merged.port || !merged.mac || !merged.key || !merged.encryptionVersion) {
       throw new Error('Gree Versati device is missing pairing store data');
     }
     return {
-      ip: stored.ip,
-      port: Number(stored.port),
-      mac: stored.mac,
-      key: stored.key,
-      encryptionVersion: Number(stored.encryptionVersion) === 2 ? 2 : 1,
-      name: stored.name,
+      ip: merged.ip,
+      port: Number(merged.port),
+      mac: normalizeMac(merged.mac),
+      key: merged.key,
+      encryptionVersion: Number(merged.encryptionVersion) === 2 ? 2 : 1,
+      name: merged.name,
     };
   }
 
@@ -91,6 +145,100 @@ class GreeVersatiDevice extends Homey.Device {
     }
     return this.client;
   }
+
+  private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
+    this.consecutiveFailures += 1;
+    const message = error instanceof Error ? error.message : String(error);
+    this.error(initial ? 'Initial Gree Versati refresh failed' : 'Failed to refresh Gree Versati state', error);
+    await this.setStoreValue('lastPollError', message);
+    await this.setStoreValue('lastPollErrorAt', new Date().toISOString());
+    await this.setStoreValue('consecutivePollFailures', this.consecutiveFailures);
+
+    if (initial || this.consecutiveFailures >= UNAVAILABLE_AFTER_FAILURES) {
+      await this.setUnavailable(`Could not read heat pump state: ${message}`);
+    }
+  }
+
+  private async updateDiagnostics(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
+    const now = new Date().toISOString();
+    await Promise.all([
+      this.setStoreValue('ip', device.ip),
+      this.setStoreValue('port', device.port),
+      this.setStoreValue('mac', device.mac),
+      this.setStoreValue('encryptionVersion', device.encryptionVersion),
+      this.setStoreValue('lastSuccessfulPollAt', now),
+      this.setStoreValue('lastPollError', ''),
+      this.setStoreValue('consecutivePollFailures', 0),
+      this.setStoreValue('diagnosticPower', state.raw.Pow),
+      this.setStoreValue('diagnosticMode', state.raw.Mod),
+      this.setStoreValue('diagnosticWeatherDependent', state.raw.SvSt),
+      this.setStoreValue('diagnosticDisinfect', state.raw.SwDisFct),
+      this.setStoreValue('diagnosticNormalizedMode', state.mode),
+    ]);
+  }
+
+  private async persistEndpoint(device: BoundGreeVersatiDevice): Promise<void> {
+    await Promise.all([
+      this.setStoreValue('ip', device.ip),
+      this.setStoreValue('port', device.port),
+      this.setStoreValue('mac', normalizeMac(device.mac)),
+      this.setStoreValue('key', device.key),
+      this.setStoreValue('encryptionVersion', device.encryptionVersion),
+    ]);
+  }
+
+  private async syncSettingsFromStore(): Promise<void> {
+    const store = this.getStore() as Partial<VersatiSettings>;
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const updates: Record<string, string | number> = {};
+
+    if (store.ip && !settings.ip) updates.ip = store.ip;
+    if (store.port && !settings.port) updates.port = Number(store.port);
+    if (store.mac && !settings.mac) updates.mac = normalizeMac(store.mac);
+    if (store.key && !settings.key) updates.key = store.key;
+    if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = store.encryptionVersion;
+
+    if (Object.keys(updates).length) {
+      await this.setSettings(updates);
+    }
+  }
+
+  private pollIntervalMs(): number {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const seconds = Number(settings.pollInterval || POLL_INTERVAL_MS / 1000);
+    if (!Number.isFinite(seconds)) {
+      return POLL_INTERVAL_MS;
+    }
+    return Math.min(Math.max(seconds * 1000, MIN_POLL_INTERVAL_MS), MAX_POLL_INTERVAL_MS);
+  }
 }
 
 module.exports = GreeVersatiDevice;
+
+function endpointFromSettings(settings: Record<string, SettingsValue>): BoundGreeVersatiDevice {
+  const ip = cleanString(settings.ip);
+  const mac = normalizeMac(cleanString(settings.mac));
+  const port = Number(settings.port || 7000);
+  const key = cleanString(settings.key);
+  const encryptionVersion = Number(settings.encryptionVersion) === 2 ? 2 : 1;
+
+  if (!ip || !mac || !Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error('IP address, MAC address, and valid UDP port are required.');
+  }
+
+  return {
+    ip,
+    port,
+    mac,
+    key,
+    encryptionVersion,
+  };
+}
+
+function cleanString(value: unknown): string {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizeMac(mac: string): string {
+  return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
+}
