@@ -35,6 +35,10 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Change target temperatures:
   - heating target, clamped to `20-55°C`
   - hot water target, clamped to `30-60°C`
+- Use Homey Flow cards:
+  - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
+  - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, and defrosting state
+  - actions for changing mode and heating or hot water target temperatures
 
 ## Requirements
 
@@ -132,7 +136,7 @@ Planned follow-up work, roughly in priority order:
 2. Add more write commands only after protocol and integration tests cover them, starting with low-risk toggles: Rapid, Silence, W-depend, and Disinfect schedule/state.
 3. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
 4. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-5. Add Homey Flow cards for defrosting changes, hot water thresholds, W-depend, Rapid, Disinfect, device unavailable events, and telemetry changes.
+5. Add additional Flow cards if useful, especially device unavailable events and any newly mapped telemetry fields.
 6. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 7. Replace placeholder app images with proper app artwork.
 8. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.

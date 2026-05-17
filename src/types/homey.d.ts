@@ -1,19 +1,37 @@
 declare module 'homey' {
+  interface FlowCard {
+    registerRunListener(
+      listener: (args: Record<string, unknown>, state?: Record<string, unknown>) => Promise<boolean | void> | boolean | void,
+    ): void;
+    trigger(device?: Device, tokens?: Record<string, unknown>, state?: Record<string, unknown>): Promise<void>;
+  }
+
+  interface FlowManager {
+    getActionCard(id: string): FlowCard;
+    getConditionCard(id: string): FlowCard;
+    getTriggerCard(id: string): FlowCard;
+  }
+
+  interface HomeyRuntime {
+    flow: FlowManager;
+    setInterval(callback: () => void, ms: number): NodeJS.Timeout;
+    clearInterval(timer: NodeJS.Timeout): void;
+  }
+
   class App {
+    homey: HomeyRuntime;
     log(...args: unknown[]): void;
     error(...args: unknown[]): void;
   }
 
   class Driver {
+    homey: HomeyRuntime;
     log(...args: unknown[]): void;
     error(...args: unknown[]): void;
   }
 
   class Device {
-    homey: {
-      setInterval(callback: () => void, ms: number): NodeJS.Timeout;
-      clearInterval(timer: NodeJS.Timeout): void;
-    };
+    homey: HomeyRuntime;
     log(...args: unknown[]): void;
     error(...args: unknown[]): void;
     getSettings(): Record<string, unknown>;
@@ -21,6 +39,7 @@ declare module 'homey' {
     getStore(): Record<string, unknown>;
     setStoreValue(key: string, value: unknown): Promise<void>;
     hasCapability(capability: string): boolean;
+    getCapabilityValue(capability: string): boolean | number | string | null;
     registerCapabilityListener(
       capability: string,
       listener: (value: unknown, opts?: Record<string, unknown>) => Promise<void> | void,

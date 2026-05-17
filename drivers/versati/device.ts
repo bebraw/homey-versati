@@ -14,6 +14,30 @@ const POLL_INTERVAL_MS = 30_000;
 const MIN_POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_INTERVAL_MS = 300_000;
 const UNAVAILABLE_AFTER_FAILURES = 3;
+const FLOW_TRIGGER_TOKENS: Record<string, string> = {
+  measure_temperature_hot_water: 'measure_temperature_hot_water',
+  target_temperature_heating: 'target_temperature_heating',
+  target_temperature_hot_water: 'target_temperature_hot_water',
+  heatpump_mode: 'heatpump_mode',
+};
+const BOOLEAN_FLOW_TRIGGER_IDS: Record<string, { true: string; false: string }> = {
+  heatpump_defrosting: {
+    true: 'heatpump_defrosting_true',
+    false: 'heatpump_defrosting_false',
+  },
+  heatpump_fast_hot_water: {
+    true: 'heatpump_fast_hot_water_true',
+    false: 'heatpump_fast_hot_water_false',
+  },
+  heatpump_weather_dependent: {
+    true: 'heatpump_weather_dependent_true',
+    false: 'heatpump_weather_dependent_false',
+  },
+  heatpump_disinfect: {
+    true: 'heatpump_disinfect_true',
+    false: 'heatpump_disinfect_false',
+  },
+};
 
 type VersatiSettings = BoundGreeVersatiDevice & {
   name?: string;
@@ -87,6 +111,32 @@ class GreeVersatiDevice extends Homey.Device {
     return 'Gree Versati connection updated.';
   }
 
+  async flowSetMode(mode: unknown): Promise<void> {
+    await this.setModeFromHomey(mode);
+  }
+
+  async flowSetHeatingTarget(temperature: unknown): Promise<void> {
+    await this.setHeatingTargetFromHomey(temperature);
+  }
+
+  async flowSetHotWaterTarget(temperature: unknown): Promise<void> {
+    await this.setHotWaterTargetFromHomey(temperature);
+  }
+
+  flowModeIs(mode: unknown): boolean {
+    return this.getCapabilityValue('heatpump_mode') === mode;
+  }
+
+  flowHotWaterBelow(temperature: unknown): boolean {
+    const threshold = Number(temperature);
+    const current = this.getCapabilityValue('measure_temperature_hot_water');
+    return Number.isFinite(threshold) && typeof current === 'number' && current < threshold;
+  }
+
+  flowCapabilityIsOn(capability: string): boolean {
+    return this.getCapabilityValue(capability) === true;
+  }
+
   private async refreshState(): Promise<void> {
     const device = this.boundDevice();
     const state = await this.clientOrThrow().getState(device);
@@ -122,9 +172,34 @@ class GreeVersatiDevice extends Homey.Device {
     if (value === null || !this.hasCapability(capability)) {
       return;
     }
-    await this.setCapabilityValue(capability, value).catch((error) => {
+    const previous = this.getCapabilityValue(capability);
+    try {
+      await this.setCapabilityValue(capability, value);
+    } catch (error) {
       this.error(`Failed to set ${capability}`, error);
-    });
+      return;
+    }
+    if (previous !== null && previous !== value) {
+      await this.triggerCapabilityFlow(capability, value);
+    }
+  }
+
+  private async triggerCapabilityFlow(capability: string, value: boolean | number | string): Promise<void> {
+    const token = FLOW_TRIGGER_TOKENS[capability];
+    const booleanTriggerIds = BOOLEAN_FLOW_TRIGGER_IDS[capability];
+    const triggerId = typeof value === 'boolean' && booleanTriggerIds ? booleanTriggerIds[String(value) as 'true' | 'false'] : undefined;
+
+    if (token) {
+      await this.homey.flow.getTriggerCard(`${capability}_changed`).trigger(this, { [token]: value }).catch((error) => {
+        this.error(`Failed to trigger ${capability}_changed flow`, error);
+      });
+    }
+
+    if (triggerId) {
+      await this.homey.flow.getTriggerCard(triggerId).trigger(this).catch((error) => {
+        this.error(`Failed to trigger ${triggerId} flow`, error);
+      });
+    }
   }
 
   private boundDevice(): BoundGreeVersatiDevice {
