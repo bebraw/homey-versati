@@ -28,6 +28,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - HP-heater 1 and 2 states
   - frost protection state
   - EVU state
+  - Homey curve outdoor temperature and calculated heating target
 - Change heat pump mode:
   - off
   - hot water
@@ -41,6 +42,12 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - Silence
   - W-depend weather-dependent heating
   - Disinfect schedule/state
+- Run Homey-managed weather compensation:
+  - Homey calculates a heating water target from its own two-point outdoor temperature curve
+  - dry-run mode previews the calculated target without writing
+  - write mode updates the heating target only in `Heat + hot water` mode
+  - writes are clamped, deadbanded, and rate-limited
+  - outdoor temperature can come from a manual setting or a Homey Flow action
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
   - triggers for EVU changes
@@ -194,12 +201,30 @@ After a polling failure, the app attempts MAC-based rediscovery. If DHCP gave th
 - Some devices return encrypted discovery packets; this client supports both plain and encrypted discovery replies.
 - If the mode shows as `other`, the device returned a mode code not yet mapped to a known read-only mode. The raw mode is still read safely, but no command assumptions are made.
 
+## Homey Weather Curve
+
+`W-depend` is only the heat pump's own weather-curve toggle. The curve itself is a simple two-point mapping inside the unit, and the Gree app does not expose enough control to make that useful from Homey.
+
+The app can instead run a Homey-managed curve. It reads an outdoor temperature from the device settings or from a Homey Flow action, calculates a heating water target from two configured points, and optionally writes that target to the heat pump.
+
+Default settings are conservative:
+
+- control mode: `Dry run`
+- outdoor source: `Manual temperature`
+- `-20°C` outdoor maps to `40°C` heating target
+- `10°C` outdoor maps to `25°C` heating target
+- target clamp: `20-55°C`
+- write deadband: `1°C`
+- minimum write interval: `1800` seconds
+
+Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
+
 ## Roadmap
 
 Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
-2. Run the read-only weather-curve probe while changing one visible curve setting externally. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
+2. Tune the Homey-managed weather curve against real heating behavior and consider adding Flow cards for curve skipped/write events if useful.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
 5. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.

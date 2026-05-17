@@ -42,7 +42,7 @@ Official state parameter screen mappings:
 - `HP-heater 1` maps to `ElcHe1RunSta`.
 - `HP-heater 2` maps to `ElcHe2RunSta`.
 - `Automatic frost protection` maps to `AnFrzzRunSta`.
-- `W-depend` maps to `SvSt` on the tested unit. Upstream labelled this as power save, but official app behavior indicates weather-dependent heating state.
+- `W-depend` maps to `SvSt` on the tested unit. It is only the device's built-in weather-curve toggle; the underlying curve is a simple two-point outdoor-temperature-to-heating-target mapping and is not useful enough by itself for Homey automation.
 - `Disinfect` maps to `SwDisFct`.
 - `EVU` maps to `EVU` and is exposed as a read-only Homey capability.
 - `VersatiSeries` maps to `VersatiSeries` and is stored as diagnostics.
@@ -51,7 +51,7 @@ Official state parameter screen mappings:
 Weather-dependent curve mapping status:
 
 - `W-depend` enable state is confirmed as `SvSt`.
-- Curve configuration fields are not confirmed yet.
+- The built-in curve configuration fields are not confirmed yet, but Homey-managed weather compensation can bypass them by writing `HeWatOutTemSet` from Homey's own curve.
 - Probe one visible curve parameter at a time, preferably with `W-depend` enabled and the unit in heating mode.
 - Do not add write commands for curve fields until a read-only before/after mapping and restore behavior are confirmed.
 

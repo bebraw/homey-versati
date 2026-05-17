@@ -23,6 +23,7 @@ interface FlowDevice {
   flowSetSilence(enabled: unknown): Promise<void>;
   flowSetWeatherDependent(enabled: unknown): Promise<void>;
   flowSetDisinfect(enabled: unknown): Promise<void>;
+  flowSetCurveOutdoorTemperature(temperature: unknown): Promise<void>;
   flowModeIs(mode: unknown): boolean;
   flowHotWaterBelow(temperature: unknown): boolean;
   flowCapabilityIsOn(capability: string): boolean;
@@ -82,6 +83,10 @@ class GreeVersatiDriver extends Homey.Driver {
 
     this.homey.flow.getActionCard('set_disinfect').registerRunListener(async (args) => {
       await flowDevice(args).flowSetDisinfect(dropdownValue(args.enabled));
+    });
+
+    this.homey.flow.getActionCard('set_curve_outdoor_temperature').registerRunListener(async (args) => {
+      await flowDevice(args).flowSetCurveOutdoorTemperature(numberValue(args.temperature));
     });
 
     this.homey.flow.getConditionCard('mode_is').registerRunListener((args) => {
@@ -144,7 +149,7 @@ function pairDevice(device: BoundGreeVersatiDevice): Record<string, unknown> {
       port: device.port,
       mac: device.mac,
       key: device.key,
-      encryptionVersion: device.encryptionVersion,
+      encryptionVersion: String(device.encryptionVersion),
     },
   };
 }

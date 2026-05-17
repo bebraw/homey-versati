@@ -9,11 +9,31 @@ import {
   type GreeVersatiState,
   type WritableGreeVersatiMode,
 } from '../../src/lib/gree-versati-client';
+import {
+  DEFAULT_WEATHER_CURVE_CONFIG,
+  calculateWeatherCurveTarget,
+  type WeatherCurveConfig,
+} from '../../src/lib/weather-curve';
 
 const POLL_INTERVAL_MS = 30_000;
 const MIN_POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_INTERVAL_MS = 300_000;
 const UNAVAILABLE_AFTER_FAILURES = 3;
+const DEFAULT_CURVE_DEADBAND = 1;
+const DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS = 1800;
+const CURVE_SETTING_KEYS = [
+  'curveControlMode',
+  'curveOutdoorSource',
+  'curveManualOutdoorTemperature',
+  'curveOutdoorLow',
+  'curveTargetAtOutdoorLow',
+  'curveOutdoorHigh',
+  'curveTargetAtOutdoorHigh',
+  'curveTargetMin',
+  'curveTargetMax',
+  'curveDeadband',
+  'curveMinWriteInterval',
+];
 const FLOW_TRIGGER_TOKENS: Record<string, string> = {
   measure_temperature_hot_water: 'measure_temperature_hot_water',
   target_temperature_heating: 'target_temperature_heating',
@@ -46,7 +66,27 @@ const BOOLEAN_FLOW_TRIGGER_IDS: Record<string, { true: string; false: string }> 
 type VersatiSettings = BoundGreeVersatiDevice & {
   name?: string;
   pollInterval?: number;
+  curveControlMode?: 'disabled' | 'dry_run' | 'write';
+  curveOutdoorSource?: 'manual' | 'flow';
+  curveManualOutdoorTemperature?: number;
+  curveOutdoorLow?: number;
+  curveTargetAtOutdoorLow?: number;
+  curveOutdoorHigh?: number;
+  curveTargetAtOutdoorHigh?: number;
+  curveTargetMin?: number;
+  curveTargetMax?: number;
+  curveDeadband?: number;
+  curveMinWriteInterval?: number;
 };
+
+interface WeatherCurveSettings {
+  controlMode: 'disabled' | 'dry_run' | 'write';
+  outdoorSource: 'manual' | 'flow';
+  manualOutdoorTemperature: number;
+  config: WeatherCurveConfig;
+  deadband: number;
+  minWriteIntervalMs: number;
+}
 
 type SettingsValue = boolean | string | number | undefined | null;
 
@@ -101,6 +141,10 @@ class GreeVersatiDevice extends Homey.Device {
 
   async onSettings({ newSettings, changedKeys }: SettingsEvent): Promise<string | void> {
     if (!changedKeys.some((key) => ['ip', 'port', 'mac', 'key', 'encryptionVersion', 'pollInterval'].includes(key))) {
+      if (changedKeys.some((key) => CURVE_SETTING_KEYS.includes(key))) {
+        await this.refreshState();
+        return 'Gree Versati weather curve settings updated.';
+      }
       return;
     }
 
@@ -156,6 +200,15 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setDisinfectFromHomey(enabled);
   }
 
+  async flowSetCurveOutdoorTemperature(temperature: unknown): Promise<void> {
+    const outdoorTemperature = Number(temperature);
+    if (!Number.isFinite(outdoorTemperature)) {
+      throw new Error(`Invalid curve outdoor temperature: ${String(temperature)}`);
+    }
+    await this.setStoreValue('weatherCurveFlowOutdoorTemperature', outdoorTemperature);
+    await this.refreshState();
+  }
+
   flowModeIs(mode: unknown): boolean {
     return this.getCapabilityValue('heatpump_mode') === mode;
   }
@@ -185,6 +238,7 @@ class GreeVersatiDevice extends Homey.Device {
     this.consecutiveFailures = 0;
     await this.applyCapabilities(state);
     await this.updateDiagnostics(device, state);
+    await this.applyWeatherCurveControl(device, state);
     await this.setAvailable();
     this.reachable = true;
     if (!wasReachable) {
@@ -411,6 +465,105 @@ class GreeVersatiDevice extends Homey.Device {
     });
   }
 
+  private async applyWeatherCurveControl(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
+    const settings = this.weatherCurveSettings();
+    await this.setStoreValue('weatherCurveMode', settings.controlMode);
+    if (settings.controlMode === 'disabled') {
+      await this.setStoreValue('weatherCurveLastSkippedReason', 'disabled');
+      return;
+    }
+
+    try {
+      const outdoorTemperature = await this.weatherCurveOutdoorTemperature(settings);
+      const result = calculateWeatherCurveTarget(outdoorTemperature, settings.config);
+      await this.setCapabilityIfPresent('weather_curve_outdoor_temperature', result.outdoorTemperature);
+      await this.setCapabilityIfPresent('weather_curve_heating_target', result.targetTemperature);
+      await this.setStoreValue('weatherCurveOutdoorTemperature', result.outdoorTemperature);
+      await this.setStoreValue('weatherCurveHeatingTarget', result.targetTemperature);
+      await this.setStoreValue('weatherCurveLastEvaluatedAt', new Date().toISOString());
+
+      if (settings.controlMode === 'dry_run') {
+        await this.setStoreValue('weatherCurveLastSkippedReason', 'dry_run');
+        return;
+      }
+      if (state.mode !== 'heat_hot_water') {
+        await this.setStoreValue('weatherCurveLastSkippedReason', `mode:${state.mode}`);
+        return;
+      }
+      if (state.heatingTargetTemperature === null) {
+        await this.setStoreValue('weatherCurveLastSkippedReason', 'missing_current_heating_target');
+        return;
+      }
+      if (Math.abs(state.heatingTargetTemperature - result.targetTemperature) < settings.deadband) {
+        await this.setStoreValue('weatherCurveLastSkippedReason', 'deadband');
+        return;
+      }
+      if (!this.weatherCurveWriteIntervalElapsed(settings.minWriteIntervalMs)) {
+        await this.setStoreValue('weatherCurveLastSkippedReason', 'minimum_write_interval');
+        return;
+      }
+
+      await this.clientOrThrow().setHeatingTargetTemperature(device, result.targetTemperature);
+      await this.setCapabilityIfPresent('target_temperature_heating', result.targetTemperature);
+      await this.setStoreValue('weatherCurveLastWriteAt', new Date().toISOString());
+      await this.setStoreValue('weatherCurveLastWrittenTarget', result.targetTemperature);
+      await this.setStoreValue('weatherCurveLastSkippedReason', '');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      await this.setStoreValue('weatherCurveLastError', message);
+      await this.setStoreValue('weatherCurveLastSkippedReason', `error:${message}`);
+      this.error('Failed to apply Homey curve control', error);
+    }
+  }
+
+  private async weatherCurveOutdoorTemperature(settings: WeatherCurveSettings): Promise<number> {
+    if (settings.outdoorSource === 'manual') {
+      return settings.manualOutdoorTemperature;
+    }
+    const temperature = Number(this.getStore().weatherCurveFlowOutdoorTemperature);
+    if (!Number.isFinite(temperature)) {
+      throw new Error('No flow-provided outdoor temperature is available yet');
+    }
+    return temperature;
+  }
+
+  private weatherCurveWriteIntervalElapsed(minWriteIntervalMs: number): boolean {
+    const lastWriteAt = stringStoreValue(this.getStore().weatherCurveLastWriteAt);
+    if (!lastWriteAt) {
+      return true;
+    }
+    const elapsedMs = Date.now() - Date.parse(lastWriteAt);
+    return !Number.isFinite(elapsedMs) || elapsedMs >= minWriteIntervalMs;
+  }
+
+  private weatherCurveSettings(): WeatherCurveSettings {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const controlMode = settings.curveControlMode === 'write' || settings.curveControlMode === 'disabled'
+      ? settings.curveControlMode
+      : 'dry_run';
+    const outdoorSource = settings.curveOutdoorSource === 'flow' ? 'flow' : 'manual';
+    const config: WeatherCurveConfig = {
+      outdoorLow: numberSetting(settings.curveOutdoorLow, DEFAULT_WEATHER_CURVE_CONFIG.outdoorLow),
+      targetAtOutdoorLow: numberSetting(settings.curveTargetAtOutdoorLow, DEFAULT_WEATHER_CURVE_CONFIG.targetAtOutdoorLow),
+      outdoorHigh: numberSetting(settings.curveOutdoorHigh, DEFAULT_WEATHER_CURVE_CONFIG.outdoorHigh),
+      targetAtOutdoorHigh: numberSetting(settings.curveTargetAtOutdoorHigh, DEFAULT_WEATHER_CURVE_CONFIG.targetAtOutdoorHigh),
+      targetMin: numberSetting(settings.curveTargetMin, DEFAULT_WEATHER_CURVE_CONFIG.targetMin),
+      targetMax: numberSetting(settings.curveTargetMax, DEFAULT_WEATHER_CURVE_CONFIG.targetMax),
+    };
+
+    return {
+      controlMode,
+      outdoorSource,
+      manualOutdoorTemperature: numberSetting(settings.curveManualOutdoorTemperature, 0),
+      config,
+      deadband: Math.max(0, numberSetting(settings.curveDeadband, DEFAULT_CURVE_DEADBAND)),
+      minWriteIntervalMs: Math.max(0, numberSetting(
+        settings.curveMinWriteInterval,
+        DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS,
+      ) * 1000),
+    };
+  }
+
   private async updateDiagnostics(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
     const now = new Date().toISOString();
     await Promise.all([
@@ -442,7 +595,7 @@ class GreeVersatiDevice extends Homey.Device {
     if (settings.mac !== normalizedMac) settingsUpdates.mac = normalizedMac;
     if (settings.key !== device.key) settingsUpdates.key = device.key;
     if (Number(settings.encryptionVersion) !== device.encryptionVersion) {
-      settingsUpdates.encryptionVersion = device.encryptionVersion;
+      settingsUpdates.encryptionVersion = String(device.encryptionVersion);
     }
 
     await Promise.all([
@@ -466,7 +619,7 @@ class GreeVersatiDevice extends Homey.Device {
     if (store.port && !settings.port) updates.port = Number(store.port);
     if (store.mac && !settings.mac) updates.mac = normalizeMac(store.mac);
     if (store.key && !settings.key) updates.key = store.key;
-    if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = store.encryptionVersion;
+    if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = String(store.encryptionVersion);
 
     if (Object.keys(updates).length) {
       await this.setSettings(updates);
@@ -515,6 +668,11 @@ function normalizeMac(mac: string): string {
 
 function stringStoreValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function numberSetting(value: unknown, fallback: number): number {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : fallback;
 }
 
 function isWritableMode(value: unknown): value is WritableGreeVersatiMode {

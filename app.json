@@ -76,7 +76,9 @@
         "heatpump_hp_heater_1",
         "heatpump_hp_heater_2",
         "heatpump_frost_protection",
-        "heatpump_evu"
+        "heatpump_evu",
+        "weather_curve_outdoor_temperature",
+        "weather_curve_heating_target"
       ],
       "pair": [
         {
@@ -98,6 +100,266 @@
         },
         {
           "id": "manual"
+        }
+      ],
+      "settings": [
+        {
+          "id": "ip",
+          "type": "text",
+          "label": {
+            "en": "IP address"
+          },
+          "hint": {
+            "en": "Current local IP address of the heat pump."
+          },
+          "value": "",
+          "highlight": true
+        },
+        {
+          "id": "port",
+          "type": "number",
+          "label": {
+            "en": "UDP port"
+          },
+          "hint": {
+            "en": "Gree Versati LAN protocol port. Usually 7000."
+          },
+          "value": 7000
+        },
+        {
+          "id": "mac",
+          "type": "text",
+          "label": {
+            "en": "MAC address"
+          },
+          "hint": {
+            "en": "Device MAC address without separators also works."
+          },
+          "value": "",
+          "highlight": true
+        },
+        {
+          "id": "key",
+          "type": "password",
+          "label": {
+            "en": "Device key"
+          },
+          "hint": {
+            "en": "Leave empty to rebind when changing endpoint details."
+          },
+          "value": "",
+          "highlight": true
+        },
+        {
+          "id": "encryptionVersion",
+          "type": "dropdown",
+          "label": {
+            "en": "Encryption version"
+          },
+          "hint": {
+            "en": "Detected during binding. Use version 1 unless diagnostics show otherwise."
+          },
+          "value": "1",
+          "values": [
+            {
+              "id": "1",
+              "label": {
+                "en": "Version 1 (AES-ECB)"
+              }
+            },
+            {
+              "id": "2",
+              "label": {
+                "en": "Version 2 (AES-GCM)"
+              }
+            }
+          ]
+        },
+        {
+          "id": "pollInterval",
+          "type": "number",
+          "label": {
+            "en": "Poll interval"
+          },
+          "hint": {
+            "en": "Polling interval in seconds. Changes apply after app restart."
+          },
+          "value": 30,
+          "min": 15,
+          "max": 300
+        },
+        {
+          "id": "curveControlMode",
+          "type": "dropdown",
+          "label": {
+            "en": "Homey curve control"
+          },
+          "hint": {
+            "en": "Dry run only calculates the target. Write target lets Homey update the heating water target from its own two-point curve."
+          },
+          "value": "dry_run",
+          "values": [
+            {
+              "id": "disabled",
+              "label": {
+                "en": "Disabled"
+              }
+            },
+            {
+              "id": "dry_run",
+              "label": {
+                "en": "Dry run"
+              }
+            },
+            {
+              "id": "write",
+              "label": {
+                "en": "Write heating target"
+              }
+            }
+          ]
+        },
+        {
+          "id": "curveOutdoorSource",
+          "type": "dropdown",
+          "label": {
+            "en": "Curve outdoor source"
+          },
+          "hint": {
+            "en": "Use a manual temperature, or let a Homey Flow feed an outdoor sensor/weather value."
+          },
+          "value": "manual",
+          "values": [
+            {
+              "id": "manual",
+              "label": {
+                "en": "Manual temperature"
+              }
+            },
+            {
+              "id": "flow",
+              "label": {
+                "en": "Flow-provided temperature"
+              }
+            }
+          ]
+        },
+        {
+          "id": "curveManualOutdoorTemperature",
+          "type": "number",
+          "label": {
+            "en": "Manual outdoor temperature"
+          },
+          "hint": {
+            "en": "Used only when curve outdoor source is manual."
+          },
+          "value": 0,
+          "min": -50,
+          "max": 50
+        },
+        {
+          "id": "curveOutdoorLow",
+          "type": "number",
+          "label": {
+            "en": "Outdoor low"
+          },
+          "hint": {
+            "en": "Outdoor temperature for the high water target point."
+          },
+          "value": -20,
+          "min": -50,
+          "max": 30
+        },
+        {
+          "id": "curveTargetAtOutdoorLow",
+          "type": "number",
+          "label": {
+            "en": "Target at outdoor low"
+          },
+          "hint": {
+            "en": "Heating water target when outdoor temperature is at outdoor low."
+          },
+          "value": 40,
+          "min": 20,
+          "max": 55
+        },
+        {
+          "id": "curveOutdoorHigh",
+          "type": "number",
+          "label": {
+            "en": "Outdoor high"
+          },
+          "hint": {
+            "en": "Outdoor temperature for the low water target point."
+          },
+          "value": 10,
+          "min": -30,
+          "max": 50
+        },
+        {
+          "id": "curveTargetAtOutdoorHigh",
+          "type": "number",
+          "label": {
+            "en": "Target at outdoor high"
+          },
+          "hint": {
+            "en": "Heating water target when outdoor temperature is at outdoor high."
+          },
+          "value": 25,
+          "min": 20,
+          "max": 55
+        },
+        {
+          "id": "curveTargetMin",
+          "type": "number",
+          "label": {
+            "en": "Curve target minimum"
+          },
+          "hint": {
+            "en": "Minimum Homey-managed heating water target."
+          },
+          "value": 20,
+          "min": 20,
+          "max": 55
+        },
+        {
+          "id": "curveTargetMax",
+          "type": "number",
+          "label": {
+            "en": "Curve target maximum"
+          },
+          "hint": {
+            "en": "Maximum Homey-managed heating water target."
+          },
+          "value": 55,
+          "min": 20,
+          "max": 55
+        },
+        {
+          "id": "curveDeadband",
+          "type": "number",
+          "label": {
+            "en": "Curve write deadband"
+          },
+          "hint": {
+            "en": "Only write when the calculated target differs from the current heating target by at least this many degrees."
+          },
+          "value": 1,
+          "min": 0,
+          "max": 10
+        },
+        {
+          "id": "curveMinWriteInterval",
+          "type": "number",
+          "label": {
+            "en": "Curve minimum write interval"
+          },
+          "hint": {
+            "en": "Minimum seconds between automatic curve target writes."
+          },
+          "value": 1800,
+          "min": 300,
+          "max": 86400
         }
       ]
     }
@@ -330,6 +592,30 @@
       "title": {
         "en": "EVU"
       },
+      "getable": true,
+      "setable": false
+    },
+    "weather_curve_outdoor_temperature": {
+      "type": "number",
+      "title": {
+        "en": "Curve outdoor temperature"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "weather_curve_heating_target": {
+      "type": "number",
+      "title": {
+        "en": "Curve heating target"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 0,
       "getable": true,
       "setable": false
     }
@@ -966,6 +1252,35 @@
                 }
               }
             ]
+          }
+        ]
+      },
+      {
+        "id": "set_curve_outdoor_temperature",
+        "title": {
+          "en": "Set curve outdoor temperature"
+        },
+        "titleFormatted": {
+          "en": "Set curve outdoor temperature to [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Outdoor temperature"
+            },
+            "min": -50,
+            "max": 50,
+            "step": 0.1,
+            "placeholder": {
+              "en": "0"
+            }
           }
         ]
       }
