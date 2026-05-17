@@ -22,14 +22,12 @@
     "test:live": "npm run build && node .homeybuild/scripts/test-live.js",
     "validate": "npm run test && homey app validate"
   },
-  "dependencies": {
-    "homey": "^4.2.1"
-  },
   "devDependencies": {
     "@types/node": "^20.12.12",
+    "homey": "^4.2.1",
     "typescript": "^5.4.5"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   }
 }

@@ -3,7 +3,9 @@ declare module 'homey' {
     registerRunListener(
       listener: (args: Record<string, unknown>, state?: Record<string, unknown>) => Promise<boolean | void> | boolean | void,
     ): void;
-    trigger(device?: Device, tokens?: Record<string, unknown>, state?: Record<string, unknown>): Promise<void>;
+    trigger(): Promise<void>;
+    trigger(tokens: Record<string, unknown>, state?: Record<string, unknown>): Promise<void>;
+    trigger(device: Device, tokens?: Record<string, unknown>, state?: Record<string, unknown>): Promise<void>;
   }
 
   interface FlowManager {

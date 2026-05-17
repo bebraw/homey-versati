@@ -177,6 +177,10 @@ class GreeVersatiDevice extends Homey.Device {
   private async refreshState(): Promise<void> {
     const device = this.boundDevice();
     const state = await this.clientOrThrow().getState(device);
+    await this.applyState(device, state);
+  }
+
+  private async applyState(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
     const wasReachable = this.reachable;
     this.consecutiveFailures = 0;
     await this.applyCapabilities(state);
@@ -233,13 +237,13 @@ class GreeVersatiDevice extends Homey.Device {
     const triggerId = typeof value === 'boolean' && booleanTriggerIds ? booleanTriggerIds[String(value) as 'true' | 'false'] : undefined;
 
     if (token) {
-      await this.homey.flow.getTriggerCard(`${capability}_changed`).trigger(this, { [token]: value }).catch((error) => {
+      await this.homey.flow.getTriggerCard(`${capability}_changed`).trigger({ [token]: value }).catch((error) => {
         this.error(`Failed to trigger ${capability}_changed flow`, error);
       });
     }
 
     if (triggerId) {
-      await this.homey.flow.getTriggerCard(triggerId).trigger(this).catch((error) => {
+      await this.homey.flow.getTriggerCard(triggerId).trigger().catch((error) => {
         this.error(`Failed to trigger ${triggerId} flow`, error);
       });
     }
@@ -322,6 +326,11 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
+    const recovered = await this.recoverEndpointByDiscovery(error);
+    if (recovered) {
+      return;
+    }
+
     this.consecutiveFailures += 1;
     const message = error instanceof Error ? error.message : String(error);
     const lastSuccessfulPollAt = stringStoreValue(this.getStore().lastSuccessfulPollAt);
@@ -340,8 +349,33 @@ class GreeVersatiDevice extends Homey.Device {
     }
   }
 
+  private async recoverEndpointByDiscovery(error: unknown): Promise<boolean> {
+    try {
+      const current = this.boundDevice();
+      const client = this.clientOrThrow();
+      const discovered = await client.discover();
+      const match = discovered.find((device) => normalizeMac(device.mac) === normalizeMac(current.mac));
+      if (!match) {
+        return false;
+      }
+
+      const rebound = await client.bind(match);
+      const state = await client.getState(rebound);
+      const ipChanged = rebound.ip !== current.ip || rebound.port !== current.port;
+      await this.persistEndpoint(rebound);
+      if (ipChanged) {
+        await this.triggerDeviceIpChanged(current, rebound);
+      }
+      await this.applyState(rebound, state);
+      return true;
+    } catch (recoveryError) {
+      this.error('Failed to recover Gree Versati endpoint after poll failure', error, recoveryError);
+      return false;
+    }
+  }
+
   private async triggerPollFailed(error: string, lastSuccessfulPollAt: string): Promise<void> {
-    await this.homey.flow.getTriggerCard('poll_failed').trigger(this, {
+    await this.homey.flow.getTriggerCard('poll_failed').trigger({
       error,
       failures: this.consecutiveFailures,
       last_success: lastSuccessfulPollAt,
@@ -351,7 +385,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerDeviceUnavailable(error: string, lastSuccessfulPollAt: string): Promise<void> {
-    await this.homey.flow.getTriggerCard('device_unavailable').trigger(this, {
+    await this.homey.flow.getTriggerCard('device_unavailable').trigger({
       error,
       failures: this.consecutiveFailures,
       last_success: lastSuccessfulPollAt,
@@ -361,10 +395,19 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerDeviceAvailable(): Promise<void> {
-    await this.homey.flow.getTriggerCard('device_available').trigger(this, {
+    await this.homey.flow.getTriggerCard('device_available').trigger({
       last_success: stringStoreValue(this.getStore().lastSuccessfulPollAt),
     }).catch((triggerError) => {
       this.error('Failed to trigger device_available flow', triggerError);
+    });
+  }
+
+  private async triggerDeviceIpChanged(previous: BoundGreeVersatiDevice, next: BoundGreeVersatiDevice): Promise<void> {
+    await this.homey.flow.getTriggerCard('device_ip_changed').trigger({
+      old_ip: previous.ip,
+      new_ip: next.ip,
+    }).catch((triggerError) => {
+      this.error('Failed to trigger device_ip_changed flow', triggerError);
     });
   }
 
@@ -390,13 +433,28 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async persistEndpoint(device: BoundGreeVersatiDevice): Promise<void> {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const normalizedMac = normalizeMac(device.mac);
+    const settingsUpdates: Record<string, string | number> = {};
+
+    if (settings.ip !== device.ip) settingsUpdates.ip = device.ip;
+    if (Number(settings.port) !== device.port) settingsUpdates.port = device.port;
+    if (settings.mac !== normalizedMac) settingsUpdates.mac = normalizedMac;
+    if (settings.key !== device.key) settingsUpdates.key = device.key;
+    if (Number(settings.encryptionVersion) !== device.encryptionVersion) {
+      settingsUpdates.encryptionVersion = device.encryptionVersion;
+    }
+
     await Promise.all([
       this.setStoreValue('ip', device.ip),
       this.setStoreValue('port', device.port),
-      this.setStoreValue('mac', normalizeMac(device.mac)),
+      this.setStoreValue('mac', normalizedMac),
       this.setStoreValue('key', device.key),
       this.setStoreValue('encryptionVersion', device.encryptionVersion),
     ]);
+    if (Object.keys(settingsUpdates).length) {
+      await this.setSettings(settingsUpdates);
+    }
   }
 
   private async syncSettingsFromStore(): Promise<void> {

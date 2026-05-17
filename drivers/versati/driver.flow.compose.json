@@ -171,6 +171,34 @@
       ]
     },
     {
+      "id": "device_ip_changed",
+      "title": {
+        "en": "Gree Versati IP address changed"
+      },
+      "tokens": [
+        {
+          "name": "old_ip",
+          "type": "string",
+          "title": {
+            "en": "Old IP address"
+          },
+          "example": {
+            "en": "192.168.1.50"
+          }
+        },
+        {
+          "name": "new_ip",
+          "type": "string",
+          "title": {
+            "en": "New IP address"
+          },
+          "example": {
+            "en": "192.168.1.51"
+          }
+        }
+      ]
+    },
+    {
       "id": "device_available",
       "title": {
         "en": "Gree Versati became available"
@@ -241,10 +269,30 @@
           "name": "mode",
           "type": "dropdown",
           "values": [
-            { "id": "off", "label": { "en": "Off" } },
-            { "id": "hot_water", "label": { "en": "Hot water" } },
-            { "id": "heat_hot_water", "label": { "en": "Heat + hot water" } },
-            { "id": "cool", "label": { "en": "Cool" } }
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "hot_water",
+              "label": {
+                "en": "Hot water"
+              }
+            },
+            {
+              "id": "heat_hot_water",
+              "label": {
+                "en": "Heat + hot water"
+              }
+            },
+            {
+              "id": "cool",
+              "label": {
+                "en": "Cool"
+              }
+            }
           ]
         }
       ]
@@ -318,10 +366,30 @@
           "name": "mode",
           "type": "dropdown",
           "values": [
-            { "id": "off", "label": { "en": "Off" } },
-            { "id": "hot_water", "label": { "en": "Hot water" } },
-            { "id": "heat_hot_water", "label": { "en": "Heat + hot water" } },
-            { "id": "cool", "label": { "en": "Cool" } }
+            {
+              "id": "off",
+              "label": {
+                "en": "Off"
+              }
+            },
+            {
+              "id": "hot_water",
+              "label": {
+                "en": "Hot water"
+              }
+            },
+            {
+              "id": "heat_hot_water",
+              "label": {
+                "en": "Heat + hot water"
+              }
+            },
+            {
+              "id": "cool",
+              "label": {
+                "en": "Cool"
+              }
+            }
           ]
         }
       ]
@@ -375,8 +443,18 @@
           "name": "enabled",
           "type": "dropdown",
           "values": [
-            { "id": "true", "label": { "en": "Enabled" } },
-            { "id": "false", "label": { "en": "Disabled" } }
+            {
+              "id": "true",
+              "label": {
+                "en": "Enabled"
+              }
+            },
+            {
+              "id": "false",
+              "label": {
+                "en": "Disabled"
+              }
+            }
           ]
         }
       ]
@@ -394,8 +472,18 @@
           "name": "enabled",
           "type": "dropdown",
           "values": [
-            { "id": "true", "label": { "en": "Enabled" } },
-            { "id": "false", "label": { "en": "Disabled" } }
+            {
+              "id": "true",
+              "label": {
+                "en": "Enabled"
+              }
+            },
+            {
+              "id": "false",
+              "label": {
+                "en": "Disabled"
+              }
+            }
           ]
         }
       ]
@@ -413,8 +501,18 @@
           "name": "enabled",
           "type": "dropdown",
           "values": [
-            { "id": "true", "label": { "en": "Enabled" } },
-            { "id": "false", "label": { "en": "Disabled" } }
+            {
+              "id": "true",
+              "label": {
+                "en": "Enabled"
+              }
+            },
+            {
+              "id": "false",
+              "label": {
+                "en": "Disabled"
+              }
+            }
           ]
         }
       ]
@@ -432,8 +530,18 @@
           "name": "enabled",
           "type": "dropdown",
           "values": [
-            { "id": "true", "label": { "en": "Enabled" } },
-            { "id": "false", "label": { "en": "Disabled" } }
+            {
+              "id": "true",
+              "label": {
+                "en": "Enabled"
+              }
+            },
+            {
+              "id": "false",
+              "label": {
+                "en": "Disabled"
+              }
+            }
           ]
         }
       ]

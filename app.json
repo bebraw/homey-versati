@@ -3,8 +3,9 @@
   "version": "0.1.0",
   "sdk": 3,
   "compatibility": ">=12.0.0",
-  "runtime": "nodejs",
-  "platforms": ["local"],
+  "platforms": [
+    "local"
+  ],
   "name": {
     "en": "Gree Versati"
   },
@@ -24,7 +25,15 @@
   "brandColor": "#0f766e",
   "category": "climate",
   "tags": {
-    "en": ["Gree", "Versati", "heat pump", "heatpump", "climate", "energy", "local"]
+    "en": [
+      "Gree",
+      "Versati",
+      "heat pump",
+      "heatpump",
+      "climate",
+      "energy",
+      "local"
+    ]
   },
   "source": "https://github.com/bebraw/homey-versati",
   "bugs": {
@@ -210,11 +219,36 @@
         "en": "Mode"
       },
       "values": [
-        { "id": "off", "title": { "en": "Off" } },
-        { "id": "heat_hot_water", "title": { "en": "Heat + hot water" } },
-        { "id": "cool", "title": { "en": "Cool" } },
-        { "id": "hot_water", "title": { "en": "Hot water" } },
-        { "id": "other", "title": { "en": "Other" } }
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "heat_hot_water",
+          "title": {
+            "en": "Heat + hot water"
+          }
+        },
+        {
+          "id": "cool",
+          "title": {
+            "en": "Cool"
+          }
+        },
+        {
+          "id": "hot_water",
+          "title": {
+            "en": "Hot water"
+          }
+        },
+        {
+          "id": "other",
+          "title": {
+            "en": "Other"
+          }
+        }
       ],
       "getable": true,
       "setable": true
@@ -299,5 +333,642 @@
       "getable": true,
       "setable": false
     }
+  },
+  "flow": {
+    "triggers": [
+      {
+        "id": "measure_temperature_hot_water_changed",
+        "title": {
+          "en": "Hot water temperature changed"
+        },
+        "tokens": [
+          {
+            "name": "measure_temperature_hot_water",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": {
+              "en": "50.6"
+            }
+          }
+        ]
+      },
+      {
+        "id": "target_temperature_heating_changed",
+        "title": {
+          "en": "Heating target changed"
+        },
+        "tokens": [
+          {
+            "name": "target_temperature_heating",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": {
+              "en": "35"
+            }
+          }
+        ]
+      },
+      {
+        "id": "target_temperature_hot_water_changed",
+        "title": {
+          "en": "Hot water target changed"
+        },
+        "tokens": [
+          {
+            "name": "target_temperature_hot_water",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": {
+              "en": "50"
+            }
+          }
+        ]
+      },
+      {
+        "id": "heatpump_mode_changed",
+        "title": {
+          "en": "Mode changed"
+        },
+        "tokens": [
+          {
+            "name": "heatpump_mode",
+            "type": "string",
+            "title": {
+              "en": "Mode"
+            },
+            "example": {
+              "en": "heat_hot_water"
+            }
+          }
+        ]
+      },
+      {
+        "id": "heatpump_defrosting_true",
+        "title": {
+          "en": "Defrosting started"
+        }
+      },
+      {
+        "id": "heatpump_defrosting_false",
+        "title": {
+          "en": "Defrosting stopped"
+        }
+      },
+      {
+        "id": "heatpump_fast_hot_water_true",
+        "title": {
+          "en": "Rapid hot water enabled"
+        }
+      },
+      {
+        "id": "heatpump_fast_hot_water_false",
+        "title": {
+          "en": "Rapid hot water disabled"
+        }
+      },
+      {
+        "id": "heatpump_weather_dependent_true",
+        "title": {
+          "en": "W-depend enabled"
+        }
+      },
+      {
+        "id": "heatpump_weather_dependent_false",
+        "title": {
+          "en": "W-depend disabled"
+        }
+      },
+      {
+        "id": "heatpump_disinfect_true",
+        "title": {
+          "en": "Disinfect enabled"
+        }
+      },
+      {
+        "id": "heatpump_disinfect_false",
+        "title": {
+          "en": "Disinfect disabled"
+        }
+      },
+      {
+        "id": "heatpump_evu_true",
+        "title": {
+          "en": "EVU enabled"
+        }
+      },
+      {
+        "id": "heatpump_evu_false",
+        "title": {
+          "en": "EVU disabled"
+        }
+      },
+      {
+        "id": "device_unavailable",
+        "title": {
+          "en": "Gree Versati became unavailable"
+        },
+        "tokens": [
+          {
+            "name": "error",
+            "type": "string",
+            "title": {
+              "en": "Error"
+            },
+            "example": {
+              "en": "Timed out waiting for heat pump"
+            }
+          },
+          {
+            "name": "failures",
+            "type": "number",
+            "title": {
+              "en": "Failures"
+            },
+            "example": {
+              "en": "3"
+            }
+          },
+          {
+            "name": "last_success",
+            "type": "string",
+            "title": {
+              "en": "Last successful poll"
+            },
+            "example": {
+              "en": "2026-05-17T18:14:30.695Z"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_ip_changed",
+        "title": {
+          "en": "Gree Versati IP address changed"
+        },
+        "tokens": [
+          {
+            "name": "old_ip",
+            "type": "string",
+            "title": {
+              "en": "Old IP address"
+            },
+            "example": {
+              "en": "192.168.1.50"
+            }
+          },
+          {
+            "name": "new_ip",
+            "type": "string",
+            "title": {
+              "en": "New IP address"
+            },
+            "example": {
+              "en": "192.168.1.51"
+            }
+          }
+        ]
+      },
+      {
+        "id": "device_available",
+        "title": {
+          "en": "Gree Versati became available"
+        },
+        "tokens": [
+          {
+            "name": "last_success",
+            "type": "string",
+            "title": {
+              "en": "Last successful poll"
+            },
+            "example": {
+              "en": "2026-05-17T18:14:30.695Z"
+            }
+          }
+        ]
+      },
+      {
+        "id": "poll_failed",
+        "title": {
+          "en": "Gree Versati poll failed"
+        },
+        "tokens": [
+          {
+            "name": "error",
+            "type": "string",
+            "title": {
+              "en": "Error"
+            },
+            "example": {
+              "en": "Timed out waiting for heat pump"
+            }
+          },
+          {
+            "name": "failures",
+            "type": "number",
+            "title": {
+              "en": "Failures"
+            },
+            "example": {
+              "en": "1"
+            }
+          },
+          {
+            "name": "last_success",
+            "type": "string",
+            "title": {
+              "en": "Last successful poll"
+            },
+            "example": {
+              "en": "2026-05-17T18:14:30.695Z"
+            }
+          }
+        ]
+      }
+    ],
+    "conditions": [
+      {
+        "id": "mode_is",
+        "title": {
+          "en": "Mode !{{is|isn't}} ..."
+        },
+        "titleFormatted": {
+          "en": "Mode !{{is|isn't}} [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "hot_water",
+                "label": {
+                  "en": "Hot water"
+                }
+              },
+              {
+                "id": "heat_hot_water",
+                "label": {
+                  "en": "Heat + hot water"
+                }
+              },
+              {
+                "id": "cool",
+                "label": {
+                  "en": "Cool"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "hot_water_below",
+        "title": {
+          "en": "Hot water temperature !{{is below|is not below}} ..."
+        },
+        "titleFormatted": {
+          "en": "Hot water temperature !{{is below|is not below}} [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": 0,
+            "max": 80,
+            "step": 1
+          }
+        ]
+      },
+      {
+        "id": "rapid_is_on",
+        "title": {
+          "en": "Rapid hot water !{{is|isn't}} enabled"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "w_depend_is_on",
+        "title": {
+          "en": "W-depend !{{is|isn't}} enabled"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "disinfect_is_on",
+        "title": {
+          "en": "Disinfect !{{is|isn't}} enabled"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "defrosting_is_on",
+        "title": {
+          "en": "Defrosting !{{is|isn't}} active"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "evu_is_on",
+        "title": {
+          "en": "EVU !{{is|isn't}} enabled"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "device_is_reachable",
+        "title": {
+          "en": "Gree Versati !{{is|isn't}} reachable"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      }
+    ],
+    "actions": [
+      {
+        "id": "set_mode",
+        "title": {
+          "en": "Set mode"
+        },
+        "titleFormatted": {
+          "en": "Set mode to [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "hot_water",
+                "label": {
+                  "en": "Hot water"
+                }
+              },
+              {
+                "id": "heat_hot_water",
+                "label": {
+                  "en": "Heat + hot water"
+                }
+              },
+              {
+                "id": "cool",
+                "label": {
+                  "en": "Cool"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_heating_target",
+        "title": {
+          "en": "Set heating target"
+        },
+        "titleFormatted": {
+          "en": "Set heating target to [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": 20,
+            "max": 55,
+            "step": 1
+          }
+        ]
+      },
+      {
+        "id": "set_hot_water_target",
+        "title": {
+          "en": "Set hot water target"
+        },
+        "titleFormatted": {
+          "en": "Set hot water target to [[temperature]] °C"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "temperature",
+            "type": "number",
+            "min": 30,
+            "max": 60,
+            "step": 1
+          }
+        ]
+      },
+      {
+        "id": "set_rapid_hot_water",
+        "title": {
+          "en": "Set Rapid hot water"
+        },
+        "titleFormatted": {
+          "en": "Set Rapid hot water to [[enabled]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "enabled",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "true",
+                "label": {
+                  "en": "Enabled"
+                }
+              },
+              {
+                "id": "false",
+                "label": {
+                  "en": "Disabled"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_silence",
+        "title": {
+          "en": "Set Silence"
+        },
+        "titleFormatted": {
+          "en": "Set Silence to [[enabled]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "enabled",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "true",
+                "label": {
+                  "en": "Enabled"
+                }
+              },
+              {
+                "id": "false",
+                "label": {
+                  "en": "Disabled"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_w_depend",
+        "title": {
+          "en": "Set W-depend"
+        },
+        "titleFormatted": {
+          "en": "Set W-depend to [[enabled]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "enabled",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "true",
+                "label": {
+                  "en": "Enabled"
+                }
+              },
+              {
+                "id": "false",
+                "label": {
+                  "en": "Disabled"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "set_disinfect",
+        "title": {
+          "en": "Set Disinfect"
+        },
+        "titleFormatted": {
+          "en": "Set Disinfect to [[enabled]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "enabled",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "true",
+                "label": {
+                  "en": "Enabled"
+                }
+              },
+              {
+                "id": "false",
+                "label": {
+                  "en": "Disabled"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
   }
 }

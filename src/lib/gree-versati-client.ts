@@ -106,7 +106,7 @@ export class GreeVersatiClient {
         if (!pack || pack.t !== 'dev') {
           return;
         }
-        const mac = String(pack.mac ?? pack.cid ?? '');
+        const mac = normalizeMac(String(pack.mac ?? pack.cid ?? ''));
         if (!mac) {
           return;
         }
@@ -373,6 +373,10 @@ function ipv4ToNumber(ip: string): number {
 
 function numberToIpv4(value: number): string {
   return [24, 16, 8, 0].map((shift) => (value >>> shift) & 255).join('.');
+}
+
+function normalizeMac(mac: string): string {
+  return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
 }
 
 function bindSocket(socket: dgram.Socket): Promise<void> {

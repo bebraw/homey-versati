@@ -88,6 +88,24 @@ test('discovers a device with an encrypted discovery response', async () => {
   }
 });
 
+test('normalizes discovered MAC addresses for stable device matching', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false, responseMac: 'F4:91:1E:7A:CA:59' });
+  try {
+    const client = new GreeVersatiClient({
+      port: server.port,
+      broadcastAddresses: ['127.0.0.1'],
+      timeoutMs: 500,
+      bindTimeoutMs: 500,
+    });
+
+    const devices = await client.discover(100);
+    assert.equal(devices.length, 1);
+    assert.equal(devices[0]?.mac, MAC);
+  } finally {
+    await server.close();
+  }
+});
+
 test('reads and normalizes read-only state over UDP', async () => {
   const server = await startFakeDevice({ encryptedDiscovery: false });
   try {
@@ -279,11 +297,12 @@ test('protocol helpers encode bind and status envelopes with encrypted pack data
   assert.deepEqual(decodedStatus.pack, { t: 'status', mac: MAC, cols: ['Pow'] });
 });
 
-async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: Record<string, unknown> }): Promise<{ port: number; close: () => Promise<void> }> {
+async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: Record<string, unknown>; responseMac?: string }): Promise<{ port: number; close: () => Promise<void> }> {
   const socket = dgram.createSocket('udp4');
   const defaultCipher = new CipherV1();
   const deviceCipher = new CipherV1(DEVICE_KEY);
   const mutableState = { ...FAKE_STATE, ...options.state };
+  const responseMac = options.responseMac ?? MAC;
 
   socket.on('message', (message, rinfo) => {
     const outer = JSON.parse(message.toString('utf8')) as PacketEnvelope;
@@ -292,12 +311,12 @@ async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: R
         t: 'pack',
         i: 1,
         uid: 0,
-        cid: MAC,
+        cid: responseMac,
         tcid: '',
         pack: {
           t: 'dev',
-          cid: MAC,
-          mac: MAC,
+          cid: responseMac,
+          mac: responseMac,
           name: 'Versati',
           brand: 'gree',
           model: 'gree',

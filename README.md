@@ -44,7 +44,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
   - triggers for EVU changes
-  - triggers for polling failures, device unavailable transitions, and device available recovery
+  - triggers for polling failures, IP address changes, device unavailable transitions, and device available recovery
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
@@ -52,9 +52,10 @@ The app talks directly to the heat pump over the local network using UDP port `7
 ## Requirements
 
 - Homey Pro with app development enabled
-- Node.js `20` or newer
+- Node.js `22` or newer
 - A Gree Versati heat pump connected to the same LAN as Homey
 - UDP traffic to the heat pump on port `7000`
+- Stable LAN access between Homey and the heat pump. The app matches the paired unit by MAC address and refreshes the stored IP address when rediscovery finds the same unit at a new address.
 
 ## Install For Homey Development
 
@@ -178,7 +179,7 @@ The app also keeps internal diagnostics in the Homey device store:
 - raw `EVU`, `ModelType`, and `VersatiSeries`
 - normalized mode
 
-After repeated polling failures, the device is marked unavailable. It becomes available again after the next successful poll.
+After a polling failure, the app attempts MAC-based rediscovery. If DHCP gave the heat pump a new IP address, the app rebinds, updates the stored endpoint, and triggers the `Gree Versati IP address changed` Flow card. After repeated unrecovered polling failures, the device is marked unavailable. It becomes available again after the next successful poll.
 
 ## Troubleshooting
 
@@ -196,8 +197,7 @@ Planned follow-up work, roughly in priority order:
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
 5. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
-6. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
-7. Refine app artwork further if needed before distribution outside local development.
+6. Refine app artwork further if needed before distribution outside local development.
 
 ## Protocol Notes
 
