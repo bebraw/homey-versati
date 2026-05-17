@@ -18,6 +18,7 @@
     "smoke:toggles": "npm run build && node .homeybuild/scripts/smoke-toggles.js",
     "snapshot": "npm run build && node .homeybuild/scripts/snapshot.js",
     "test": "npm run build && node --test .homeybuild/test/*.test.js",
+    "test:live": "npm run build && node .homeybuild/scripts/test-live.js",
     "validate": "npm run test && homey app validate"
   },
   "dependencies": {
