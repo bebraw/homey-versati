@@ -11,5 +11,5 @@
     "rootDir": ".",
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "drivers/**/*.ts", "test/**/*.ts"]
+  "include": ["src/**/*.ts", "drivers/**/*.ts", "scripts/**/*.ts", "test/**/*.ts"]
 }

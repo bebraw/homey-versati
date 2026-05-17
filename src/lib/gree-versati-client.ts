@@ -7,6 +7,7 @@ import {
   CipherV1,
   CipherV2,
   HEAT_MODE,
+  HOT_WATER_MODE,
   PacketEnvelope,
   READ_ONLY_COLUMNS,
   celsiusFromSplit,
@@ -39,12 +40,14 @@ export interface GreeVersatiState {
   waterOutTemperature: number | null;
   hotWaterTemperature: number | null;
   optimalWaterTemperature: number | null;
+  remoteRoomTemperature: number | null;
   heatingTargetTemperature: number | null;
   coolingTargetTemperature: number | null;
   hotWaterTargetTemperature: number | null;
   power: boolean;
-  mode: 'off' | 'heat' | 'cool' | 'other';
+  mode: 'off' | 'heat_hot_water' | 'cool' | 'hot_water' | 'other';
   fastHotWater: boolean;
+  silence: boolean;
   tankHeaterActive: boolean;
   defrosting: boolean;
   hpHeater1Active: boolean;
@@ -209,12 +212,22 @@ export function normalizeState(raw: Record<string, unknown>): GreeVersatiState {
     waterOutTemperature: celsiusFromSplit(raw[AWHP_PROPS.waterOutHigh], raw[AWHP_PROPS.waterOutLow]),
     hotWaterTemperature: celsiusFromSplit(raw[AWHP_PROPS.hotWaterHigh], raw[AWHP_PROPS.hotWaterLow]),
     optimalWaterTemperature: celsiusFromSplit(raw[AWHP_PROPS.optimalWaterHigh], raw[AWHP_PROPS.optimalWaterLow]),
+    remoteRoomTemperature: celsiusFromSplit(raw[AWHP_PROPS.remoteRoomHigh], raw[AWHP_PROPS.remoteRoomLow]),
     heatingTargetTemperature: maybeNumber(raw[AWHP_PROPS.heatingTarget]),
     coolingTargetTemperature: maybeNumber(raw[AWHP_PROPS.coolingTarget]),
     hotWaterTargetTemperature: maybeNumber(raw[AWHP_PROPS.hotWaterTarget]),
     power,
-    mode: !power ? 'off' : modeNumber === HEAT_MODE ? 'heat' : modeNumber === COOL_MODE ? 'cool' : 'other',
+    mode: !power
+      ? 'off'
+      : modeNumber === HEAT_MODE
+        ? 'heat_hot_water'
+        : modeNumber === COOL_MODE
+          ? 'cool'
+          : modeNumber === HOT_WATER_MODE
+            ? 'hot_water'
+            : 'other',
     fastHotWater: Boolean(raw[AWHP_PROPS.fastHotWater]),
+    silence: Boolean(raw[AWHP_PROPS.quiet]),
     tankHeaterActive: Boolean(raw[AWHP_PROPS.tankHeaterStatus]),
     defrosting: Boolean(raw[AWHP_PROPS.defrostingStatus]),
     hpHeater1Active: Boolean(raw[AWHP_PROPS.hpHeater1Status]),

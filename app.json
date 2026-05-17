@@ -34,14 +34,19 @@
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
+        "measure_temperature_optional_water",
+        "measure_temperature_remote_room",
         "target_temperature_heating",
         "target_temperature_cooling",
         "target_temperature_hot_water",
         "heatpump_power",
         "heatpump_mode",
         "heatpump_fast_hot_water",
+        "heatpump_silence",
         "heatpump_defrosting",
         "heatpump_tank_heater",
+        "heatpump_hp_heater_1",
+        "heatpump_hp_heater_2",
         "heatpump_frost_protection"
       ],
       "pair": [
@@ -91,6 +96,30 @@
       "type": "number",
       "title": {
         "en": "Hot water temperature"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "measure_temperature_optional_water": {
+      "type": "number",
+      "title": {
+        "en": "Optional water sensor"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "measure_temperature_remote_room": {
+      "type": "number",
+      "title": {
+        "en": "Remote room temperature"
       },
       "units": {
         "en": "°C"
@@ -150,8 +179,9 @@
       },
       "values": [
         { "id": "off", "title": { "en": "Off" } },
-        { "id": "heat", "title": { "en": "Heat" } },
+        { "id": "heat_hot_water", "title": { "en": "Heat + hot water" } },
         { "id": "cool", "title": { "en": "Cool" } },
+        { "id": "hot_water", "title": { "en": "Hot water" } },
         { "id": "other", "title": { "en": "Other" } }
       ],
       "getable": true,
@@ -160,7 +190,15 @@
     "heatpump_fast_hot_water": {
       "type": "boolean",
       "title": {
-        "en": "Fast hot water"
+        "en": "Rapid hot water"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_silence": {
+      "type": "boolean",
+      "title": {
+        "en": "Silence"
       },
       "getable": true,
       "setable": false
@@ -177,6 +215,22 @@
       "type": "boolean",
       "title": {
         "en": "Tank heater"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_hp_heater_1": {
+      "type": "boolean",
+      "title": {
+        "en": "HP-heater 1"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_hp_heater_2": {
+      "type": "boolean",
+      "title": {
+        "en": "HP-heater 2"
       },
       "getable": true,
       "setable": false

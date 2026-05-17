@@ -43,14 +43,19 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('measure_temperature_water_out', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_in', state.waterInTemperature);
     await this.setCapabilityIfPresent('measure_temperature_hot_water', state.hotWaterTemperature);
+    await this.setCapabilityIfPresent('measure_temperature_optional_water', state.optimalWaterTemperature);
+    await this.setCapabilityIfPresent('measure_temperature_remote_room', state.remoteRoomTemperature);
     await this.setCapabilityIfPresent('target_temperature_heating', state.heatingTargetTemperature);
     await this.setCapabilityIfPresent('target_temperature_cooling', state.coolingTargetTemperature);
     await this.setCapabilityIfPresent('target_temperature_hot_water', state.hotWaterTargetTemperature);
     await this.setCapabilityIfPresent('heatpump_power', state.power);
     await this.setCapabilityIfPresent('heatpump_mode', state.mode);
     await this.setCapabilityIfPresent('heatpump_fast_hot_water', state.fastHotWater);
+    await this.setCapabilityIfPresent('heatpump_silence', state.silence);
     await this.setCapabilityIfPresent('heatpump_defrosting', state.defrosting);
     await this.setCapabilityIfPresent('heatpump_tank_heater', state.tankHeaterActive);
+    await this.setCapabilityIfPresent('heatpump_hp_heater_1', state.hpHeater1Active);
+    await this.setCapabilityIfPresent('heatpump_hp_heater_2', state.hpHeater2Active);
     await this.setCapabilityIfPresent('heatpump_frost_protection', state.frostProtection);
   }
 

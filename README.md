@@ -12,14 +12,18 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - water out temperature
   - water in temperature
   - domestic hot water temperature
+  - optional water sensor temperature
+  - remote room temperature
   - heating target temperature
   - cooling target temperature
   - hot water target temperature
   - power state
-  - raw heat pump mode mapping
-  - fast hot water state
+  - heat pump mode mapping, including hot water mode
+  - rapid hot water state
+  - silence state
   - defrosting state
   - tank heater state
+  - HP-heater 1 and 2 states
   - frost protection state
 
 ## Requirements
@@ -47,6 +51,12 @@ Validate the Homey app package:
 
 ```bash
 npx homey app validate
+```
+
+Capture a read-only protocol snapshot for field mapping:
+
+```bash
+npm run snapshot -- --ip 192.168.1.50 --mac 001122334455
 ```
 
 Log in to the Homey CLI if needed:
@@ -79,7 +89,7 @@ During pairing, the app sends a local discovery request and then binds to the se
 - If no device appears during pairing, confirm Homey and the heat pump are on the same subnet.
 - Confirm UDP port `7000` is not blocked between Homey and the heat pump.
 - Some devices return encrypted discovery packets; this client supports both plain and encrypted discovery replies.
-- If the mode shows as `other`, the device returned a mode code not yet mapped to `heat` or `cool`. The raw mode is still read safely, but no command assumptions are made.
+- If the mode shows as `other`, the device returned a mode code not yet mapped to a known read-only mode. The raw mode is still read safely, but no command assumptions are made.
 
 ## Roadmap
 
@@ -90,11 +100,12 @@ Planned follow-up work, roughly in priority order:
 3. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
 4. Add configurable polling interval with conservative lower and upper bounds.
 5. Expose more read-only sensors where Homey capability types fit, including electric heater states, error/status values, quiet mode, power save, EVU, model type, and Versati series.
-6. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
-7. Add write commands only after protocol and integration tests cover them, starting with low-risk targets such as heating target, hot water target, and fast hot water.
-8. Add Homey Flow cards for defrosting changes, hot water thresholds, device unavailable events, and telemetry changes.
-9. Replace placeholder app images with proper app artwork.
-10. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
+6. Map `W-depend` / weather-dependent heating curve state and investigate whether Homey can expose safer curve controls than the official Gree app.
+7. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
+8. Add write commands only after protocol and integration tests cover them, starting with low-risk targets such as heating target, hot water target, Rapid, and Silence.
+9. Add Homey Flow cards for defrosting changes, hot water thresholds, device unavailable events, and telemetry changes.
+10. Replace placeholder app images with proper app artwork.
+11. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
 
 ## Protocol Notes
 

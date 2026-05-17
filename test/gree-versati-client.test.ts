@@ -27,12 +27,15 @@ const FAKE_STATE: Record<string, unknown> = {
   [AWHP_PROPS.optimalWaterLow]: 2,
   [AWHP_PROPS.hotWaterHigh]: 128,
   [AWHP_PROPS.hotWaterLow]: 1,
+  [AWHP_PROPS.remoteRoomHigh]: 120,
+  [AWHP_PROPS.remoteRoomLow]: 3,
   [AWHP_PROPS.power]: 1,
-  [AWHP_PROPS.mode]: 4,
+  [AWHP_PROPS.mode]: 2,
   [AWHP_PROPS.heatingTarget]: 33,
   [AWHP_PROPS.coolingTarget]: 18,
   [AWHP_PROPS.hotWaterTarget]: 55,
   [AWHP_PROPS.fastHotWater]: 0,
+  [AWHP_PROPS.quiet]: 1,
   [AWHP_PROPS.tankHeaterStatus]: 1,
   [AWHP_PROPS.defrostingStatus]: 0,
   [AWHP_PROPS.hpHeater1Status]: 1,
@@ -98,13 +101,32 @@ test('reads and normalizes read-only state over UDP', async () => {
     assert.equal(state.waterOutTemperature, 26.3);
     assert.equal(state.hotWaterTemperature, 28.1);
     assert.equal(state.optimalWaterTemperature, 27.2);
+    assert.equal(state.remoteRoomTemperature, 20.3);
     assert.equal(state.heatingTargetTemperature, 33);
     assert.equal(state.coolingTargetTemperature, 18);
     assert.equal(state.hotWaterTargetTemperature, 55);
     assert.equal(state.power, true);
-    assert.equal(state.mode, 'heat');
+    assert.equal(state.mode, 'hot_water');
     assert.equal(state.tankHeaterActive, true);
+    assert.equal(state.silence, true);
     assert.equal(state.frostProtection, true);
+  } finally {
+    await server.close();
+  }
+});
+
+test('normalizes heat plus hot water mode', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false, state: { [AWHP_PROPS.mode]: 4 } });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const state = await client.getState({
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    });
+    assert.equal(state.mode, 'heat_hot_water');
   } finally {
     await server.close();
   }
@@ -126,7 +148,7 @@ test('protocol helpers encode bind and status envelopes with encrypted pack data
   assert.deepEqual(decodedStatus.pack, { t: 'status', mac: MAC, cols: ['Pow'] });
 });
 
-async function startFakeDevice(options: { encryptedDiscovery: boolean }): Promise<{ port: number; close: () => Promise<void> }> {
+async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: Record<string, unknown> }): Promise<{ port: number; close: () => Promise<void> }> {
   const socket = dgram.createSocket('udp4');
   const defaultCipher = new CipherV1();
   const deviceCipher = new CipherV1(DEVICE_KEY);
@@ -194,7 +216,7 @@ async function startFakeDevice(options: { encryptedDiscovery: boolean }): Promis
           mac: MAC,
           r: 200,
           cols,
-          dat: cols.map((column) => FAKE_STATE[column] ?? 0),
+          dat: cols.map((column) => ({ ...FAKE_STATE, ...options.state })[column] ?? 0),
         },
       }, deviceCipher), rinfo.port, rinfo.address);
     }
