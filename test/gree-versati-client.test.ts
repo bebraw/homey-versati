@@ -136,6 +136,34 @@ test('normalizes heat plus hot water mode', async () => {
   }
 });
 
+test('writes heat pump mode over UDP command packets', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const bound: BoundGreeVersatiDevice = {
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    };
+
+    await client.setMode(bound, 'heat_hot_water');
+    let state = await client.getState(bound);
+    assert.equal(state.mode, 'heat_hot_water');
+    assert.equal(state.raw[AWHP_PROPS.power], 1);
+    assert.equal(state.raw[AWHP_PROPS.mode], 4);
+
+    await client.setMode(bound, 'off');
+    state = await client.getState(bound);
+    assert.equal(state.mode, 'off');
+    assert.equal(state.raw[AWHP_PROPS.power], 0);
+    assert.equal(state.raw[AWHP_PROPS.mode], 4);
+  } finally {
+    await server.close();
+  }
+});
+
 test('protocol helpers encode bind and status envelopes with encrypted pack data', () => {
   const cipher = new CipherV1();
   const bind = JSON.parse(encodeEnvelope(createBindMessage(MAC), cipher).toString('utf8')) as PacketEnvelope;
@@ -156,6 +184,7 @@ async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: R
   const socket = dgram.createSocket('udp4');
   const defaultCipher = new CipherV1();
   const deviceCipher = new CipherV1(DEVICE_KEY);
+  const mutableState = { ...FAKE_STATE, ...options.state };
 
   socket.on('message', (message, rinfo) => {
     const outer = JSON.parse(message.toString('utf8')) as PacketEnvelope;
@@ -220,7 +249,30 @@ async function startFakeDevice(options: { encryptedDiscovery: boolean; state?: R
           mac: MAC,
           r: 200,
           cols,
-          dat: cols.map((column) => ({ ...FAKE_STATE, ...options.state })[column] ?? 0),
+          dat: cols.map((column) => mutableState[column] ?? 0),
+        },
+      }, deviceCipher), rinfo.port, rinfo.address);
+      return;
+    }
+
+    if (pack.t === 'cmd' && Array.isArray(pack.opt) && Array.isArray(pack.p)) {
+      for (const [index, property] of pack.opt.entries()) {
+        mutableState[String(property)] = pack.p[index];
+      }
+      const props = pack.opt.map(String);
+      socket.send(encodeEnvelope({
+        t: 'pack',
+        i: 0,
+        uid: 0,
+        cid: MAC,
+        tcid: '',
+        pack: {
+          t: 'res',
+          mac: MAC,
+          r: 200,
+          opt: props,
+          p: props.map((property) => mutableState[property]),
+          val: props.map((property) => mutableState[property]),
         },
       }, deviceCipher), rinfo.port, rinfo.address);
     }

@@ -21,6 +21,10 @@ declare module 'homey' {
     getStore(): Record<string, unknown>;
     setStoreValue(key: string, value: unknown): Promise<void>;
     hasCapability(capability: string): boolean;
+    registerCapabilityListener(
+      capability: string,
+      listener: (value: unknown, opts?: Record<string, unknown>) => Promise<void> | void,
+    ): void;
     setAvailable(): Promise<void>;
     setUnavailable(message?: string): Promise<void>;
     setCapabilityValue(capability: string, value: boolean | number | string): Promise<void>;

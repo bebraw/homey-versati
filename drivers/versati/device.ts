@@ -3,6 +3,7 @@ import {
   GreeVersatiClient,
   type BoundGreeVersatiDevice,
   type GreeVersatiState,
+  type WritableGreeVersatiMode,
 } from '../../src/lib/gree-versati-client';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -31,6 +32,9 @@ class GreeVersatiDevice extends Homey.Device {
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
     await this.syncSettingsFromStore();
+    this.registerCapabilityListener('heatpump_mode', async (value) => {
+      await this.setModeFromHomey(value);
+    });
     await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
       this.refreshState().catch((error) => this.handleRefreshFailure(error, false));
@@ -146,6 +150,14 @@ class GreeVersatiDevice extends Homey.Device {
     return this.client;
   }
 
+  private async setModeFromHomey(value: unknown): Promise<void> {
+    if (!isWritableMode(value)) {
+      throw new Error(`Unsupported Gree Versati mode: ${String(value)}`);
+    }
+    await this.clientOrThrow().setMode(this.boundDevice(), value);
+    await this.refreshState();
+  }
+
   private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
     this.consecutiveFailures += 1;
     const message = error instanceof Error ? error.message : String(error);
@@ -241,4 +253,8 @@ function cleanString(value: unknown): string {
 
 function normalizeMac(mac: string): string {
   return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
+}
+
+function isWritableMode(value: unknown): value is WritableGreeVersatiMode {
+  return value === 'off' || value === 'heat_hot_water' || value === 'hot_water' || value === 'cool';
 }

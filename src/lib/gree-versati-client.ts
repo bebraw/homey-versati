@@ -12,6 +12,7 @@ import {
   READ_ONLY_COLUMNS,
   celsiusFromSplit,
   createBindMessage,
+  createCommandMessage,
   createScanMessage,
   createStatusMessage,
   decodeEnvelope,
@@ -57,6 +58,8 @@ export interface GreeVersatiState {
   frostProtection: boolean;
   versatiSeries: unknown;
 }
+
+export type WritableGreeVersatiMode = 'off' | 'heat_hot_water' | 'hot_water' | 'cool';
 
 export interface GreeVersatiClientOptions {
   port?: number;
@@ -165,6 +168,38 @@ export class GreeVersatiClient {
       raw[String(column)] = pack.dat[columnIndex];
     }
     return raw;
+  }
+
+  async setProperties(device: BoundGreeVersatiDevice, properties: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const cipher = createDeviceCipher(device);
+    const envelope = await this.sendAndReceive(device, createCommandMessage(device.mac, properties), cipher, this.timeoutMs);
+    const pack = envelope.pack as Record<string, unknown> | undefined;
+    if (pack?.t !== 'res' || !Array.isArray(pack.opt) || !Array.isArray(pack.val)) {
+      throw new Error(`Unexpected command response from ${device.mac}`);
+    }
+    const result: Record<string, unknown> = {};
+    for (const [index, property] of pack.opt.entries()) {
+      result[String(property)] = pack.val[index];
+    }
+    return result;
+  }
+
+  async setMode(device: BoundGreeVersatiDevice, mode: WritableGreeVersatiMode): Promise<void> {
+    if (mode === 'off') {
+      await this.setProperties(device, { [AWHP_PROPS.power]: 0 });
+      return;
+    }
+
+    const modeValue = mode === 'heat_hot_water'
+      ? HEAT_MODE
+      : mode === 'hot_water'
+        ? HOT_WATER_MODE
+        : COOL_MODE;
+
+    await this.setProperties(device, {
+      [AWHP_PROPS.mode]: modeValue,
+      [AWHP_PROPS.power]: 1,
+    });
   }
 
   private async sendAndReceive(

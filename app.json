@@ -187,7 +187,7 @@
         { "id": "other", "title": { "en": "Other" } }
       ],
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_fast_hot_water": {
       "type": "boolean",

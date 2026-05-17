@@ -2,7 +2,7 @@
 
 Homey app for local, read-only monitoring of Gree Versati air-to-water heat pumps.
 
-The app talks directly to the heat pump over the local network using UDP port `7000`. It currently supports discovery, binding, and read-only telemetry. Write commands are intentionally not exposed in Homey yet.
+The app talks directly to the heat pump over the local network using UDP port `7000`. It currently supports discovery, binding, telemetry, and limited mode control.
 
 ## Current Capabilities
 
@@ -27,6 +27,11 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - tank heater state
   - HP-heater 1 and 2 states
   - frost protection state
+- Change heat pump mode:
+  - off
+  - hot water
+  - heat + hot water
+  - cool
 
 ## Requirements
 
@@ -121,9 +126,9 @@ After repeated polling failures, the device is marked unavailable. It becomes av
 Planned follow-up work, roughly in priority order:
 
 1. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked before the device is paired.
-2. Add write commands only after protocol and integration tests cover them, starting with low-risk targets: heating target, hot water target, Rapid, Silence, W-depend, and Disinfect schedule/state.
+2. Add more write commands only after protocol and integration tests cover them, starting with low-risk targets: heating target, hot water target, Rapid, Silence, W-depend, and Disinfect schedule/state.
 3. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
-4. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); cooling modes are intentionally untested.
+4. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 5. Add Homey Flow cards for defrosting changes, hot water thresholds, W-depend, Rapid, Disinfect, device unavailable events, and telemetry changes.
 6. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 7. Replace placeholder app images with proper app artwork.

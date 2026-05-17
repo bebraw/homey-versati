@@ -164,6 +164,21 @@ export function createStatusMessage(mac: string, columns: readonly string[] = RE
   };
 }
 
+export function createCommandMessage(mac: string, properties: Record<string, unknown>): PacketEnvelope {
+  return {
+    cid: 'app',
+    i: 0,
+    t: 'pack',
+    uid: 0,
+    tcid: mac,
+    pack: {
+      t: 'cmd',
+      opt: Object.keys(properties),
+      p: Object.values(properties),
+    },
+  };
+}
+
 export function encodeEnvelope(envelope: PacketEnvelope, cipher?: Cipher): Buffer {
   const outgoing: PacketEnvelope = { ...envelope };
   if (outgoing.pack) {
