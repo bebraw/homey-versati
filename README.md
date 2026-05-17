@@ -97,15 +97,15 @@ During pairing, the app sends a local discovery request and then binds to the se
 
 Planned follow-up work, roughly in priority order:
 
-1. Improve Versati mode decoding. The tested unit reports `Mod: 2`, which currently maps to `other`; collect known operating states before enabling mode commands.
-2. Add diagnostics for IP, MAC, firmware, encryption version, last poll time, raw `Pow`/`Mod`, and recent poll errors.
-3. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
-4. Add configurable polling interval with conservative lower and upper bounds.
-5. Expose more read-only sensors where Homey capability types fit, including electric heater states, error/status values, quiet mode, power save, EVU, model type, and Versati series.
-6. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app.
-7. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
-8. Add write commands only after protocol and integration tests cover them, starting with low-risk targets such as heating target, hot water target, Rapid, and Silence.
-9. Add Homey Flow cards for defrosting changes, hot water thresholds, device unavailable events, and telemetry changes.
+1. Add diagnostics for IP, MAC, firmware, encryption version, last poll time, raw `Pow`/`Mod`, raw `SvSt`, and recent poll errors.
+2. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
+3. Add configurable polling interval with conservative lower and upper bounds.
+4. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
+5. Add write commands only after protocol and integration tests cover them, starting with low-risk targets: heating target, hot water target, Rapid, Silence, W-depend, and Disinfect schedule/state.
+6. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
+7. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); cooling modes are intentionally untested.
+8. Add Homey Flow cards for defrosting changes, hot water thresholds, W-depend, Rapid, Disinfect, device unavailable events, and telemetry changes.
+9. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 10. Replace placeholder app images with proper app artwork.
 11. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
 
