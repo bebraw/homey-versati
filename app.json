@@ -24,7 +24,7 @@
   "brandColor": "#0f766e",
   "category": "climate",
   "tags": {
-    "en": ["Gree", "Versati", "heat pump", "climate", "energy"]
+    "en": ["Gree", "Versati", "heat pump", "heatpump", "climate", "energy", "local"]
   },
   "source": "https://github.com/bebraw/homey-versati",
   "bugs": {

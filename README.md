@@ -102,6 +102,25 @@ The live integration harness runs a snapshot check, mode write/restore check, he
 
 Snapshot and live-test outputs redact device identifiers by default. Use `--no-redact` only for private debugging output.
 
+## Privacy And Local Network
+
+- The app talks directly to the heat pump over the local network using UDP port `7000`.
+- No Gree cloud account is required by this app.
+- The device key returned by local binding is stored in Homey device settings/store so the app can poll and send supported commands later.
+- Do not publish real device keys, MAC addresses, live snapshots, or logs copied with `--no-redact`.
+- CLI snapshot and live-test output redacts IP and MAC identifiers by default.
+
+## Release Checklist
+
+Before sharing a build outside local development:
+
+1. Run `npm run validate`.
+2. Optionally run `npm run test:live -- --ip <address> --mac <mac>` against a real unit.
+3. Pair through both scan and manual pairing if the network setup allows it.
+4. Verify mode, target temperature, and safe toggle controls in Homey.
+5. Verify Flow triggers and actions, especially availability recovery.
+6. Confirm README examples and copied logs do not include real device identifiers.
+
 Log in to the Homey CLI if needed:
 
 ```bash
@@ -169,7 +188,7 @@ Planned follow-up work, roughly in priority order:
 4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
 5. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 6. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
-7. Replace placeholder app images with proper app artwork before distribution outside local development.
+7. Refine app artwork further if needed before distribution outside local development.
 
 ## Protocol Notes
 
