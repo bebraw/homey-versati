@@ -36,6 +36,9 @@ Official state parameter screen mappings:
 - `Automatic frost protection` maps to `AnFrzzRunSta`.
 - `W-depend` maps to `SvSt` on the tested unit. Upstream labelled this as power save, but official app behavior indicates weather-dependent heating state.
 - `Disinfect` maps to `SwDisFct`.
+- `EVU` maps to `EVU` and is exposed as a read-only Homey capability.
+- `VersatiSeries` maps to `VersatiSeries` and is stored as diagnostics.
+- `ModelType` maps to `ModelType` and is stored as diagnostics.
 
 Start with low-risk read/write changes:
 

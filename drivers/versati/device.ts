@@ -37,6 +37,10 @@ const BOOLEAN_FLOW_TRIGGER_IDS: Record<string, { true: string; false: string }> 
     true: 'heatpump_disinfect_true',
     false: 'heatpump_disinfect_false',
   },
+  heatpump_evu: {
+    true: 'heatpump_evu_true',
+    false: 'heatpump_evu_false',
+  },
 };
 
 type VersatiSettings = BoundGreeVersatiDevice & {
@@ -204,6 +208,7 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('heatpump_hp_heater_1', state.hpHeater1Active);
     await this.setCapabilityIfPresent('heatpump_hp_heater_2', state.hpHeater2Active);
     await this.setCapabilityIfPresent('heatpump_frost_protection', state.frostProtection);
+    await this.setCapabilityIfPresent('heatpump_evu', state.evuActive);
   }
 
   private async setCapabilityIfPresent(capability: string, value: boolean | number | string | null): Promise<void> {
@@ -375,6 +380,9 @@ class GreeVersatiDevice extends Homey.Device {
       this.setStoreValue('consecutivePollFailures', 0),
       this.setStoreValue('diagnosticPower', state.raw.Pow),
       this.setStoreValue('diagnosticMode', state.raw.Mod),
+      this.setStoreValue('diagnosticEVU', state.raw.EVU),
+      this.setStoreValue('diagnosticModelType', state.raw.ModelType),
+      this.setStoreValue('diagnosticVersatiSeries', state.raw.VersatiSeries),
       this.setStoreValue('diagnosticWeatherDependent', state.raw.SvSt),
       this.setStoreValue('diagnosticDisinfect', state.raw.SwDisFct),
       this.setStoreValue('diagnosticNormalizedMode', state.mode),

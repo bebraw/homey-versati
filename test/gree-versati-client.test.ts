@@ -43,6 +43,8 @@ const FAKE_STATE: Record<string, unknown> = {
   [AWHP_PROPS.hpHeater1Status]: 1,
   [AWHP_PROPS.hpHeater2Status]: 0,
   [AWHP_PROPS.frostProtection]: 1,
+  [AWHP_PROPS.evu]: 1,
+  [AWHP_PROPS.modelType]: 'Versati',
   [AWHP_PROPS.versatiSeries]: 3,
 };
 
@@ -114,6 +116,9 @@ test('reads and normalizes read-only state over UDP', async () => {
     assert.equal(state.weatherDependent, true);
     assert.equal(state.disinfect, true);
     assert.equal(state.frostProtection, true);
+    assert.equal(state.evuActive, true);
+    assert.equal(state.modelType, 'Versati');
+    assert.equal(state.versatiSeries, 3);
   } finally {
     await server.close();
   }

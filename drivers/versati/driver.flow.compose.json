@@ -121,6 +121,18 @@
       }
     },
     {
+      "id": "heatpump_evu_true",
+      "title": {
+        "en": "EVU enabled"
+      }
+    },
+    {
+      "id": "heatpump_evu_false",
+      "title": {
+        "en": "EVU disabled"
+      }
+    },
+    {
       "id": "device_unavailable",
       "title": {
         "en": "Gree Versati became unavailable"
@@ -277,6 +289,12 @@
       "id": "defrosting_is_on",
       "title": {
         "en": "Defrosting !{{is|isn't}} active"
+      }
+    },
+    {
+      "id": "evu_is_on",
+      "title": {
+        "en": "EVU !{{is|isn't}} enabled"
       }
     },
     {

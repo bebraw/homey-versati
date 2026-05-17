@@ -56,6 +56,8 @@ export interface GreeVersatiState {
   hpHeater1Active: boolean;
   hpHeater2Active: boolean;
   frostProtection: boolean;
+  evuActive: boolean;
+  modelType: unknown;
   versatiSeries: unknown;
 }
 
@@ -323,6 +325,8 @@ export function normalizeState(raw: Record<string, unknown>): GreeVersatiState {
     hpHeater1Active: Boolean(raw[AWHP_PROPS.hpHeater1Status]),
     hpHeater2Active: Boolean(raw[AWHP_PROPS.hpHeater2Status]),
     frostProtection: Boolean(raw[AWHP_PROPS.frostProtection]),
+    evuActive: Boolean(raw[AWHP_PROPS.evu]),
+    modelType: raw[AWHP_PROPS.modelType],
     versatiSeries: raw[AWHP_PROPS.versatiSeries],
   };
 }

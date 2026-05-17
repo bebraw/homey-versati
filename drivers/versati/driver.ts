@@ -108,6 +108,10 @@ class GreeVersatiDriver extends Homey.Driver {
       return flowDevice(args).flowCapabilityIsOn('heatpump_defrosting');
     });
 
+    this.homey.flow.getConditionCard('evu_is_on').registerRunListener((args) => {
+      return flowDevice(args).flowCapabilityIsOn('heatpump_evu');
+    });
+
     this.homey.flow.getConditionCard('device_is_reachable').registerRunListener((args) => {
       return flowDevice(args).flowIsReachable();
     });

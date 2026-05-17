@@ -27,6 +27,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - tank heater state
   - HP-heater 1 and 2 states
   - frost protection state
+  - EVU state
 - Change heat pump mode:
   - off
   - hot water
@@ -42,8 +43,9 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - Disinfect schedule/state
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
+  - triggers for EVU changes
   - triggers for polling failures, device unavailable transitions, and device available recovery
-  - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, and defrosting state
+  - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
 
@@ -173,6 +175,7 @@ The app also keeps internal diagnostics in the Homey device store:
 - last poll error
 - consecutive poll failure count
 - raw `Pow`, `Mod`, `SvSt`, and `SwDisFct`
+- raw `EVU`, `ModelType`, and `VersatiSeries`
 - normalized mode
 
 After repeated polling failures, the device is marked unavailable. It becomes available again after the next successful poll.

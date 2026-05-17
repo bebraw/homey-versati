@@ -66,7 +66,8 @@
         "heatpump_tank_heater",
         "heatpump_hp_heater_1",
         "heatpump_hp_heater_2",
-        "heatpump_frost_protection"
+        "heatpump_frost_protection",
+        "heatpump_evu"
       ],
       "pair": [
         {
@@ -286,6 +287,14 @@
       "type": "boolean",
       "title": {
         "en": "Frost protection"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_evu": {
+      "type": "boolean",
+      "title": {
+        "en": "EVU"
       },
       "getable": true,
       "setable": false
