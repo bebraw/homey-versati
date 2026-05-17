@@ -13,6 +13,7 @@ import {
   DEFAULT_WEATHER_CURVE_CONFIG,
   calculateWeatherCurveTarget,
   type WeatherCurveConfig,
+  type WeatherCurveShape,
 } from '../../src/lib/weather-curve';
 
 const POLL_INTERVAL_MS = 30_000;
@@ -31,6 +32,8 @@ const CURVE_SETTING_KEYS = [
   'curveTargetAtOutdoorHigh',
   'curveTargetMin',
   'curveTargetMax',
+  'curveShape',
+  'curveBend',
   'curveDeadband',
   'curveMinWriteInterval',
 ];
@@ -75,6 +78,8 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveTargetAtOutdoorHigh?: number;
   curveTargetMin?: number;
   curveTargetMax?: number;
+  curveShape?: WeatherCurveShape;
+  curveBend?: number;
   curveDeadband?: number;
   curveMinWriteInterval?: number;
 };
@@ -549,6 +554,8 @@ class GreeVersatiDevice extends Homey.Device {
       targetAtOutdoorHigh: numberSetting(settings.curveTargetAtOutdoorHigh, DEFAULT_WEATHER_CURVE_CONFIG.targetAtOutdoorHigh),
       targetMin: numberSetting(settings.curveTargetMin, DEFAULT_WEATHER_CURVE_CONFIG.targetMin),
       targetMax: numberSetting(settings.curveTargetMax, DEFAULT_WEATHER_CURVE_CONFIG.targetMax),
+      shape: weatherCurveShape(settings.curveShape),
+      bend: numberSetting(settings.curveBend, DEFAULT_WEATHER_CURVE_CONFIG.bend),
     };
 
     return {
@@ -673,6 +680,12 @@ function stringStoreValue(value: unknown): string {
 function numberSetting(value: unknown, fallback: number): number {
   const numberValue = Number(value);
   return Number.isFinite(numberValue) ? numberValue : fallback;
+}
+
+function weatherCurveShape(value: unknown): WeatherCurveShape {
+  return value === 'mild' || value === 'normal' || value === 'aggressive' || value === 'custom'
+    ? value
+    : 'linear';
 }
 
 function isWritableMode(value: unknown): value is WritableGreeVersatiMode {

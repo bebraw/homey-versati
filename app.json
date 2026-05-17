@@ -336,6 +336,62 @@
           "max": 55
         },
         {
+          "id": "curveShape",
+          "type": "dropdown",
+          "label": {
+            "en": "Curve shape"
+          },
+          "hint": {
+            "en": "Linear keeps the two-point curve straight. Presets bend the interpolation; custom uses the curve bend value."
+          },
+          "value": "linear",
+          "values": [
+            {
+              "id": "linear",
+              "label": {
+                "en": "Linear"
+              }
+            },
+            {
+              "id": "mild",
+              "label": {
+                "en": "Mild bend"
+              }
+            },
+            {
+              "id": "normal",
+              "label": {
+                "en": "Normal bend"
+              }
+            },
+            {
+              "id": "aggressive",
+              "label": {
+                "en": "Aggressive bend"
+              }
+            },
+            {
+              "id": "custom",
+              "label": {
+                "en": "Custom bend"
+              }
+            }
+          ]
+        },
+        {
+          "id": "curveBend",
+          "type": "number",
+          "label": {
+            "en": "Curve bend"
+          },
+          "hint": {
+            "en": "Used only when curve shape is custom. Negative keeps target higher for longer; positive lowers target earlier."
+          },
+          "value": 0,
+          "min": -100,
+          "max": 100
+        },
+        {
           "id": "curveDeadband",
           "type": "number",
           "label": {

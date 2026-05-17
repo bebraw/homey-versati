@@ -11,4 +11,5 @@
 - Add MAC-based endpoint rediscovery and an IP-change Flow trigger for DHCP address changes.
 - Add a read-only weather-curve probe for mapping W-depend curve parameters.
 - Add Homey-managed two-point weather compensation with dry-run and guarded write modes.
+- Add linear, preset bend, and custom bend shapes for the Homey-managed weather curve.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

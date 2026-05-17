@@ -213,11 +213,14 @@ Default settings are conservative:
 - outdoor source: `Manual temperature`
 - `-20°C` outdoor maps to `40°C` heating target
 - `10°C` outdoor maps to `25°C` heating target
+- curve shape: `Linear`
 - target clamp: `20-55°C`
 - write deadband: `1°C`
 - minimum write interval: `1800` seconds
 
 Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
+
+Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
 
 ## Roadmap
 

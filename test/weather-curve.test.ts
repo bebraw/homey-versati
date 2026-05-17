@@ -30,6 +30,28 @@ test('clamps weather compensation target to configured and device-safe bounds', 
   assert.equal(calculateWeatherCurveTarget(30, config).targetTemperature, 28);
 });
 
+test('applies preset and custom weather compensation curve bends', () => {
+  const linear = calculateWeatherCurveTarget(-10, DEFAULT_WEATHER_CURVE_CONFIG).targetTemperature;
+  const mild = calculateWeatherCurveTarget(-10, {
+    ...DEFAULT_WEATHER_CURVE_CONFIG,
+    shape: 'mild',
+  }).targetTemperature;
+  const aggressive = calculateWeatherCurveTarget(-10, {
+    ...DEFAULT_WEATHER_CURVE_CONFIG,
+    shape: 'aggressive',
+  }).targetTemperature;
+  const customNegative = calculateWeatherCurveTarget(-10, {
+    ...DEFAULT_WEATHER_CURVE_CONFIG,
+    shape: 'custom',
+    bend: -75,
+  }).targetTemperature;
+
+  assert.equal(linear, 35);
+  assert.equal(mild, 32);
+  assert.equal(aggressive, 29);
+  assert.equal(customNegative, 40);
+});
+
 test('rejects invalid weather compensation curve settings', () => {
   assert.throws(() => calculateWeatherCurveTarget(0, {
     ...DEFAULT_WEATHER_CURVE_CONFIG,
