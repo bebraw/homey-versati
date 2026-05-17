@@ -48,6 +48,7 @@ export interface GreeVersatiState {
   mode: 'off' | 'heat_hot_water' | 'cool' | 'hot_water' | 'other';
   fastHotWater: boolean;
   silence: boolean;
+  weatherDependent: boolean;
   tankHeaterActive: boolean;
   defrosting: boolean;
   hpHeater1Active: boolean;
@@ -141,22 +142,28 @@ export class GreeVersatiClient {
   }
 
   async getState(device: BoundGreeVersatiDevice): Promise<GreeVersatiState> {
-    const cipher = createDeviceCipher(device);
     const raw: Record<string, unknown> = {};
 
     for (let index = 0; index < READ_ONLY_COLUMNS.length; index += MAX_COLUMNS_PER_REQUEST) {
       const columns = READ_ONLY_COLUMNS.slice(index, index + MAX_COLUMNS_PER_REQUEST);
-      const envelope = await this.sendAndReceive(device, createStatusMessage(device.mac, columns), cipher, this.timeoutMs);
-      const pack = envelope.pack as Record<string, unknown> | undefined;
-      if (pack?.t !== 'dat' || !Array.isArray(pack.cols) || !Array.isArray(pack.dat)) {
-        throw new Error(`Unexpected status response from ${device.mac}`);
-      }
-      for (const [columnIndex, column] of pack.cols.entries()) {
-        raw[String(column)] = pack.dat[columnIndex];
-      }
+      Object.assign(raw, await this.getRawColumns(device, columns));
     }
 
     return normalizeState(raw);
+  }
+
+  async getRawColumns(device: BoundGreeVersatiDevice, columns: readonly string[]): Promise<Record<string, unknown>> {
+    const cipher = createDeviceCipher(device);
+    const envelope = await this.sendAndReceive(device, createStatusMessage(device.mac, columns), cipher, this.timeoutMs);
+    const pack = envelope.pack as Record<string, unknown> | undefined;
+    if (pack?.t !== 'dat' || !Array.isArray(pack.cols) || !Array.isArray(pack.dat)) {
+      throw new Error(`Unexpected status response from ${device.mac}`);
+    }
+    const raw: Record<string, unknown> = {};
+    for (const [columnIndex, column] of pack.cols.entries()) {
+      raw[String(column)] = pack.dat[columnIndex];
+    }
+    return raw;
   }
 
   private async sendAndReceive(
@@ -228,6 +235,7 @@ export function normalizeState(raw: Record<string, unknown>): GreeVersatiState {
             : 'other',
     fastHotWater: Boolean(raw[AWHP_PROPS.fastHotWater]),
     silence: Boolean(raw[AWHP_PROPS.quiet]),
+    weatherDependent: Boolean(raw[AWHP_PROPS.weatherDependent]),
     tankHeaterActive: Boolean(raw[AWHP_PROPS.tankHeaterStatus]),
     defrosting: Boolean(raw[AWHP_PROPS.defrostingStatus]),
     hpHeater1Active: Boolean(raw[AWHP_PROPS.hpHeater1Status]),

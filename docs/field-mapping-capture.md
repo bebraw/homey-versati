@@ -26,7 +26,7 @@ Official state parameter screen mappings:
 - `HP-heater 1` maps to `ElcHe1RunSta`.
 - `HP-heater 2` maps to `ElcHe2RunSta`.
 - `Automatic frost protection` maps to `AnFrzzRunSta`.
-- `W-depend` is visible in the official app but its LAN property name is not identified yet. Likely related to weather-dependent heating curve state.
+- `W-depend` maps to `SvSt` on the tested unit. Upstream labelled this as power save, but official app behavior indicates weather-dependent heating state.
 
 Start with low-risk read/write changes:
 

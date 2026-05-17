@@ -115,7 +115,7 @@ export const AWHP_PROPS = {
   hotWaterTarget: 'WatBoxTemSet',
   fastHotWater: 'FastHtWter',
   quiet: 'Quiet',
-  powerSave: 'SvSt',
+  weatherDependent: 'SvSt',
   versatiSeries: 'VersatiSeries',
   modelType: 'ModelType',
   evu: 'EVU',
@@ -152,7 +152,7 @@ export function createBindMessage(mac: string): PacketEnvelope {
   };
 }
 
-export function createStatusMessage(mac: string, columns = READ_ONLY_COLUMNS): PacketEnvelope {
+export function createStatusMessage(mac: string, columns: readonly string[] = READ_ONLY_COLUMNS): PacketEnvelope {
   return {
     cid: 'app',
     i: 0,

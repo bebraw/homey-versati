@@ -36,6 +36,7 @@ const FAKE_STATE: Record<string, unknown> = {
   [AWHP_PROPS.hotWaterTarget]: 55,
   [AWHP_PROPS.fastHotWater]: 0,
   [AWHP_PROPS.quiet]: 1,
+  [AWHP_PROPS.weatherDependent]: 1,
   [AWHP_PROPS.tankHeaterStatus]: 1,
   [AWHP_PROPS.defrostingStatus]: 0,
   [AWHP_PROPS.hpHeater1Status]: 1,
@@ -109,6 +110,7 @@ test('reads and normalizes read-only state over UDP', async () => {
     assert.equal(state.mode, 'hot_water');
     assert.equal(state.tankHeaterActive, true);
     assert.equal(state.silence, true);
+    assert.equal(state.weatherDependent, true);
     assert.equal(state.frostProtection, true);
   } finally {
     await server.close();

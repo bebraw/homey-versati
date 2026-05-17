@@ -21,6 +21,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - heat pump mode mapping, including hot water mode
   - rapid hot water state
   - silence state
+  - W-depend weather-dependent heating state
   - defrosting state
   - tank heater state
   - HP-heater 1 and 2 states
@@ -100,7 +101,7 @@ Planned follow-up work, roughly in priority order:
 3. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
 4. Add configurable polling interval with conservative lower and upper bounds.
 5. Expose more read-only sensors where Homey capability types fit, including electric heater states, error/status values, quiet mode, power save, EVU, model type, and Versati series.
-6. Map `W-depend` / weather-dependent heating curve state and investigate whether Homey can expose safer curve controls than the official Gree app.
+6. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app.
 7. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
 8. Add write commands only after protocol and integration tests cover them, starting with low-risk targets such as heating target, hot water target, Rapid, and Silence.
 9. Add Homey Flow cards for defrosting changes, hot water thresholds, device unavailable events, and telemetry changes.

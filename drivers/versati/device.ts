@@ -52,6 +52,7 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('heatpump_mode', state.mode);
     await this.setCapabilityIfPresent('heatpump_fast_hot_water', state.fastHotWater);
     await this.setCapabilityIfPresent('heatpump_silence', state.silence);
+    await this.setCapabilityIfPresent('heatpump_weather_dependent', state.weatherDependent);
     await this.setCapabilityIfPresent('heatpump_defrosting', state.defrosting);
     await this.setCapabilityIfPresent('heatpump_tank_heater', state.tankHeaterActive);
     await this.setCapabilityIfPresent('heatpump_hp_heater_1', state.hpHeater1Active);
