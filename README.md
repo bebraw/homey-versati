@@ -81,6 +81,21 @@ During pairing, the app sends a local discovery request and then binds to the se
 - Some devices return encrypted discovery packets; this client supports both plain and encrypted discovery replies.
 - If the mode shows as `other`, the device returned a mode code not yet mapped to `heat` or `cool`. The raw mode is still read safely, but no command assumptions are made.
 
+## Roadmap
+
+Planned follow-up work, roughly in priority order:
+
+1. Improve Versati mode decoding. The tested unit reports `Mod: 2`, which currently maps to `other`; collect known operating states before enabling mode commands.
+2. Add diagnostics for IP, MAC, firmware, encryption version, last poll time, raw `Pow`/`Mod`, and recent poll errors.
+3. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked.
+4. Add configurable polling interval with conservative lower and upper bounds.
+5. Expose more read-only sensors where Homey capability types fit, including electric heater states, error/status values, quiet mode, power save, EVU, model type, and Versati series.
+6. Improve connection health handling by marking the device unavailable after repeated poll failures and recovering automatically after a successful poll.
+7. Add write commands only after protocol and integration tests cover them, starting with low-risk targets such as heating target, hot water target, and fast hot water.
+8. Add Homey Flow cards for defrosting changes, hot water thresholds, device unavailable events, and telemetry changes.
+9. Replace placeholder app images with proper app artwork.
+10. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
+
 ## Protocol Notes
 
 The protocol boundary analysis is in [docs/protocol-boundaries.md](docs/protocol-boundaries.md).
