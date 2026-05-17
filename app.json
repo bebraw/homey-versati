@@ -1,0 +1,183 @@
+{
+  "id": "com.gree.versati",
+  "version": "0.1.0",
+  "sdk": 3,
+  "compatibility": ">=12.0.0",
+  "name": {
+    "en": "Gree Versati"
+  },
+  "author": {
+    "name": "Juhovepsalainen"
+  },
+  "description": {
+    "en": "Read-only local monitoring for Gree Versati air-to-water heat pumps."
+  },
+  "brandColor": "#0f766e",
+  "category": ["energy"],
+  "permissions": [],
+  "images": {
+    "small": "/assets/images/small.png",
+    "large": "/assets/images/large.png"
+  },
+  "drivers": [
+    {
+      "id": "versati",
+      "name": {
+        "en": "Gree Versati"
+      },
+      "class": "heater",
+      "images": {
+        "small": "/drivers/versati/assets/images/small.png",
+        "large": "/drivers/versati/assets/images/large.png"
+      },
+      "capabilities": [
+        "measure_temperature_water_out",
+        "measure_temperature_water_in",
+        "measure_temperature_hot_water",
+        "target_temperature_heating",
+        "target_temperature_cooling",
+        "target_temperature_hot_water",
+        "heatpump_power",
+        "heatpump_mode",
+        "heatpump_fast_hot_water",
+        "heatpump_defrosting",
+        "heatpump_tank_heater",
+        "heatpump_frost_protection"
+      ],
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices"
+        }
+      ]
+    }
+  ],
+  "capabilities": {
+    "measure_temperature_water_out": {
+      "type": "number",
+      "title": {
+        "en": "Water out temperature"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "measure_temperature_water_in": {
+      "type": "number",
+      "title": {
+        "en": "Water in temperature"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "measure_temperature_hot_water": {
+      "type": "number",
+      "title": {
+        "en": "Hot water temperature"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 1,
+      "getable": true,
+      "setable": false
+    },
+    "target_temperature_heating": {
+      "type": "number",
+      "title": {
+        "en": "Heating target"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false
+    },
+    "target_temperature_cooling": {
+      "type": "number",
+      "title": {
+        "en": "Cooling target"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false
+    },
+    "target_temperature_hot_water": {
+      "type": "number",
+      "title": {
+        "en": "Hot water target"
+      },
+      "units": {
+        "en": "°C"
+      },
+      "decimals": 0,
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_power": {
+      "type": "boolean",
+      "title": {
+        "en": "Power"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_mode": {
+      "type": "enum",
+      "title": {
+        "en": "Mode"
+      },
+      "values": [
+        { "id": "off", "title": { "en": "Off" } },
+        { "id": "heat", "title": { "en": "Heat" } },
+        { "id": "cool", "title": { "en": "Cool" } },
+        { "id": "other", "title": { "en": "Other" } }
+      ],
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_fast_hot_water": {
+      "type": "boolean",
+      "title": {
+        "en": "Fast hot water"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_defrosting": {
+      "type": "boolean",
+      "title": {
+        "en": "Defrosting"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_tank_heater": {
+      "type": "boolean",
+      "title": {
+        "en": "Tank heater"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_frost_protection": {
+      "type": "boolean",
+      "title": {
+        "en": "Frost protection"
+      },
+      "getable": true,
+      "setable": false
+    }
+  }
+}

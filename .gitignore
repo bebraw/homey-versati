@@ -1,0 +1,4 @@
+node_modules/
+dist/
+.homeybuild/
+npm-debug.log*
