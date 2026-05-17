@@ -1,8 +1,8 @@
 # Homey Gree Versati
 
-Homey app for local, read-only monitoring of Gree Versati air-to-water heat pumps.
+Homey app for local monitoring and limited control of Gree Versati air-to-water heat pumps.
 
-The app talks directly to the heat pump over the local network using UDP port `7000`. It currently supports discovery, binding, telemetry, and limited mode control.
+The app talks directly to the heat pump over the local network using UDP port `7000`. It currently supports discovery, binding, telemetry, target temperature control, mode control, and Homey Flow cards.
 
 ## Current Capabilities
 
@@ -133,13 +133,14 @@ After repeated polling failures, the device is marked unavailable. It becomes av
 Planned follow-up work, roughly in priority order:
 
 1. Add manual pairing fallback for direct IP and MAC entry when UDP broadcast discovery is blocked before the device is paired.
-2. Add more write commands only after protocol and integration tests cover them, starting with low-risk toggles: Rapid, Silence, W-depend, and Disinfect schedule/state.
-3. Investigate whether Homey can expose safer weather-dependent heating curve controls than the official Gree app. `W-depend` itself is mapped to `SvSt`, but curve parameters are not mapped yet.
-4. Finish mode mapping only when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-5. Add additional Flow cards if useful, especially device unavailable events and any newly mapped telemetry fields.
-6. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
-7. Replace placeholder app images with proper app artwork.
+2. Add guarded write support for low-risk toggles once each command is covered by protocol and live integration tests: Rapid, Silence, W-depend, and Disinfect schedule/state.
+3. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
+4. Expand integration tests against the live unit so command support can be verified without relying on the official app for every field probe.
+5. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
+6. Add more Flow cards only where they create practical automation value, such as device unavailable events or newly mapped telemetry fields.
+7. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 8. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
+9. Replace placeholder app images with proper app artwork before distribution outside local development.
 
 ## Protocol Notes
 
