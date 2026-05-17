@@ -78,6 +78,18 @@ Capture a read-only protocol snapshot for field mapping:
 npm run snapshot -- --ip 192.168.1.50 --mac 001122334455
 ```
 
+Smoke-test guarded toggle commands against a live unit:
+
+```bash
+npm run smoke:toggles -- --ip 192.168.1.50 --mac 001122334455
+```
+
+The toggle smoke test reads the current state, changes one toggle at a time, verifies the change, and restores the original value before moving to the next toggle. By default it only tests Rapid hot water and Silence. Include W-depend and Disinfect explicitly when you are ready to test behavior that may affect heating curves or schedules:
+
+```bash
+npm run smoke:toggles -- --ip 192.168.1.50 --mac 001122334455 --toggles rapid,silence,w_depend,disinfect
+```
+
 Log in to the Homey CLI if needed:
 
 ```bash
@@ -139,7 +151,7 @@ After repeated polling failures, the device is marked unavailable. It becomes av
 
 Planned follow-up work, roughly in priority order:
 
-1. Live-test guarded toggles against a real unit with state restore, especially W-depend and Disinfect because they may affect operating schedules.
+1. Run the guarded toggle smoke test against a live unit, especially W-depend and Disinfect because they may affect operating schedules.
 2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
 3. Expand integration tests against the live unit so command support can be verified without relying on the official app for every field probe.
 4. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
