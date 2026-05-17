@@ -189,6 +189,52 @@ test('writes heating and hot water targets over UDP command packets', async () =
   }
 });
 
+test('writes guarded boolean toggles over UDP command packets', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const bound: BoundGreeVersatiDevice = {
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    };
+
+    await client.setFastHotWater(bound, true);
+    await client.setSilence(bound, false);
+    await client.setWeatherDependent(bound, false);
+    await client.setDisinfect(bound, false);
+
+    let state = await client.getState(bound);
+    assert.equal(state.fastHotWater, true);
+    assert.equal(state.silence, false);
+    assert.equal(state.weatherDependent, false);
+    assert.equal(state.disinfect, false);
+    assert.equal(state.raw[AWHP_PROPS.fastHotWater], 1);
+    assert.equal(state.raw[AWHP_PROPS.quiet], 0);
+    assert.equal(state.raw[AWHP_PROPS.weatherDependent], 0);
+    assert.equal(state.raw[AWHP_PROPS.disinfect], 0);
+
+    await client.setFastHotWater(bound, false);
+    await client.setSilence(bound, true);
+    await client.setWeatherDependent(bound, true);
+    await client.setDisinfect(bound, true);
+
+    state = await client.getState(bound);
+    assert.equal(state.fastHotWater, false);
+    assert.equal(state.silence, true);
+    assert.equal(state.weatherDependent, true);
+    assert.equal(state.disinfect, true);
+    assert.equal(state.raw[AWHP_PROPS.fastHotWater], 0);
+    assert.equal(state.raw[AWHP_PROPS.quiet], 1);
+    assert.equal(state.raw[AWHP_PROPS.weatherDependent], 1);
+    assert.equal(state.raw[AWHP_PROPS.disinfect], 1);
+  } finally {
+    await server.close();
+  }
+});
+
 test('clamps target temperature writes to conservative ranges', async () => {
   const server = await startFakeDevice({ encryptedDiscovery: false });
   try {

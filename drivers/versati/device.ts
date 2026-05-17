@@ -69,6 +69,18 @@ class GreeVersatiDevice extends Homey.Device {
     this.registerCapabilityListener('target_temperature_hot_water', async (value) => {
       await this.setHotWaterTargetFromHomey(value);
     });
+    this.registerCapabilityListener('heatpump_fast_hot_water', async (value) => {
+      await this.setFastHotWaterFromHomey(value);
+    });
+    this.registerCapabilityListener('heatpump_silence', async (value) => {
+      await this.setSilenceFromHomey(value);
+    });
+    this.registerCapabilityListener('heatpump_weather_dependent', async (value) => {
+      await this.setWeatherDependentFromHomey(value);
+    });
+    this.registerCapabilityListener('heatpump_disinfect', async (value) => {
+      await this.setDisinfectFromHomey(value);
+    });
     await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
       this.refreshState().catch((error) => this.handleRefreshFailure(error, false));
@@ -121,6 +133,22 @@ class GreeVersatiDevice extends Homey.Device {
 
   async flowSetHotWaterTarget(temperature: unknown): Promise<void> {
     await this.setHotWaterTargetFromHomey(temperature);
+  }
+
+  async flowSetFastHotWater(enabled: unknown): Promise<void> {
+    await this.setFastHotWaterFromHomey(enabled);
+  }
+
+  async flowSetSilence(enabled: unknown): Promise<void> {
+    await this.setSilenceFromHomey(enabled);
+  }
+
+  async flowSetWeatherDependent(enabled: unknown): Promise<void> {
+    await this.setWeatherDependentFromHomey(enabled);
+  }
+
+  async flowSetDisinfect(enabled: unknown): Promise<void> {
+    await this.setDisinfectFromHomey(enabled);
   }
 
   flowModeIs(mode: unknown): boolean {
@@ -255,6 +283,26 @@ class GreeVersatiDevice extends Homey.Device {
     await this.refreshState();
   }
 
+  private async setFastHotWaterFromHomey(value: unknown): Promise<void> {
+    await this.clientOrThrow().setFastHotWater(this.boundDevice(), parseBoolean(value, 'Rapid hot water'));
+    await this.refreshState();
+  }
+
+  private async setSilenceFromHomey(value: unknown): Promise<void> {
+    await this.clientOrThrow().setSilence(this.boundDevice(), parseBoolean(value, 'Silence'));
+    await this.refreshState();
+  }
+
+  private async setWeatherDependentFromHomey(value: unknown): Promise<void> {
+    await this.clientOrThrow().setWeatherDependent(this.boundDevice(), parseBoolean(value, 'W-depend'));
+    await this.refreshState();
+  }
+
+  private async setDisinfectFromHomey(value: unknown): Promise<void> {
+    await this.clientOrThrow().setDisinfect(this.boundDevice(), parseBoolean(value, 'Disinfect'));
+    await this.refreshState();
+  }
+
   private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
     this.consecutiveFailures += 1;
     const message = error instanceof Error ? error.message : String(error);
@@ -365,4 +413,17 @@ function parseTemperature(value: unknown, min: number, max: number, label: strin
     throw new Error(`${label} must be between ${min} and ${max} °C`);
   }
   return temperature;
+}
+
+function parseBoolean(value: unknown, label: string): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (value === 'true') {
+    return true;
+  }
+  if (value === 'false') {
+    return false;
+  }
+  throw new Error(`${label} must be true or false`);
 }

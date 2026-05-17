@@ -218,6 +218,30 @@ export class GreeVersatiClient {
     });
   }
 
+  async setFastHotWater(device: BoundGreeVersatiDevice, enabled: boolean): Promise<void> {
+    await this.setBooleanProperty(device, AWHP_PROPS.fastHotWater, enabled);
+  }
+
+  async setSilence(device: BoundGreeVersatiDevice, enabled: boolean): Promise<void> {
+    await this.setBooleanProperty(device, AWHP_PROPS.quiet, enabled);
+  }
+
+  async setWeatherDependent(device: BoundGreeVersatiDevice, enabled: boolean): Promise<void> {
+    await this.setBooleanProperty(device, AWHP_PROPS.weatherDependent, enabled);
+  }
+
+  async setDisinfect(device: BoundGreeVersatiDevice, enabled: boolean): Promise<void> {
+    await this.setBooleanProperty(device, AWHP_PROPS.disinfect, enabled);
+  }
+
+  private async setBooleanProperty(device: BoundGreeVersatiDevice, property: string, enabled: boolean): Promise<void> {
+    const value = booleanFlag(enabled);
+    const result = await this.setProperties(device, { [property]: value });
+    if (result[property] !== value) {
+      throw new Error(`Unexpected command response for ${property}: ${String(result[property])}`);
+    }
+  }
+
   private async sendAndReceive(
     device: GreeVersatiDeviceInfo,
     envelope: PacketEnvelope,
@@ -365,4 +389,8 @@ function clampInteger(value: number, min: number, max: number): number {
     throw new Error(`Expected finite temperature, got ${value}`);
   }
   return Math.min(Math.max(Math.round(value), min), max);
+}
+
+function booleanFlag(value: boolean): 0 | 1 {
+  return value ? 1 : 0;
 }

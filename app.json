@@ -207,7 +207,7 @@
         "en": "Rapid hot water"
       },
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_silence": {
       "type": "boolean",
@@ -215,7 +215,7 @@
         "en": "Silence"
       },
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_weather_dependent": {
       "type": "boolean",
@@ -223,7 +223,7 @@
         "en": "W-depend"
       },
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_disinfect": {
       "type": "boolean",
@@ -231,7 +231,7 @@
         "en": "Disinfect"
       },
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_defrosting": {
       "type": "boolean",

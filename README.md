@@ -35,10 +35,15 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Change target temperatures:
   - heating target, clamped to `20-55°C`
   - hot water target, clamped to `30-60°C`
+- Toggle guarded boolean commands:
+  - Rapid hot water
+  - Silence
+  - W-depend weather-dependent heating
+  - Disinfect schedule/state
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, and defrosting state
-  - actions for changing mode and heating or hot water target temperatures
+  - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
 
 ## Requirements
 
@@ -134,7 +139,7 @@ After repeated polling failures, the device is marked unavailable. It becomes av
 
 Planned follow-up work, roughly in priority order:
 
-1. Add guarded write support for low-risk toggles once each command is covered by protocol and live integration tests: Rapid, Silence, W-depend, and Disinfect schedule/state.
+1. Live-test guarded toggles against a real unit with state restore, especially W-depend and Disinfect because they may affect operating schedules.
 2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
 3. Expand integration tests against the live unit so command support can be verified without relying on the official app for every field probe.
 4. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.

@@ -243,6 +243,82 @@
           "step": 1
         }
       ]
+    },
+    {
+      "id": "set_rapid_hot_water",
+      "title": {
+        "en": "Set Rapid hot water"
+      },
+      "titleFormatted": {
+        "en": "Set Rapid hot water to [[enabled]]"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "dropdown",
+          "values": [
+            { "id": "true", "label": { "en": "Enabled" } },
+            { "id": "false", "label": { "en": "Disabled" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_silence",
+      "title": {
+        "en": "Set Silence"
+      },
+      "titleFormatted": {
+        "en": "Set Silence to [[enabled]]"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "dropdown",
+          "values": [
+            { "id": "true", "label": { "en": "Enabled" } },
+            { "id": "false", "label": { "en": "Disabled" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_w_depend",
+      "title": {
+        "en": "Set W-depend"
+      },
+      "titleFormatted": {
+        "en": "Set W-depend to [[enabled]]"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "dropdown",
+          "values": [
+            { "id": "true", "label": { "en": "Enabled" } },
+            { "id": "false", "label": { "en": "Disabled" } }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "set_disinfect",
+      "title": {
+        "en": "Set Disinfect"
+      },
+      "titleFormatted": {
+        "en": "Set Disinfect to [[enabled]]"
+      },
+      "args": [
+        {
+          "name": "enabled",
+          "type": "dropdown",
+          "values": [
+            { "id": "true", "label": { "en": "Enabled" } },
+            { "id": "false", "label": { "en": "Disabled" } }
+          ]
+        }
+      ]
     }
   ]
 }
