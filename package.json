@@ -2,14 +2,22 @@
   "name": "homey-versati",
   "version": "0.1.0",
   "private": true,
-  "description": "Homey app for read-only Gree Versati heat pump discovery and telemetry",
-  "main": "dist/app.js",
+  "description": "Homey app for local Gree Versati heat pump monitoring and limited control",
+  "main": ".homeybuild/src/app.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bebraw/homey-versati.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bebraw/homey-versati/issues"
+  },
+  "homepage": "https://github.com/bebraw/homey-versati#readme",
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "probe:fields": "npm run build && node .homeybuild/scripts/probe-fields.js",
     "snapshot": "npm run build && node .homeybuild/scripts/snapshot.js",
     "test": "npm run build && node --test .homeybuild/test/*.test.js",
-    "validate": "npm run test"
+    "validate": "npm run test && homey app validate"
   },
   "dependencies": {
     "homey": "^4.2.1"

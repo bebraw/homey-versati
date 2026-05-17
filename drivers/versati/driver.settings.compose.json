@@ -8,7 +8,8 @@
     "hint": {
       "en": "Current local IP address of the heat pump."
     },
-    "value": ""
+    "value": "",
+    "highlight": true
   },
   {
     "id": "port",
@@ -30,7 +31,8 @@
     "hint": {
       "en": "Device MAC address without separators also works."
     },
-    "value": ""
+    "value": "",
+    "highlight": true
   },
   {
     "id": "key",
@@ -41,7 +43,8 @@
     "hint": {
       "en": "Leave empty to rebind when changing endpoint details."
     },
-    "value": ""
+    "value": "",
+    "highlight": true
   },
   {
     "id": "encryptionVersion",

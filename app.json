@@ -3,17 +3,34 @@
   "version": "0.1.0",
   "sdk": 3,
   "compatibility": ">=12.0.0",
+  "runtime": "nodejs",
+  "platforms": ["local"],
   "name": {
     "en": "Gree Versati"
   },
   "author": {
     "name": "Juhovepsalainen"
   },
+  "contributors": {
+    "developers": [
+      {
+        "name": "Roi Huvaara"
+      }
+    ]
+  },
   "description": {
     "en": "Local monitoring and limited control for Gree Versati air-to-water heat pumps."
   },
   "brandColor": "#0f766e",
-  "category": ["energy"],
+  "category": "climate",
+  "tags": {
+    "en": ["Gree", "Versati", "heat pump", "climate", "energy"]
+  },
+  "source": "https://github.com/bebraw/homey-versati",
+  "bugs": {
+    "url": "https://github.com/bebraw/homey-versati/issues"
+  },
+  "support": "https://github.com/bebraw/homey-versati/issues",
   "permissions": [],
   "images": {
     "small": "/assets/images/small.png",
