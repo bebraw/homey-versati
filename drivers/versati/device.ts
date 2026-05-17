@@ -54,7 +54,7 @@ interface SettingsEvent {
 
 class GreeVersatiDevice extends Homey.Device {
   private client?: GreeVersatiClient;
-  private pollTimer?: NodeJS.Timeout;
+  private pollTimer: NodeJS.Timeout | undefined;
   private consecutiveFailures = 0;
 
   async onInit(): Promise<void> {
@@ -246,14 +246,17 @@ class GreeVersatiDevice extends Homey.Device {
     if (!merged.ip || !merged.port || !merged.mac || !merged.key || !merged.encryptionVersion) {
       throw new Error('Gree Versati device is missing pairing store data');
     }
-    return {
+    const device: BoundGreeVersatiDevice = {
       ip: merged.ip,
       port: Number(merged.port),
       mac: normalizeMac(merged.mac),
       key: merged.key,
       encryptionVersion: Number(merged.encryptionVersion) === 2 ? 2 : 1,
-      name: merged.name,
     };
+    if (merged.name) {
+      device.name = merged.name;
+    }
+    return device;
   }
 
   private clientOrThrow(): GreeVersatiClient {

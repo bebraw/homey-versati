@@ -9,11 +9,14 @@ interface CliOptions {
 
 async function main(): Promise<void> {
   const options = parseArgs(process.argv.slice(2));
-  const client = new GreeVersatiClient({
+  const clientOptions: ConstructorParameters<typeof GreeVersatiClient>[0] = {
     timeoutMs: 5000,
     bindTimeoutMs: 5000,
-    broadcastAddresses: options.ip ? [options.ip] : undefined,
-  });
+  };
+  if (options.ip) {
+    clientOptions.broadcastAddresses = [options.ip];
+  }
+  const client = new GreeVersatiClient(clientOptions);
 
   const discovered = options.ip && options.mac ? [] : await client.discover(options.waitMs);
   const device = pickDevice(discovered, options);
@@ -69,11 +72,15 @@ async function main(): Promise<void> {
 
 function parseArgs(args: string[]): CliOptions {
   const options: CliOptions = {
-    mac: process.env.GREE_VERSATI_MAC,
-    ip: process.env.GREE_VERSATI_IP,
     port: Number(process.env.GREE_VERSATI_PORT ?? 7000),
     waitMs: Number(process.env.GREE_VERSATI_WAIT_MS ?? 4000),
   };
+  if (process.env.GREE_VERSATI_MAC) {
+    options.mac = process.env.GREE_VERSATI_MAC;
+  }
+  if (process.env.GREE_VERSATI_IP) {
+    options.ip = process.env.GREE_VERSATI_IP;
+  }
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];

@@ -81,7 +81,7 @@ export class GreeVersatiClient {
   private readonly port: number;
   private readonly timeoutMs: number;
   private readonly bindTimeoutMs: number;
-  private readonly broadcastAddresses?: string[];
+  private readonly broadcastAddresses: string[] | undefined;
 
   constructor(options: GreeVersatiClientOptions = {}) {
     this.port = options.port ?? DEFAULT_PORT;
@@ -108,15 +108,20 @@ export class GreeVersatiClient {
         if (!mac) {
           return;
         }
-        found.set(mac, {
+        const device: GreeVersatiDeviceInfo = {
           ip: rinfo.address,
           port: rinfo.port || this.port,
           mac,
-          name: maybeString(pack.name),
-          brand: maybeString(pack.brand),
-          model: maybeString(pack.model),
-          version: maybeString(pack.ver),
-        });
+        };
+        const name = maybeString(pack.name);
+        const brand = maybeString(pack.brand);
+        const model = maybeString(pack.model);
+        const version = maybeString(pack.ver);
+        if (name) device.name = name;
+        if (brand) device.brand = brand;
+        if (model) device.model = model;
+        if (version) device.version = version;
+        found.set(mac, device);
       } catch {
         // Ignore unrelated UDP traffic while scanning.
       }
