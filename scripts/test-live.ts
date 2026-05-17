@@ -13,6 +13,7 @@ interface CliOptions {
   port: number;
   settleMs: number;
   includeRisky: boolean;
+  redact: boolean;
 }
 
 interface LiveCheck {
@@ -94,9 +95,9 @@ async function main(): Promise<void> {
   console.log(JSON.stringify({
     capturedAt: new Date().toISOString(),
     device: {
-      ip: bound.ip,
+      ip: redactIp(bound.ip, options.redact),
       port: bound.port,
-      mac: bound.mac,
+      mac: redactMac(bound.mac, options.redact),
       encryptionVersion: bound.encryptionVersion,
     },
     includeRisky: options.includeRisky,
@@ -318,6 +319,7 @@ function parseArgs(args: string[]): CliOptions {
     port: Number(process.env.GREE_VERSATI_PORT ?? 7000),
     settleMs: Number(process.env.GREE_VERSATI_SETTLE_MS ?? 1500),
     includeRisky: false,
+    redact: process.env.GREE_VERSATI_REDACT !== 'false',
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -337,6 +339,10 @@ function parseArgs(args: string[]): CliOptions {
       index += 1;
     } else if (arg === '--include-risky') {
       options.includeRisky = true;
+    } else if (arg === '--redact') {
+      options.redact = true;
+    } else if (arg === '--no-redact') {
+      options.redact = false;
     } else if (arg === '--help') {
       printHelp();
       process.exit(0);
@@ -365,8 +371,16 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function redactMac(mac: string, redact: boolean): string {
+  return redact ? `********${normalizeMac(mac).slice(-4)}` : mac;
+}
+
+function redactIp(ip: string, redact: boolean): string {
+  return redact ? '<redacted-ip>' : ip;
+}
+
 function printHelp(): void {
-  console.log(`Usage: npm run test:live -- --ip <address> --mac <mac> [--include-risky] [--settle-ms 1500]
+  console.log(`Usage: npm run test:live -- --ip <address> --mac <mac> [--include-risky] [--settle-ms 1500] [--no-redact]
 
 Runs live write/restore checks for:
   snapshot
@@ -383,6 +397,7 @@ Environment variables:
   GREE_VERSATI_MAC
   GREE_VERSATI_PORT
   GREE_VERSATI_SETTLE_MS
+  GREE_VERSATI_REDACT=false
 `);
 }
 

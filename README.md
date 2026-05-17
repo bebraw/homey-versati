@@ -98,6 +98,8 @@ npm run test:live -- --ip 192.168.1.50 --mac 001122334455
 
 The live integration harness runs a snapshot check, mode write/restore check, heating and hot water target write/restore check, and safe toggle write/restore checks. It restores the captured baseline in a final cleanup step. Add `--include-risky` to include W-depend and Disinfect.
 
+Snapshot and live-test outputs redact device identifiers by default. Use `--no-redact` only for private debugging output.
+
 Log in to the Homey CLI if needed:
 
 ```bash

@@ -5,6 +5,7 @@ interface CliOptions {
   mac?: string;
   port: number;
   waitMs: number;
+  redact: boolean;
 }
 
 async function main(): Promise<void> {
@@ -33,9 +34,9 @@ async function main(): Promise<void> {
   const snapshot = {
     capturedAt: new Date().toISOString(),
     device: {
-      ip: bound.ip,
+      ip: redactIp(bound.ip, options.redact),
       port: bound.port,
-      mac: bound.mac,
+      mac: redactMac(bound.mac, options.redact),
       name: bound.name,
       brand: bound.brand,
       model: bound.model,
@@ -74,6 +75,7 @@ function parseArgs(args: string[]): CliOptions {
   const options: CliOptions = {
     port: Number(process.env.GREE_VERSATI_PORT ?? 7000),
     waitMs: Number(process.env.GREE_VERSATI_WAIT_MS ?? 4000),
+    redact: process.env.GREE_VERSATI_REDACT !== 'false',
   };
   if (process.env.GREE_VERSATI_MAC) {
     options.mac = process.env.GREE_VERSATI_MAC;
@@ -97,6 +99,10 @@ function parseArgs(args: string[]): CliOptions {
     } else if (arg === '--wait-ms' && value) {
       options.waitMs = Number(value);
       index += 1;
+    } else if (arg === '--redact') {
+      options.redact = true;
+    } else if (arg === '--no-redact') {
+      options.redact = false;
     } else if (arg === '--help') {
       printHelp();
       process.exit(0);
@@ -142,14 +148,23 @@ function sortObject(input: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(input).sort(([left], [right]) => left.localeCompare(right)));
 }
 
+function redactMac(mac: string, redact: boolean): string {
+  return redact ? `********${normalizeMac(mac).slice(-4)}` : mac;
+}
+
+function redactIp(ip: string, redact: boolean): string {
+  return redact ? '<redacted-ip>' : ip;
+}
+
 function printHelp(): void {
-  console.log(`Usage: npm run snapshot -- [--ip <address>] [--mac <mac>] [--port 7000] [--wait-ms 4000]
+  console.log(`Usage: npm run snapshot -- [--ip <address>] [--mac <mac>] [--port 7000] [--wait-ms 4000] [--no-redact]
 
 Environment variables:
   GREE_VERSATI_IP
   GREE_VERSATI_MAC
   GREE_VERSATI_PORT
   GREE_VERSATI_WAIT_MS
+  GREE_VERSATI_REDACT=false
 `);
 }
 

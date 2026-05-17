@@ -20,6 +20,7 @@ interface CliOptions {
   port: number;
   toggles: ToggleId[];
   settleMs: number;
+  redact: boolean;
 }
 
 interface ToggleObservation {
@@ -112,9 +113,9 @@ async function main(): Promise<void> {
   console.log(JSON.stringify({
     capturedAt: new Date().toISOString(),
     device: {
-      ip: bound.ip,
+      ip: redactIp(bound.ip, options.redact),
       port: bound.port,
-      mac: bound.mac,
+      mac: redactMac(bound.mac, options.redact),
       encryptionVersion: bound.encryptionVersion,
     },
     toggles: options.toggles.map((id) => ({
@@ -151,6 +152,7 @@ function parseArgs(args: string[]): CliOptions {
     port: Number(process.env.GREE_VERSATI_PORT ?? 7000),
     toggles: ['rapid', 'silence'],
     settleMs: Number(process.env.GREE_VERSATI_SETTLE_MS ?? 1500),
+    redact: process.env.GREE_VERSATI_REDACT !== 'false',
   };
 
   for (let index = 0; index < args.length; index += 1) {
@@ -173,6 +175,10 @@ function parseArgs(args: string[]): CliOptions {
       index += 1;
     } else if (arg === '--all') {
       options.toggles = ['rapid', 'silence', 'w_depend', 'disinfect'];
+    } else if (arg === '--redact') {
+      options.redact = true;
+    } else if (arg === '--no-redact') {
+      options.redact = false;
     } else if (arg === '--help') {
       printHelp();
       process.exit(0);
@@ -214,8 +220,16 @@ function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function redactMac(mac: string, redact: boolean): string {
+  return redact ? `********${normalizeMac(mac).slice(-4)}` : mac;
+}
+
+function redactIp(ip: string, redact: boolean): string {
+  return redact ? '<redacted-ip>' : ip;
+}
+
 function printHelp(): void {
-  console.log(`Usage: npm run smoke:toggles -- --ip <address> --mac <mac> [--toggles rapid,silence] [--all] [--settle-ms 1500]
+  console.log(`Usage: npm run smoke:toggles -- --ip <address> --mac <mac> [--toggles rapid,silence] [--all] [--settle-ms 1500] [--no-redact]
 
 Default toggles:
   rapid,silence
@@ -231,6 +245,7 @@ Environment variables:
   GREE_VERSATI_MAC
   GREE_VERSATI_PORT
   GREE_VERSATI_SETTLE_MS
+  GREE_VERSATI_REDACT=false
 `);
 }
 
