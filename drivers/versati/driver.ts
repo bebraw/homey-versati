@@ -27,7 +27,7 @@ class GreeVersatiDriver extends Homey.Driver {
             data: {
               id: device.mac,
             },
-            settings: {
+            store: {
               ip: device.ip,
               port: device.port,
               mac: device.mac,

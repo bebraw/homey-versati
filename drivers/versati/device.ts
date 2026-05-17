@@ -17,7 +17,10 @@ class GreeVersatiDevice extends Homey.Device {
 
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
-    await this.refreshState();
+    await this.refreshState().catch((error) => {
+      this.error('Initial Gree Versati refresh failed', error);
+      return this.setUnavailable('Could not read heat pump state yet');
+    });
     this.pollTimer = this.homey.setInterval(() => {
       this.refreshState().catch((error) => this.error('Failed to refresh Gree Versati state', error));
     }, POLL_INTERVAL_MS);
@@ -61,17 +64,17 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private boundDevice(): BoundGreeVersatiDevice {
-    const settings = this.getSettings() as Partial<VersatiSettings>;
-    if (!settings.ip || !settings.port || !settings.mac || !settings.key || !settings.encryptionVersion) {
-      throw new Error('Gree Versati device is missing pairing settings');
+    const stored = this.getStore() as Partial<VersatiSettings>;
+    if (!stored.ip || !stored.port || !stored.mac || !stored.key || !stored.encryptionVersion) {
+      throw new Error('Gree Versati device is missing pairing store data');
     }
     return {
-      ip: settings.ip,
-      port: Number(settings.port),
-      mac: settings.mac,
-      key: settings.key,
-      encryptionVersion: Number(settings.encryptionVersion) === 2 ? 2 : 1,
-      name: settings.name,
+      ip: stored.ip,
+      port: Number(stored.port),
+      mac: stored.mac,
+      key: stored.key,
+      encryptionVersion: Number(stored.encryptionVersion) === 2 ? 2 : 1,
+      name: stored.name,
     };
   }
 
