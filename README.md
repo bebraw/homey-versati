@@ -22,6 +22,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - rapid hot water state
   - silence state
   - W-depend weather-dependent heating state
+  - disinfect schedule/state
   - defrosting state
   - tank heater state
   - HP-heater 1 and 2 states

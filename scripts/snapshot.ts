@@ -53,6 +53,7 @@ async function main(): Promise<void> {
       fastHotWater: state.fastHotWater,
       silence: state.silence,
       weatherDependent: state.weatherDependent,
+      disinfect: state.disinfect,
       tankHeaterActive: state.tankHeaterActive,
       defrosting: state.defrosting,
       hpHeater1Active: state.hpHeater1Active,

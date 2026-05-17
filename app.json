@@ -44,6 +44,7 @@
         "heatpump_fast_hot_water",
         "heatpump_silence",
         "heatpump_weather_dependent",
+        "heatpump_disinfect",
         "heatpump_defrosting",
         "heatpump_tank_heater",
         "heatpump_hp_heater_1",
@@ -208,6 +209,14 @@
       "type": "boolean",
       "title": {
         "en": "W-depend"
+      },
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_disinfect": {
+      "type": "boolean",
+      "title": {
+        "en": "Disinfect"
       },
       "getable": true,
       "setable": false

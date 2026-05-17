@@ -49,6 +49,7 @@ export interface GreeVersatiState {
   fastHotWater: boolean;
   silence: boolean;
   weatherDependent: boolean;
+  disinfect: boolean;
   tankHeaterActive: boolean;
   defrosting: boolean;
   hpHeater1Active: boolean;
@@ -236,6 +237,7 @@ export function normalizeState(raw: Record<string, unknown>): GreeVersatiState {
     fastHotWater: Boolean(raw[AWHP_PROPS.fastHotWater]),
     silence: Boolean(raw[AWHP_PROPS.quiet]),
     weatherDependent: Boolean(raw[AWHP_PROPS.weatherDependent]),
+    disinfect: Boolean(raw[AWHP_PROPS.disinfect]),
     tankHeaterActive: Boolean(raw[AWHP_PROPS.tankHeaterStatus]),
     defrosting: Boolean(raw[AWHP_PROPS.defrostingStatus]),
     hpHeater1Active: Boolean(raw[AWHP_PROPS.hpHeater1Status]),

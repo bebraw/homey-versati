@@ -27,6 +27,7 @@ Official state parameter screen mappings:
 - `HP-heater 2` maps to `ElcHe2RunSta`.
 - `Automatic frost protection` maps to `AnFrzzRunSta`.
 - `W-depend` maps to `SvSt` on the tested unit. Upstream labelled this as power save, but official app behavior indicates weather-dependent heating state.
+- `Disinfect` maps to `SwDisFct`.
 
 Start with low-risk read/write changes:
 

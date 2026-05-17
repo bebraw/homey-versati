@@ -115,6 +115,7 @@ export const AWHP_PROPS = {
   hotWaterTarget: 'WatBoxTemSet',
   fastHotWater: 'FastHtWter',
   quiet: 'Quiet',
+  disinfect: 'SwDisFct',
   weatherDependent: 'SvSt',
   versatiSeries: 'VersatiSeries',
   modelType: 'ModelType',
