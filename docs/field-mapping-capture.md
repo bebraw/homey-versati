@@ -6,6 +6,14 @@ Use the official Gree app to change one thing at a time. Before and after each a
 npm run snapshot -- --ip 192.168.1.50 --mac 001122334455
 ```
 
+Use the diagnostics probe to search for additional read-only fields:
+
+```bash
+npm run probe:diagnostics -- --ip 192.168.1.50 --mac 001122334455
+```
+
+The diagnostics probe groups candidate fields by identity, errors, energy, runtime, grid/EVU, and extra temperatures. Output is redacted by default. Add `--groups identity,errors` to narrow the probe, or `--fields A,B,C` to test specific LAN property names.
+
 Record:
 
 - the official app screen name

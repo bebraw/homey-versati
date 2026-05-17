@@ -80,6 +80,12 @@ Capture a read-only protocol snapshot for field mapping:
 npm run snapshot -- --ip 192.168.1.50 --mac 001122334455
 ```
 
+Probe read-only diagnostics candidates:
+
+```bash
+npm run probe:diagnostics -- --ip 192.168.1.50 --mac 001122334455
+```
+
 Smoke-test guarded toggle commands against a live unit:
 
 ```bash
@@ -186,7 +192,7 @@ Planned follow-up work, roughly in priority order:
 2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
-5. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
+5. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
 6. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
 7. Refine app artwork further if needed before distribution outside local development.
 

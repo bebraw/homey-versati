@@ -14,6 +14,7 @@
   "homepage": "https://github.com/bebraw/homey-versati#readme",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "probe:diagnostics": "npm run build && node .homeybuild/scripts/probe-diagnostics.js",
     "probe:fields": "npm run build && node .homeybuild/scripts/probe-fields.js",
     "smoke:toggles": "npm run build && node .homeybuild/scripts/smoke-toggles.js",
     "snapshot": "npm run build && node .homeybuild/scripts/snapshot.js",
