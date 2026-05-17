@@ -26,6 +26,7 @@ interface FlowDevice {
   flowModeIs(mode: unknown): boolean;
   flowHotWaterBelow(temperature: unknown): boolean;
   flowCapabilityIsOn(capability: string): boolean;
+  flowIsReachable(): boolean;
 }
 
 class GreeVersatiDriver extends Homey.Driver {
@@ -105,6 +106,10 @@ class GreeVersatiDriver extends Homey.Driver {
 
     this.homey.flow.getConditionCard('defrosting_is_on').registerRunListener((args) => {
       return flowDevice(args).flowCapabilityIsOn('heatpump_defrosting');
+    });
+
+    this.homey.flow.getConditionCard('device_is_reachable').registerRunListener((args) => {
+      return flowDevice(args).flowIsReachable();
     });
   }
 }

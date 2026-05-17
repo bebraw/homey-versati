@@ -56,6 +56,7 @@ class GreeVersatiDevice extends Homey.Device {
   private client?: GreeVersatiClient;
   private pollTimer: NodeJS.Timeout | undefined;
   private consecutiveFailures = 0;
+  private reachable = true;
 
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
@@ -165,13 +166,22 @@ class GreeVersatiDevice extends Homey.Device {
     return this.getCapabilityValue(capability) === true;
   }
 
+  flowIsReachable(): boolean {
+    return this.reachable;
+  }
+
   private async refreshState(): Promise<void> {
     const device = this.boundDevice();
     const state = await this.clientOrThrow().getState(device);
+    const wasReachable = this.reachable;
     this.consecutiveFailures = 0;
-    await this.setAvailable();
     await this.applyCapabilities(state);
     await this.updateDiagnostics(device, state);
+    await this.setAvailable();
+    this.reachable = true;
+    if (!wasReachable) {
+      await this.triggerDeviceAvailable();
+    }
   }
 
   private async applyCapabilities(state: GreeVersatiState): Promise<void> {
@@ -309,14 +319,48 @@ class GreeVersatiDevice extends Homey.Device {
   private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
     this.consecutiveFailures += 1;
     const message = error instanceof Error ? error.message : String(error);
+    const lastSuccessfulPollAt = stringStoreValue(this.getStore().lastSuccessfulPollAt);
     this.error(initial ? 'Initial Gree Versati refresh failed' : 'Failed to refresh Gree Versati state', error);
     await this.setStoreValue('lastPollError', message);
     await this.setStoreValue('lastPollErrorAt', new Date().toISOString());
     await this.setStoreValue('consecutivePollFailures', this.consecutiveFailures);
+    await this.triggerPollFailed(message, lastSuccessfulPollAt);
 
     if (initial || this.consecutiveFailures >= UNAVAILABLE_AFTER_FAILURES) {
       await this.setUnavailable(`Could not read heat pump state: ${message}`);
+      if (this.reachable) {
+        this.reachable = false;
+        await this.triggerDeviceUnavailable(message, lastSuccessfulPollAt);
+      }
     }
+  }
+
+  private async triggerPollFailed(error: string, lastSuccessfulPollAt: string): Promise<void> {
+    await this.homey.flow.getTriggerCard('poll_failed').trigger(this, {
+      error,
+      failures: this.consecutiveFailures,
+      last_success: lastSuccessfulPollAt,
+    }).catch((triggerError) => {
+      this.error('Failed to trigger poll_failed flow', triggerError);
+    });
+  }
+
+  private async triggerDeviceUnavailable(error: string, lastSuccessfulPollAt: string): Promise<void> {
+    await this.homey.flow.getTriggerCard('device_unavailable').trigger(this, {
+      error,
+      failures: this.consecutiveFailures,
+      last_success: lastSuccessfulPollAt,
+    }).catch((triggerError) => {
+      this.error('Failed to trigger device_unavailable flow', triggerError);
+    });
+  }
+
+  private async triggerDeviceAvailable(): Promise<void> {
+    await this.homey.flow.getTriggerCard('device_available').trigger(this, {
+      last_success: stringStoreValue(this.getStore().lastSuccessfulPollAt),
+    }).catch((triggerError) => {
+      this.error('Failed to trigger device_available flow', triggerError);
+    });
   }
 
   private async updateDiagnostics(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
@@ -401,6 +445,10 @@ function cleanString(value: unknown): string {
 
 function normalizeMac(mac: string): string {
   return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
+}
+
+function stringStoreValue(value: unknown): string {
+  return typeof value === 'string' ? value : '';
 }
 
 function isWritableMode(value: unknown): value is WritableGreeVersatiMode {

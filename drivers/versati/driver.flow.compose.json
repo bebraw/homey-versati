@@ -119,6 +119,100 @@
       "title": {
         "en": "Disinfect disabled"
       }
+    },
+    {
+      "id": "device_unavailable",
+      "title": {
+        "en": "Gree Versati became unavailable"
+      },
+      "tokens": [
+        {
+          "name": "error",
+          "type": "string",
+          "title": {
+            "en": "Error"
+          },
+          "example": {
+            "en": "Timed out waiting for heat pump"
+          }
+        },
+        {
+          "name": "failures",
+          "type": "number",
+          "title": {
+            "en": "Failures"
+          },
+          "example": {
+            "en": "3"
+          }
+        },
+        {
+          "name": "last_success",
+          "type": "string",
+          "title": {
+            "en": "Last successful poll"
+          },
+          "example": {
+            "en": "2026-05-17T18:14:30.695Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "device_available",
+      "title": {
+        "en": "Gree Versati became available"
+      },
+      "tokens": [
+        {
+          "name": "last_success",
+          "type": "string",
+          "title": {
+            "en": "Last successful poll"
+          },
+          "example": {
+            "en": "2026-05-17T18:14:30.695Z"
+          }
+        }
+      ]
+    },
+    {
+      "id": "poll_failed",
+      "title": {
+        "en": "Gree Versati poll failed"
+      },
+      "tokens": [
+        {
+          "name": "error",
+          "type": "string",
+          "title": {
+            "en": "Error"
+          },
+          "example": {
+            "en": "Timed out waiting for heat pump"
+          }
+        },
+        {
+          "name": "failures",
+          "type": "number",
+          "title": {
+            "en": "Failures"
+          },
+          "example": {
+            "en": "1"
+          }
+        },
+        {
+          "name": "last_success",
+          "type": "string",
+          "title": {
+            "en": "Last successful poll"
+          },
+          "example": {
+            "en": "2026-05-17T18:14:30.695Z"
+          }
+        }
+      ]
     }
   ],
   "conditions": [
@@ -183,6 +277,12 @@
       "id": "defrosting_is_on",
       "title": {
         "en": "Defrosting !{{is|isn't}} active"
+      }
+    },
+    {
+      "id": "device_is_reachable",
+      "title": {
+        "en": "Gree Versati !{{is|isn't}} reachable"
       }
     }
   ],

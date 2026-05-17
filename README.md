@@ -42,7 +42,9 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - Disinfect schedule/state
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
+  - triggers for polling failures, device unavailable transitions, and device available recovery
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, and defrosting state
+  - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
 
 ## Requirements
@@ -164,7 +166,7 @@ Planned follow-up work, roughly in priority order:
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
 2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-4. Add more Flow cards only where they create practical automation value, such as device unavailable events or newly mapped telemetry fields.
+4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
 5. Expose additional read-only diagnostics if useful, such as `EVU`, `ModelType`, firmware/HID, error codes, or energy/power fields if their LAN names are identified.
 6. Harden local network discovery by scanning interfaces explicitly and preserving discovered IP updates.
 7. Replace placeholder app images with proper app artwork before distribution outside local development.
