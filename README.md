@@ -148,3 +148,7 @@ Planned follow-up work, roughly in priority order:
 The protocol boundary analysis is in [docs/protocol-boundaries.md](docs/protocol-boundaries.md).
 
 The standalone TypeScript client lives in [src/lib/gree-versati-client.ts](src/lib/gree-versati-client.ts) and has no Homey runtime dependency.
+
+## Credits
+
+This project was started from protocol analysis of the original [roihuvaara/hacs_gree_versati](https://github.com/roihuvaara/hacs_gree_versati) Home Assistant integration. The Homey app and TypeScript client are separate implementations, but the original project provided the key reference point for understanding the Gree Versati LAN protocol.
