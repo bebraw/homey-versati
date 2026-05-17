@@ -12,4 +12,5 @@
 - Add a read-only weather-curve probe for mapping W-depend curve parameters.
 - Add Homey-managed two-point weather compensation with dry-run and guarded write modes.
 - Add linear, preset bend, and custom bend shapes for the Homey-managed weather curve.
+- Document that the indoor controller's `T-Outdoor` value is not yet confirmed in the local Wi-Fi status API and expand diagnostics candidates for future probing.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

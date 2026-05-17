@@ -47,11 +47,13 @@ Official state parameter screen mappings:
 - `EVU` maps to `EVU` and is exposed as a read-only Homey capability.
 - `VersatiSeries` maps to `VersatiSeries` and is stored as diagnostics.
 - `ModelType` maps to `ModelType` and is stored as diagnostics.
+- `T-Outdoor` is visible on the indoor unit, but no confirmed Wi-Fi `status` column has been found yet. On the tested unit, the indoor unit showed `8.8°C`; candidate scans did not return `8.8`, `88`, `108`, or a split `108`/`8` pair. `AirOutTem` returned `0`, which does not match the indoor unit and must not be treated as outdoor temperature.
 
 Weather-dependent curve mapping status:
 
 - `W-depend` enable state is confirmed as `SvSt`.
 - The built-in curve configuration fields are not confirmed yet, but Homey-managed weather compensation can bypass them by writing `HeWatOutTemSet` from Homey's own curve.
+- The device's outdoor temperature is not confirmed as available through the local Wi-Fi status API. Until a matching field is found, feed Homey-managed weather compensation from a manual setting or a Homey Flow action backed by another outdoor sensor/weather source.
 - Probe one visible curve parameter at a time, preferably with `W-depend` enabled and the unit in heating mode.
 - Do not add write commands for curve fields until a read-only before/after mapping and restore behavior are confirmed.
 

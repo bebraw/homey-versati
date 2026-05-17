@@ -207,6 +207,8 @@ After a polling failure, the app attempts MAC-based rediscovery. If DHCP gave th
 
 The app can instead run a Homey-managed curve. It reads an outdoor temperature from the device settings or from a Homey Flow action, calculates a heating water target from two configured points, and optionally writes that target to the heat pump.
 
+The Gree indoor controller can show `T-Outdoor`, but that value is not confirmed as exposed through the local Wi-Fi `status` fields used by this app. On the tested unit, the indoor controller showed `8.8°C`; candidate Wi-Fi fields did not return a matching direct value, tenths value, or split temperature pair. Keep using a manual value or a Flow-fed outdoor sensor/weather source until a matching field is confirmed.
+
 Default settings are conservative:
 
 - control mode: `Dry run`
@@ -229,9 +231,10 @@ Planned follow-up work, roughly in priority order:
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
 2. Tune the Homey-managed weather curve against real heating behavior and consider adding Flow cards for curve skipped/write events if useful.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
-5. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
-6. Refine app artwork further if needed before distribution outside local development.
+4. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
+5. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
+6. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
+7. Refine app artwork further if needed before distribution outside local development.
 
 ## Protocol Notes
 
