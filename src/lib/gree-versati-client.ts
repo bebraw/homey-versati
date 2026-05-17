@@ -72,6 +72,10 @@ const DEFAULT_PORT = 7000;
 const DEFAULT_TIMEOUT_MS = 3000;
 const DEFAULT_BIND_TIMEOUT_MS = 3500;
 const MAX_COLUMNS_PER_REQUEST = 23;
+export const HEATING_TARGET_MIN = 20;
+export const HEATING_TARGET_MAX = 55;
+export const HOT_WATER_TARGET_MIN = 30;
+export const HOT_WATER_TARGET_MAX = 60;
 
 export class GreeVersatiClient {
   private readonly port: number;
@@ -199,6 +203,18 @@ export class GreeVersatiClient {
     await this.setProperties(device, {
       [AWHP_PROPS.mode]: modeValue,
       [AWHP_PROPS.power]: 1,
+    });
+  }
+
+  async setHeatingTargetTemperature(device: BoundGreeVersatiDevice, temperature: number): Promise<void> {
+    await this.setProperties(device, {
+      [AWHP_PROPS.heatingTarget]: clampInteger(temperature, HEATING_TARGET_MIN, HEATING_TARGET_MAX),
+    });
+  }
+
+  async setHotWaterTargetTemperature(device: BoundGreeVersatiDevice, temperature: number): Promise<void> {
+    await this.setProperties(device, {
+      [AWHP_PROPS.hotWaterTarget]: clampInteger(temperature, HOT_WATER_TARGET_MIN, HOT_WATER_TARGET_MAX),
     });
   }
 
@@ -342,4 +358,11 @@ function maybeString(value: unknown): string | undefined {
 
 function maybeNumber(value: unknown): number | null {
   return typeof value === 'number' ? value : null;
+}
+
+function clampInteger(value: number, min: number, max: number): number {
+  if (!Number.isFinite(value)) {
+    throw new Error(`Expected finite temperature, got ${value}`);
+  }
+  return Math.min(Math.max(Math.round(value), min), max);
 }

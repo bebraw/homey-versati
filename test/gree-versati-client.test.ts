@@ -164,6 +164,54 @@ test('writes heat pump mode over UDP command packets', async () => {
   }
 });
 
+test('writes heating and hot water targets over UDP command packets', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const bound: BoundGreeVersatiDevice = {
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    };
+
+    await client.setHeatingTargetTemperature(bound, 36);
+    await client.setHotWaterTargetTemperature(bound, 51);
+
+    const state = await client.getState(bound);
+    assert.equal(state.heatingTargetTemperature, 36);
+    assert.equal(state.hotWaterTargetTemperature, 51);
+    assert.equal(state.raw[AWHP_PROPS.heatingTarget], 36);
+    assert.equal(state.raw[AWHP_PROPS.hotWaterTarget], 51);
+  } finally {
+    await server.close();
+  }
+});
+
+test('clamps target temperature writes to conservative ranges', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const bound: BoundGreeVersatiDevice = {
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    };
+
+    await client.setHeatingTargetTemperature(bound, 100);
+    await client.setHotWaterTargetTemperature(bound, 1);
+
+    const state = await client.getState(bound);
+    assert.equal(state.heatingTargetTemperature, 55);
+    assert.equal(state.hotWaterTargetTemperature, 30);
+  } finally {
+    await server.close();
+  }
+});
+
 test('protocol helpers encode bind and status envelopes with encrypted pack data', () => {
   const cipher = new CipherV1();
   const bind = JSON.parse(encodeEnvelope(createBindMessage(MAC), cipher).toString('utf8')) as PacketEnvelope;

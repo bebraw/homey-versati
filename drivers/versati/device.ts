@@ -1,6 +1,10 @@
 import Homey from 'homey';
 import {
   GreeVersatiClient,
+  HEATING_TARGET_MAX,
+  HEATING_TARGET_MIN,
+  HOT_WATER_TARGET_MAX,
+  HOT_WATER_TARGET_MIN,
   type BoundGreeVersatiDevice,
   type GreeVersatiState,
   type WritableGreeVersatiMode,
@@ -34,6 +38,12 @@ class GreeVersatiDevice extends Homey.Device {
     await this.syncSettingsFromStore();
     this.registerCapabilityListener('heatpump_mode', async (value) => {
       await this.setModeFromHomey(value);
+    });
+    this.registerCapabilityListener('target_temperature_heating', async (value) => {
+      await this.setHeatingTargetFromHomey(value);
+    });
+    this.registerCapabilityListener('target_temperature_hot_water', async (value) => {
+      await this.setHotWaterTargetFromHomey(value);
     });
     await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
@@ -158,6 +168,18 @@ class GreeVersatiDevice extends Homey.Device {
     await this.refreshState();
   }
 
+  private async setHeatingTargetFromHomey(value: unknown): Promise<void> {
+    const temperature = parseTemperature(value, HEATING_TARGET_MIN, HEATING_TARGET_MAX, 'heating target');
+    await this.clientOrThrow().setHeatingTargetTemperature(this.boundDevice(), temperature);
+    await this.refreshState();
+  }
+
+  private async setHotWaterTargetFromHomey(value: unknown): Promise<void> {
+    const temperature = parseTemperature(value, HOT_WATER_TARGET_MIN, HOT_WATER_TARGET_MAX, 'hot water target');
+    await this.clientOrThrow().setHotWaterTargetTemperature(this.boundDevice(), temperature);
+    await this.refreshState();
+  }
+
   private async handleRefreshFailure(error: unknown, initial: boolean): Promise<void> {
     this.consecutiveFailures += 1;
     const message = error instanceof Error ? error.message : String(error);
@@ -257,4 +279,15 @@ function normalizeMac(mac: string): string {
 
 function isWritableMode(value: unknown): value is WritableGreeVersatiMode {
   return value === 'off' || value === 'heat_hot_water' || value === 'hot_water' || value === 'cool';
+}
+
+function parseTemperature(value: unknown, min: number, max: number, label: string): number {
+  const temperature = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(temperature)) {
+    throw new Error(`Invalid ${label}: ${String(value)}`);
+  }
+  if (temperature < min || temperature > max) {
+    throw new Error(`${label} must be between ${min} and ${max} °C`);
+  }
+  return temperature;
 }

@@ -139,8 +139,11 @@
         "en": "°C"
       },
       "decimals": 0,
+      "min": 20,
+      "max": 55,
+      "step": 1,
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "target_temperature_cooling": {
       "type": "number",
@@ -163,8 +166,11 @@
         "en": "°C"
       },
       "decimals": 0,
+      "min": 30,
+      "max": 60,
+      "step": 1,
       "getable": true,
-      "setable": false
+      "setable": true
     },
     "heatpump_power": {
       "type": "boolean",
