@@ -9,4 +9,5 @@
 - Add read-only EVU capability and diagnostics for EVU, ModelType, and VersatiSeries.
 - Fix Homey Pro Early 2019 development installs by using the implicit Node.js runtime manifest form.
 - Add MAC-based endpoint rediscovery and an IP-change Flow trigger for DHCP address changes.
+- Add a read-only weather-curve probe for mapping W-depend curve parameters.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

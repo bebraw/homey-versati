@@ -14,6 +14,14 @@ npm run probe:diagnostics -- --ip 192.168.1.50 --mac 001122334455
 
 The diagnostics probe groups candidate fields by identity, errors, energy, runtime, grid/EVU, and extra temperatures. Output is redacted by default. Add `--groups identity,errors` to narrow the probe, or `--fields A,B,C` to test specific LAN property names.
 
+Use the weather-curve probe when investigating W-depend curve parameters:
+
+```bash
+npm run probe:weather-curve -- --ip 192.168.1.50 --mac 001122334455 --samples 2 --interval-ms 30000
+```
+
+The weather-curve probe is read-only. It captures likely curve fields repeatedly and reports fields that changed between samples. Change exactly one weather-curve setting externally between samples, then record the official label and the probe output. Add `--fields A,B,C` for extra candidates or `--only-fields A,B,C` to narrow the probe.
+
 Record:
 
 - the official app screen name
@@ -39,6 +47,13 @@ Official state parameter screen mappings:
 - `EVU` maps to `EVU` and is exposed as a read-only Homey capability.
 - `VersatiSeries` maps to `VersatiSeries` and is stored as diagnostics.
 - `ModelType` maps to `ModelType` and is stored as diagnostics.
+
+Weather-dependent curve mapping status:
+
+- `W-depend` enable state is confirmed as `SvSt`.
+- Curve configuration fields are not confirmed yet.
+- Probe one visible curve parameter at a time, preferably with `W-depend` enabled and the unit in heating mode.
+- Do not add write commands for curve fields until a read-only before/after mapping and restore behavior are confirmed.
 
 Start with low-risk read/write changes:
 

@@ -89,6 +89,12 @@ Probe read-only diagnostics candidates:
 npm run probe:diagnostics -- --ip 192.168.1.50 --mac 001122334455
 ```
 
+Probe likely weather-dependent heating curve fields while changing one curve setting externally:
+
+```bash
+npm run probe:weather-curve -- --ip 192.168.1.50 --mac 001122334455 --samples 2 --interval-ms 30000
+```
+
 Smoke-test guarded toggle commands against a live unit:
 
 ```bash
@@ -193,7 +199,7 @@ After a polling failure, the app attempts MAC-based rediscovery. If DHCP gave th
 Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
-2. Investigate weather-dependent heating curve parameters. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
+2. Run the read-only weather-curve probe while changing one visible curve setting externally. `W-depend` itself is mapped to `SvSt`, but the curve configuration fields are not mapped yet and would be more useful than the flag alone.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
 5. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
