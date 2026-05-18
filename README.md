@@ -54,6 +54,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
   - triggers for EVU changes
   - triggers for Homey-managed weather-curve calculated values, skipped reasons, write events, and errors
+  - triggers for weather-curve pause, resume, and write-blocked states
   - triggers for polling failures, IP address changes, device unavailable transitions, and device available recovery
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability

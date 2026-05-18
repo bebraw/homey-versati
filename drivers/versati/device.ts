@@ -842,11 +842,13 @@ class GreeVersatiDevice extends Homey.Device {
       ? 'manual'
       : new Date(Date.now() + durationMinutes * 60_000).toISOString();
     await this.setStoreValue('weatherCurvePausedUntil', pausedUntil);
+    await this.triggerWeatherCurvePaused(pausedUntil);
     await this.refreshState();
   }
 
   private async resumeWeatherCurve(): Promise<void> {
     await this.setStoreValue('weatherCurvePausedUntil', '');
+    await this.triggerWeatherCurveResumed();
     await this.refreshState();
   }
 
@@ -907,6 +909,9 @@ class GreeVersatiDevice extends Homey.Device {
     await this.homey.flow.getTriggerCard('weather_curve_skipped').trigger(this, { reason }).catch((error) => {
       this.error('Failed to trigger weather_curve_skipped flow', error);
     });
+    if (this.shouldTriggerWeatherCurveWriteBlocked(reason)) {
+      await this.triggerWeatherCurveWriteBlocked(reason);
+    }
   }
 
   private async triggerWeatherCurveWritten(
@@ -929,6 +934,51 @@ class GreeVersatiDevice extends Homey.Device {
     }).catch((error) => {
       this.error('Failed to trigger weather_curve_error flow', error);
     });
+  }
+
+  private shouldTriggerWeatherCurveWriteBlocked(reason: string): boolean {
+    if (this.getStore().weatherCurveMode !== 'write') {
+      return false;
+    }
+    return reason.startsWith('mode:') ||
+      reason.startsWith('paused:') ||
+      reason.startsWith('error:') ||
+      reason === 'missing_current_heating_target';
+  }
+
+  private async triggerWeatherCurveWriteBlocked(reason: string): Promise<void> {
+    await this.homey.flow.getTriggerCard('weather_curve_write_blocked').trigger(this, {
+      reason,
+      hours_since_write: this.hoursSinceLastWeatherCurveWrite(),
+    }).catch((error) => {
+      this.error('Failed to trigger weather_curve_write_blocked flow', error);
+    });
+  }
+
+  private async triggerWeatherCurvePaused(pausedUntil: string): Promise<void> {
+    await this.homey.flow.getTriggerCard('weather_curve_paused').trigger(this, {
+      paused_until: pausedUntil,
+    }).catch((error) => {
+      this.error('Failed to trigger weather_curve_paused flow', error);
+    });
+  }
+
+  private async triggerWeatherCurveResumed(): Promise<void> {
+    await this.homey.flow.getTriggerCard('weather_curve_resumed').trigger(this).catch((error) => {
+      this.error('Failed to trigger weather_curve_resumed flow', error);
+    });
+  }
+
+  private hoursSinceLastWeatherCurveWrite(): number {
+    const lastWriteAt = stringStoreValue(this.getStore().weatherCurveLastWriteAt);
+    if (!lastWriteAt) {
+      return -1;
+    }
+    const elapsedMs = Date.now() - Date.parse(lastWriteAt);
+    if (!Number.isFinite(elapsedMs)) {
+      return -1;
+    }
+    return Math.round(elapsedMs / 36_000) / 100;
   }
 
   private async weatherCurveOutdoorTemperature(settings: WeatherCurveSettings): Promise<number> {

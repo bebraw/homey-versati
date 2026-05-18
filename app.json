@@ -1040,6 +1040,58 @@
         ]
       },
       {
+        "id": "weather_curve_write_blocked",
+        "title": {
+          "en": "Weather curve write blocked"
+        },
+        "tokens": [
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason"
+            },
+            "example": {
+              "en": "mode:hot_water"
+            }
+          },
+          {
+            "name": "hours_since_write",
+            "type": "number",
+            "title": {
+              "en": "Hours since write"
+            },
+            "example": {
+              "en": "6"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_paused",
+        "title": {
+          "en": "Weather curve paused"
+        },
+        "tokens": [
+          {
+            "name": "paused_until",
+            "type": "string",
+            "title": {
+              "en": "Paused until"
+            },
+            "example": {
+              "en": "2026-05-18T18:00:00.000Z"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_resumed",
+        "title": {
+          "en": "Weather curve resumed"
+        }
+      },
+      {
         "id": "heatpump_defrosting_true",
         "title": {
           "en": "Defrosting started"
