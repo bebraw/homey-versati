@@ -55,6 +55,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
+- Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
 
 ## Requirements
 
@@ -223,6 +224,17 @@ Default settings are conservative:
 Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
+
+## Homey Insights
+
+The driver exposes Gree values as Homey capabilities and explicitly leaves Insights enabled for telemetry that is useful to graph over time:
+
+- water out, water in, hot water, optional water sensor, and remote room temperatures
+- heating, cooling, and hot water targets
+- power, mode, Rapid, Silence, W-depend, Disinfect, defrosting, heater, frost protection, and EVU states
+- Homey-managed curve outdoor temperature and calculated heating target
+
+Open Homey Insights and select the paired Gree Versati device to view the graphs. Static diagnostics such as `ModelType`, `VersatiSeries`, IP address, MAC address, and device key stay in the device store/settings and are not exposed as graphable capabilities.
 
 ## Roadmap
 

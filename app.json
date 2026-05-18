@@ -80,6 +80,74 @@
         "weather_curve_outdoor_temperature",
         "weather_curve_heating_target"
       ],
+      "capabilitiesOptions": {
+        "measure_temperature_water_out": {
+          "preventInsights": false
+        },
+        "measure_temperature_water_in": {
+          "preventInsights": false
+        },
+        "measure_temperature_hot_water": {
+          "preventInsights": false
+        },
+        "measure_temperature_optional_water": {
+          "preventInsights": false
+        },
+        "measure_temperature_remote_room": {
+          "preventInsights": false
+        },
+        "target_temperature_heating": {
+          "preventInsights": false
+        },
+        "target_temperature_cooling": {
+          "preventInsights": false
+        },
+        "target_temperature_hot_water": {
+          "preventInsights": false
+        },
+        "heatpump_power": {
+          "preventInsights": false
+        },
+        "heatpump_mode": {
+          "preventInsights": false
+        },
+        "heatpump_fast_hot_water": {
+          "preventInsights": false
+        },
+        "heatpump_silence": {
+          "preventInsights": false
+        },
+        "heatpump_weather_dependent": {
+          "preventInsights": false
+        },
+        "heatpump_disinfect": {
+          "preventInsights": false
+        },
+        "heatpump_defrosting": {
+          "preventInsights": false
+        },
+        "heatpump_tank_heater": {
+          "preventInsights": false
+        },
+        "heatpump_hp_heater_1": {
+          "preventInsights": false
+        },
+        "heatpump_hp_heater_2": {
+          "preventInsights": false
+        },
+        "heatpump_frost_protection": {
+          "preventInsights": false
+        },
+        "heatpump_evu": {
+          "preventInsights": false
+        },
+        "weather_curve_outdoor_temperature": {
+          "preventInsights": false
+        },
+        "weather_curve_heating_target": {
+          "preventInsights": false
+        }
+      },
       "pair": [
         {
           "id": "start"
