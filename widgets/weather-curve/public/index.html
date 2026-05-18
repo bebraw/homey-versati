@@ -237,6 +237,7 @@
       <div class="pill warn"><span>Last skip</span><strong id="skipReason">-</strong></div>
       <div class="pill"><span>Last write</span><strong id="lastWrite">-</strong></div>
       <div class="pill" id="boostPill"><span>Boost</span><strong id="boostState">-</strong></div>
+      <div class="pill" id="forecastPill"><span>Forecast</span><strong id="forecastState">-</strong></div>
     </section>
 
     <svg class="curve" id="curve" viewBox="0 0 320 128" role="img" aria-label="Heating target weather curve">
@@ -443,8 +444,16 @@
       text('boostState', boostState.active ? `${formatSigned(boostState.offset)}°C` : '-');
       document.getElementById('boostPill').classList.toggle('warn', Boolean(boostState.active));
       document.getElementById('boostClear').disabled = !boostState.active;
+      renderForecast(state.forecast || {});
       renderAudit(state.diagnostics && Array.isArray(state.diagnostics.auditHistory) ? state.diagnostics.auditHistory : []);
       draw(config);
+    }
+
+    function renderForecast(forecast) {
+      const target = typeof forecast.calculatedTarget === 'number' ? ` ${forecast.calculatedTarget.toFixed(0)}°C` : '';
+      const label = forecast.wouldWrite ? `Write${target}` : forecast.reason || '-';
+      text('forecastState', label);
+      document.getElementById('forecastPill').classList.toggle('warn', !forecast.wouldWrite);
     }
 
     function renderAudit(history) {

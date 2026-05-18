@@ -141,6 +141,15 @@ interface WeatherCurveBoost {
   active: boolean;
 }
 
+interface WeatherCurveForecast {
+  wouldWrite: boolean;
+  reason: string;
+  outdoorTemperature: number | null;
+  calculatedTarget: number | null;
+  currentTarget: number | null;
+  mode: GreeVersatiState['mode'] | null;
+}
+
 interface TelemetryHistorySample {
   at: string;
   waterOutTemperature: number | null;
@@ -371,6 +380,7 @@ class GreeVersatiDevice extends Homey.Device {
         pausedUntil: stringStoreValue(this.getStore().weatherCurvePausedUntil),
         auditHistory: weatherCurveAuditHistory(this.getStore().weatherCurveAuditHistory).slice(-12).reverse(),
       },
+      forecast: this.weatherCurveForecast(settings),
     };
   }
 
@@ -942,6 +952,52 @@ class GreeVersatiDevice extends Homey.Device {
     return '';
   }
 
+  private weatherCurveForecast(settings: WeatherCurveSettings): WeatherCurveForecast {
+    const mode = heatPumpModeOrNull(this.getCapabilityValue('heatpump_mode'));
+    const currentTarget = numberOrNull(this.getCapabilityValue('target_temperature_heating'));
+    const base: WeatherCurveForecast = {
+      wouldWrite: false,
+      reason: '',
+      outdoorTemperature: null,
+      calculatedTarget: null,
+      currentTarget,
+      mode,
+    };
+    const pauseReason = this.weatherCurvePauseReason();
+    if (pauseReason) {
+      return { ...base, reason: pauseReason };
+    }
+    if (settings.controlMode === 'disabled') {
+      return { ...base, reason: 'disabled' };
+    }
+
+    try {
+      const outdoorTemperature = this.weatherCurveOutdoorTemperatureSync(settings);
+      const result = calculateWeatherCurveTarget(outdoorTemperature, settings.config);
+      const calculatedTarget = this.applyWeatherCurveBoost(result.targetTemperature, settings);
+      const withTarget = { ...base, outdoorTemperature: result.outdoorTemperature, calculatedTarget };
+      if (settings.controlMode === 'dry_run') {
+        return { ...withTarget, reason: 'dry_run' };
+      }
+      if (mode !== 'heat_hot_water') {
+        return { ...withTarget, reason: `mode:${mode ?? 'unknown'}` };
+      }
+      if (currentTarget === null) {
+        return { ...withTarget, reason: 'missing_current_heating_target' };
+      }
+      if (Math.abs(currentTarget - calculatedTarget) < settings.deadband) {
+        return { ...withTarget, reason: 'deadband' };
+      }
+      if (!this.weatherCurveWriteIntervalElapsed(settings.minWriteIntervalMs)) {
+        return { ...withTarget, reason: 'minimum_write_interval' };
+      }
+      return { ...withTarget, wouldWrite: true, reason: 'write' };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      return { ...base, reason: `error:${message}` };
+    }
+  }
+
   private applyWeatherCurveBoost(targetTemperature: number, settings: WeatherCurveSettings): number {
     if (!settings.boost.active || settings.boost.offset === 0) {
       return targetTemperature;
@@ -1059,6 +1115,10 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async weatherCurveOutdoorTemperature(settings: WeatherCurveSettings): Promise<number> {
+    return this.weatherCurveOutdoorTemperatureSync(settings);
+  }
+
+  private weatherCurveOutdoorTemperatureSync(settings: WeatherCurveSettings): number {
     if (settings.outdoorSource === 'manual') {
       return settings.manualOutdoorTemperature;
     }
@@ -1316,6 +1376,10 @@ function weatherCurveHeatPumpMode(value: unknown): GreeVersatiState['mode'] | nu
   return value === 'off' || value === 'heat_hot_water' || value === 'cool' || value === 'hot_water' || value === 'other'
     ? value
     : null;
+}
+
+function heatPumpModeOrNull(value: unknown): GreeVersatiState['mode'] | null {
+  return weatherCurveHeatPumpMode(value);
 }
 
 function weatherCurvePauseMinutes(value: unknown): number {

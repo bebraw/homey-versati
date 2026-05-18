@@ -67,6 +67,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Add the `Versati Weather Curve` Homey dashboard widget to inspect and adjust the Homey-managed curve visually.
 - Add the `Versati Graphs` Homey dashboard widget to view recent in-app telemetry graphs without opening Homey Insights.
 - Review recent Homey-managed weather-curve decisions in the curve widget and diagnostic export.
+- Preview the next weather-curve write or skip reason in the curve widget before enabling writes.
 
 ## Requirements
 
@@ -267,6 +268,8 @@ Open Homey Insights and select the paired Gree Versati device to view the graphs
 For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The app keeps a bounded local history of the latest `480` successful polls and graphs water out temperature, hot water temperature, heating target, and curve target directly in the widget. The widget also shows poll health, redacted endpoint details, curve control state, and the latest curve decision. The widget refreshes every 30 seconds and can filter the view to `1h`, `6h`, `24h`, or all retained samples. This local widget history is separate from Homey Insights and starts filling after the updated app has run successfully.
 
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
+
+The curve widget includes a forecast pill showing whether the next poll would write a heating target and which target it would choose. If it would skip, the pill shows the same reason used by the control loop.
 
 The `Versati Graphs` widget also has an `Export` button for a redacted diagnostic snapshot. It includes current capabilities, poll health, selected raw diagnostics, weather-curve status, and telemetry sample count. IP address and device key are not exported, and MAC addresses are masked.
 
