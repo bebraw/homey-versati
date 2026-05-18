@@ -62,6 +62,7 @@ declare module 'homey' {
     getName(): string;
     setStoreValue(key: string, value: unknown): Promise<void>;
     hasCapability(capability: string): boolean;
+    addCapability(capability: string): Promise<void>;
     getCapabilityValue(capability: string): boolean | number | string | null;
     registerCapabilityListener(
       capability: string,

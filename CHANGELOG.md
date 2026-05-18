@@ -40,4 +40,5 @@
 - Add a combined interactive cooling mode confirmation script.
 - Add reviewed cooling mode mapping artifact generation for confirmed probe reports.
 - Add selectable boost offset and duration controls to the weather-curve widget.
+- Expose water out temperature through Homey's standard `measure_temperature` capability for native mobile app graphs.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

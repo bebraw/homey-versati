@@ -9,6 +9,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Discover Gree Versati devices on the local network
 - Bind to a device and store its local encryption key in Homey device settings
 - Poll read-only telemetry:
+  - primary Homey temperature (`Water out`) for native mobile app graphs
   - water out temperature
   - water in temperature
   - domestic hot water temperature
@@ -299,6 +300,8 @@ For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The a
 Homey should automatically create device Insights for graphable capabilities. The app also creates explicit app-managed Insights logs as a fallback for the main Gree values. These logs appear under the Gree Versati app after the app has run long enough to poll at least once.
 
 Use the `Insights` button in the `Versati Graphs` widget to check whether the app-managed Insights logs exist and whether entries have been written since the app started.
+
+In the Homey mobile app, open the Gree Versati device and use the native `Water out` temperature graph. This is backed by Homey's standard `measure_temperature` capability and mirrors the Gree `Water out` value.
 
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
 

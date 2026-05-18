@@ -24,6 +24,7 @@ const TELEMETRY_HISTORY_LIMIT = 480;
 const WEATHER_CURVE_AUDIT_LIMIT = 120;
 const DEFAULT_CURVE_DEADBAND = 1;
 const DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS = 1800;
+const REQUIRED_CAPABILITIES = ['measure_temperature'] as const;
 const WEATHER_CURVE_PRESETS = {
   custom: null,
   mild_floor: {
@@ -332,6 +333,7 @@ class GreeVersatiDevice extends Homey.Device {
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
     await this.syncSettingsFromStore();
+    await this.ensureRequiredCapabilities();
     this.registerCapabilityListener('heatpump_mode', async (value) => {
       await this.setModeFromHomey(value);
     });
@@ -685,6 +687,7 @@ class GreeVersatiDevice extends Homey.Device {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     const store = this.getStore();
     const capabilities = [
+      'measure_temperature',
       'measure_temperature_water_out',
       'measure_temperature_water_in',
       'measure_temperature_hot_water',
@@ -780,6 +783,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async applyCapabilities(state: GreeVersatiState): Promise<void> {
+    await this.setCapabilityIfPresent('measure_temperature', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_out', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_in', state.waterInTemperature);
     await this.setCapabilityIfPresent('measure_temperature_hot_water', state.hotWaterTemperature);
@@ -815,6 +819,14 @@ class GreeVersatiDevice extends Homey.Device {
     }
     if (previous !== null && previous !== value) {
       await this.triggerCapabilityFlow(capability, value);
+    }
+  }
+
+  private async ensureRequiredCapabilities(): Promise<void> {
+    for (const capability of REQUIRED_CAPABILITIES) {
+      if (!this.hasCapability(capability)) {
+        await this.addCapability(capability);
+      }
     }
   }
 

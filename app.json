@@ -57,6 +57,7 @@
         "large": "/drivers/versati/assets/images/large.png"
       },
       "capabilities": [
+        "measure_temperature",
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
@@ -83,6 +84,12 @@
         "button.reset_insights"
       ],
       "capabilitiesOptions": {
+        "measure_temperature": {
+          "title": {
+            "en": "Water out"
+          },
+          "preventInsights": false
+        },
         "measure_temperature_water_out": {
           "preventInsights": false
         },
