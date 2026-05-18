@@ -797,7 +797,7 @@
       "name": {
         "en": "Versati Weather Curve"
       },
-      "height": 420,
+      "height": 480,
       "transparent": false,
       "devices": {
         "type": "app",
@@ -816,6 +816,14 @@
         "updateCurve": {
           "method": "PUT",
           "path": "/"
+        },
+        "pauseCurve": {
+          "method": "POST",
+          "path": "/pause"
+        },
+        "resumeCurve": {
+          "method": "POST",
+          "path": "/resume"
         }
       }
     },
@@ -1479,6 +1487,18 @@
                 "label": {
                   "en": "Minimum write interval"
                 }
+              },
+              {
+                "id": "paused:temporary",
+                "label": {
+                  "en": "Paused temporarily"
+                }
+              },
+              {
+                "id": "paused:manual",
+                "label": {
+                  "en": "Paused until resumed"
+                }
               }
             ]
           }
@@ -1778,6 +1798,65 @@
             "placeholder": {
               "en": "0"
             }
+          }
+        ]
+      },
+      {
+        "id": "pause_weather_curve",
+        "title": {
+          "en": "Pause Homey weather curve"
+        },
+        "titleFormatted": {
+          "en": "Pause Homey weather curve for [[duration]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "duration",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "60",
+                "label": {
+                  "en": "1 hour"
+                }
+              },
+              {
+                "id": "360",
+                "label": {
+                  "en": "6 hours"
+                }
+              },
+              {
+                "id": "1440",
+                "label": {
+                  "en": "24 hours"
+                }
+              },
+              {
+                "id": "manual",
+                "label": {
+                  "en": "Until resumed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "resume_weather_curve",
+        "title": {
+          "en": "Resume Homey weather curve"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
           }
         ]
       }

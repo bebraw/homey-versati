@@ -283,6 +283,14 @@ class GreeVersatiDevice extends Homey.Device {
     await this.refreshState();
   }
 
+  async flowPauseWeatherCurve(minutes: unknown): Promise<void> {
+    await this.pauseWeatherCurve(minutes);
+  }
+
+  async flowResumeWeatherCurve(): Promise<void> {
+    await this.resumeWeatherCurve();
+  }
+
   flowModeIs(mode: unknown): boolean {
     return this.getCapabilityValue('heatpump_mode') === mode;
   }
@@ -343,6 +351,7 @@ class GreeVersatiDevice extends Homey.Device {
         lastWriteAt: stringStoreValue(this.getStore().weatherCurveLastWriteAt),
         lastSkippedReason: stringStoreValue(this.getStore().weatherCurveLastSkippedReason),
         lastError: stringStoreValue(this.getStore().weatherCurveLastError),
+        pausedUntil: stringStoreValue(this.getStore().weatherCurvePausedUntil),
         auditHistory: weatherCurveAuditHistory(this.getStore().weatherCurveAuditHistory).slice(-12).reverse(),
       },
     };
@@ -352,6 +361,16 @@ class GreeVersatiDevice extends Homey.Device {
     const updates = weatherCurveWidgetSettings(input);
     await this.setSettings(updates);
     await this.refreshState();
+    return this.weatherCurveWidgetState();
+  }
+
+  async pauseWeatherCurveFromWidget(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.pauseWeatherCurve(input.minutes);
+    return this.weatherCurveWidgetState();
+  }
+
+  async resumeWeatherCurveFromWidget(): Promise<Record<string, unknown>> {
+    await this.resumeWeatherCurve();
     return this.weatherCurveWidgetState();
   }
 
@@ -431,6 +450,7 @@ class GreeVersatiDevice extends Homey.Device {
       },
       weatherCurve: {
         mode: store.weatherCurveMode,
+        pausedUntil: store.weatherCurvePausedUntil,
         outdoorTemperature: store.weatherCurveOutdoorTemperature,
         heatingTarget: store.weatherCurveHeatingTarget,
         lastEvaluatedAt: store.weatherCurveLastEvaluatedAt,
@@ -686,6 +706,17 @@ class GreeVersatiDevice extends Homey.Device {
   private async applyWeatherCurveControl(device: BoundGreeVersatiDevice, state: GreeVersatiState): Promise<void> {
     const settings = this.weatherCurveSettings();
     await this.setStoreValue('weatherCurveMode', settings.controlMode);
+    const pauseReason = this.weatherCurvePauseReason();
+    if (pauseReason) {
+      await this.appendWeatherCurveAudit({
+        action: 'skip',
+        reason: pauseReason,
+        settings,
+        state,
+      });
+      await this.setWeatherCurveSkipped(pauseReason);
+      return;
+    }
     if (settings.controlMode === 'disabled') {
       await this.appendWeatherCurveAudit({
         action: 'skip',
@@ -803,6 +834,41 @@ class GreeVersatiDevice extends Homey.Device {
       await this.triggerWeatherCurveError(message);
       this.error('Failed to apply Homey curve control', error);
     }
+  }
+
+  private async pauseWeatherCurve(minutes: unknown): Promise<void> {
+    const durationMinutes = weatherCurvePauseMinutes(minutes);
+    const pausedUntil = durationMinutes === 0
+      ? 'manual'
+      : new Date(Date.now() + durationMinutes * 60_000).toISOString();
+    await this.setStoreValue('weatherCurvePausedUntil', pausedUntil);
+    await this.refreshState();
+  }
+
+  private async resumeWeatherCurve(): Promise<void> {
+    await this.setStoreValue('weatherCurvePausedUntil', '');
+    await this.refreshState();
+  }
+
+  private weatherCurvePauseReason(): string {
+    const pausedUntil = stringStoreValue(this.getStore().weatherCurvePausedUntil);
+    if (!pausedUntil) {
+      return '';
+    }
+    if (pausedUntil === 'manual') {
+      return 'paused:manual';
+    }
+    const untilMs = Date.parse(pausedUntil);
+    if (!Number.isFinite(untilMs)) {
+      return '';
+    }
+    if (Date.now() < untilMs) {
+      return 'paused:temporary';
+    }
+    this.setStoreValue('weatherCurvePausedUntil', '').catch((error) => {
+      this.error('Failed to clear expired weather curve pause', error);
+    });
+    return '';
   }
 
   private async appendWeatherCurveAudit(input: {
@@ -1121,6 +1187,17 @@ function weatherCurveHeatPumpMode(value: unknown): GreeVersatiState['mode'] | nu
   return value === 'off' || value === 'heat_hot_water' || value === 'cool' || value === 'hot_water' || value === 'other'
     ? value
     : null;
+}
+
+function weatherCurvePauseMinutes(value: unknown): number {
+  if (value === 'manual') {
+    return 0;
+  }
+  const minutes = Number(value);
+  if ([60, 360, 1440].includes(minutes)) {
+    return minutes;
+  }
+  throw new Error('Weather curve pause duration must be 1 hour, 6 hours, 24 hours, or until resumed');
 }
 
 function weatherCurveShape(value: unknown): WeatherCurveShape {

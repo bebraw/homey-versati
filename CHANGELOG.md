@@ -25,4 +25,5 @@
 - Add Flow conditions for weather-curve state and local graph history.
 - Add a read-only guided mode probe for confirming Cool and Cool + hot water mappings.
 - Add bounded weather-curve audit history for recent skip, write, and error decisions.
+- Add widget and Flow controls for temporarily pausing and resuming Homey-managed weather-curve writes.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

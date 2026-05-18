@@ -8,4 +8,12 @@ module.exports = {
   async updateCurve({ homey, query, body }) {
     return homey.app.updateWeatherCurveFromWidget(query.deviceId, body);
   },
+
+  async pauseCurve({ homey, query, body }) {
+    return homey.app.pauseWeatherCurveFromWidget(query.deviceId, body);
+  },
+
+  async resumeCurve({ homey, query }) {
+    return homey.app.resumeWeatherCurveFromWidget(query.deviceId);
+  },
 };

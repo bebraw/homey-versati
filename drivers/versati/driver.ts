@@ -24,6 +24,8 @@ interface FlowDevice {
   flowSetWeatherDependent(enabled: unknown): Promise<void>;
   flowSetDisinfect(enabled: unknown): Promise<void>;
   flowSetCurveOutdoorTemperature(temperature: unknown): Promise<void>;
+  flowPauseWeatherCurve(minutes: unknown): Promise<void>;
+  flowResumeWeatherCurve(): Promise<void>;
   flowModeIs(mode: unknown): boolean;
   flowHotWaterBelow(temperature: unknown): boolean;
   flowCapabilityIsOn(capability: string): boolean;
@@ -91,6 +93,14 @@ class GreeVersatiDriver extends Homey.Driver {
 
     this.homey.flow.getActionCard('set_curve_outdoor_temperature').registerRunListener(async (args) => {
       await flowDevice(args).flowSetCurveOutdoorTemperature(numberValue(args.temperature));
+    });
+
+    this.homey.flow.getActionCard('pause_weather_curve').registerRunListener(async (args) => {
+      await flowDevice(args).flowPauseWeatherCurve(dropdownValue(args.duration));
+    });
+
+    this.homey.flow.getActionCard('resume_weather_curve').registerRunListener(async (args) => {
+      await flowDevice(args).flowResumeWeatherCurve();
     });
 
     this.homey.flow.getConditionCard('mode_is').registerRunListener((args) => {

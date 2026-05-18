@@ -169,6 +169,12 @@
       font-weight: 700;
     }
 
+    .actions button.secondary {
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
     .message {
       min-width: 0;
       overflow: hidden;
@@ -300,6 +306,8 @@
 
     <section class="actions">
       <button id="save" type="button">Apply</button>
+      <button id="pause" class="secondary" type="button">Pause 6h</button>
+      <button id="resume" class="secondary" type="button">Resume</button>
       <span class="message" id="message">Loading curve...</span>
     </section>
   </main>
@@ -325,7 +333,9 @@
       HomeyApi = Homey;
       deviceId = Homey.getDeviceIds()[0] || '';
       document.getElementById('save').addEventListener('click', save);
-      load().finally(() => Homey.ready({ height: 420 }));
+      document.getElementById('pause').addEventListener('click', pause);
+      document.getElementById('resume').addEventListener('click', resume);
+      load().finally(() => Homey.ready({ height: 480 }));
     }
 
     async function load() {
@@ -348,6 +358,28 @@
         const state = await HomeyApi.api('PUT', `/?deviceId=${encodeURIComponent(deviceId)}`, body);
         render(state);
         note('Applied');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    async function pause() {
+      try {
+        note('Pausing...');
+        const state = await HomeyApi.api('POST', `/pause?deviceId=${encodeURIComponent(deviceId)}`, { minutes: 360 });
+        render(state);
+        note('Paused');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    async function resume() {
+      try {
+        note('Resuming...');
+        const state = await HomeyApi.api('POST', `/resume?deviceId=${encodeURIComponent(deviceId)}`, {});
+        render(state);
+        note('Resumed');
       } catch (error) {
         note(error.message || String(error));
       }
@@ -377,6 +409,9 @@
       document.getElementById('writePill').classList.toggle('warn', !canWrite);
       text('skipReason', state.diagnostics && state.diagnostics.lastSkippedReason ? state.diagnostics.lastSkippedReason : '-');
       text('lastWrite', state.diagnostics && state.diagnostics.lastWriteAt ? new Date(state.diagnostics.lastWriteAt).toLocaleTimeString() : '-');
+      const pausedUntil = state.diagnostics && state.diagnostics.pausedUntil ? state.diagnostics.pausedUntil : '';
+      document.getElementById('pause').disabled = Boolean(pausedUntil);
+      document.getElementById('resume').disabled = !pausedUntil;
       renderAudit(state.diagnostics && Array.isArray(state.diagnostics.auditHistory) ? state.diagnostics.auditHistory : []);
       draw(config);
     }

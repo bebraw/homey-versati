@@ -47,6 +47,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - presets provide starting profiles for mild floor heating, radiators, and conservative tuning
   - dry-run mode previews the calculated target without writing
   - write mode updates the heating target only in `Heat + hot water` mode
+  - temporary pause/resume controls can suspend Homey-managed curve writes without changing other heat pump settings
   - writes are clamped, deadbanded, and rate-limited
   - outdoor temperature can come from a manual setting or a Homey Flow action
 - Use Homey Flow cards:
@@ -57,7 +58,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
   - conditions for weather-curve control mode, skip reason, write readiness, and graph history availability
-  - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
+  - actions for changing mode, target temperatures, Rapid, Silence, W-depend, Disinfect, and weather-curve pause/resume
 - Use temperature Flow action fields with visible default placeholders for common heating and hot water targets.
 - Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
 - Use the `Refresh now` maintenance action in device settings to poll the heat pump immediately.
@@ -241,6 +242,8 @@ Default settings are conservative:
 - minimum write interval: `1800` seconds
 
 Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
+
+Use the curve widget or Flow actions to pause Homey-managed curve writes for 1 hour, 6 hours, 24 hours, or until manually resumed. Pausing only stops automatic curve writes; telemetry, graphing, and manual Homey controls continue to work.
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
 
