@@ -16,6 +16,7 @@
     "build": "tsc -p tsconfig.json",
     "probe:diagnostics": "npm run build && node .homeybuild/scripts/probe-diagnostics.js",
     "probe:fields": "npm run build && node .homeybuild/scripts/probe-fields.js",
+    "probe:modes:analyze": "npm run build && node .homeybuild/scripts/analyze-mode-report.js",
     "probe:modes": "npm run build && node .homeybuild/scripts/probe-modes.js",
     "probe:weather-curve": "npm run build && node .homeybuild/scripts/probe-weather-curve.js",
     "smoke:toggles": "npm run build && node .homeybuild/scripts/smoke-toggles.js",

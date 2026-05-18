@@ -30,6 +30,14 @@ npm run probe:modes -- --ip 192.168.1.50 --mac 001122334455 --modes cool,cool_ho
 
 The mode probe is read-only. It prompts you to change modes externally in the official Gree app or indoor controller, captures normalized state and likely raw mode fields after each change, and reports the changed fields. Add `--output tmp/cooling-modes.json` to save a redacted report for review.
 
+Analyze the saved report before changing command support:
+
+```bash
+npm run probe:modes:analyze -- tmp/cooling-modes.json
+```
+
+The analyzer checks raw `Pow`/`Mod`, normalized mode, changed fields, and restore cleanliness. It is intentionally conservative and should be treated as a mapping review aid, not automatic approval.
+
 Record:
 
 - the official app screen name
