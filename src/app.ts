@@ -4,6 +4,7 @@ interface WeatherCurveWidgetDevice {
   getData(): Record<string, unknown>;
   weatherCurveWidgetState(): Promise<unknown>;
   updateWeatherCurveFromWidget(input: Record<string, unknown>): Promise<unknown>;
+  telemetryWidgetState(): Promise<unknown>;
 }
 
 class GreeVersatiApp extends Homey.App {
@@ -17,6 +18,10 @@ class GreeVersatiApp extends Homey.App {
 
   async updateWeatherCurveFromWidget(deviceId: string | undefined, input: Record<string, unknown>): Promise<unknown> {
     return this.weatherCurveWidgetDevice(deviceId).updateWeatherCurveFromWidget(input);
+  }
+
+  async getTelemetryWidgetState(deviceId?: string): Promise<unknown> {
+    return this.weatherCurveWidgetDevice(deviceId).telemetryWidgetState();
   }
 
   private weatherCurveWidgetDevice(deviceId?: string): WeatherCurveWidgetDevice {

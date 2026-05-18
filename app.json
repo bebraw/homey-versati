@@ -791,6 +791,58 @@
       "setable": false
     }
   },
+  "widgets": {
+    "weather-curve": {
+      "id": "weather-curve",
+      "name": {
+        "en": "Versati Weather Curve"
+      },
+      "height": 420,
+      "transparent": false,
+      "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+          "class": "heater",
+          "capabilities": "weather_curve_heating_target"
+        }
+      },
+      "settings": [],
+      "api": {
+        "getCurve": {
+          "method": "GET",
+          "path": "/"
+        },
+        "updateCurve": {
+          "method": "PUT",
+          "path": "/"
+        }
+      }
+    },
+    "telemetry-graphs": {
+      "id": "telemetry-graphs",
+      "name": {
+        "en": "Versati Graphs"
+      },
+      "height": 420,
+      "transparent": false,
+      "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+          "class": "heater",
+          "capabilities": "measure_temperature_water_out"
+        }
+      },
+      "settings": [],
+      "api": {
+        "getTelemetry": {
+          "method": "GET",
+          "path": "/"
+        }
+      }
+    }
+  },
   "flow": {
     "triggers": [
       {

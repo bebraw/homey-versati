@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #16211d;
+      --muted: #64716b;
+      --line: #d7ded9;
+      --panel: #f6faf8;
+      --surface: #ffffff;
+      --water: #0f766e;
+      --hot: #b45309;
+      --target: #2563eb;
+      --curve: #7c3aed;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef7f3;
+        --muted: #a7b6af;
+        --line: #31443c;
+        --panel: #13211c;
+        --surface: #0b1512;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font: 13px/1.35 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .wrap {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .top {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: 0;
+    }
+
+    .stamp {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .metric span {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+
+    .chart {
+      display: grid;
+      gap: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .chart header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    svg {
+      width: 100%;
+      height: 92px;
+      overflow: visible;
+    }
+
+    .grid {
+      stroke: color-mix(in srgb, var(--line) 70%, transparent);
+      stroke-width: 1;
+    }
+
+    .line {
+      fill: none;
+      stroke-width: 3;
+      stroke-linejoin: round;
+      stroke-linecap: round;
+    }
+
+    .empty {
+      padding: 18px 10px;
+      border: 1px dashed var(--line);
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 360px) {
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="top">
+      <h1 id="title">Gree Versati</h1>
+      <span class="stamp" id="stamp">Loading...</span>
+    </section>
+
+    <section class="metrics">
+      <div class="metric"><span>Water out</span><strong id="waterOut">-</strong></div>
+      <div class="metric"><span>Hot water</span><strong id="hotWater">-</strong></div>
+      <div class="metric"><span>Heating target</span><strong id="heatingTarget">-</strong></div>
+      <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
+    </section>
+
+    <section id="charts"></section>
+  </main>
+
+  <script>
+    const SERIES = [
+      { key: 'waterOutTemperature', label: 'Water out', color: 'var(--water)' },
+      { key: 'hotWaterTemperature', label: 'Hot water', color: 'var(--hot)' },
+      { key: 'heatingTargetTemperature', label: 'Heating target', color: 'var(--target)' },
+      { key: 'curveHeatingTarget', label: 'Curve target', color: 'var(--curve)' }
+    ];
+
+    let HomeyApi;
+    let deviceId = '';
+
+    function onHomeyReady(Homey) {
+      HomeyApi = Homey;
+      deviceId = Homey.getDeviceIds()[0] || '';
+      load().finally(() => Homey.ready({ height: 420 }));
+    }
+
+    async function load() {
+      try {
+        const state = await HomeyApi.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`, {});
+        render(state);
+      } catch (error) {
+        document.getElementById('charts').innerHTML = `<div class="empty">${escapeText(error.message || String(error))}</div>`;
+      }
+    }
+
+    function render(state) {
+      const history = Array.isArray(state.history) ? state.history : [];
+      const latest = state.latest || history[history.length - 1] || {};
+      text('title', state.device && state.device.name ? state.device.name : 'Gree Versati');
+      text('stamp', state.updatedAt ? `Updated ${new Date(state.updatedAt).toLocaleTimeString()}` : `${history.length} samples`);
+      text('waterOut', celsius(latest.waterOutTemperature));
+      text('hotWater', celsius(latest.hotWaterTemperature));
+      text('heatingTarget', celsius(latest.heatingTargetTemperature, 0));
+      text('curveTarget', celsius(latest.curveHeatingTarget, 0));
+
+      if (history.length < 2) {
+        document.getElementById('charts').innerHTML = '<div class="empty">Graphs will appear after at least two successful polls.</div>';
+        return;
+      }
+
+      document.getElementById('charts').innerHTML = SERIES.map((series) => chart(series, history)).join('');
+    }
+
+    function chart(series, history) {
+      const values = history.map((sample) => number(sample[series.key])).filter((value) => value !== null);
+      if (values.length < 2) {
+        return '';
+      }
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const pad = Math.max(1, (max - min) * 0.1);
+      const low = min - pad;
+      const high = max + pad;
+      const points = history.map((sample, index) => {
+        const value = number(sample[series.key]);
+        if (value === null) return null;
+        const x = 8 + (index / Math.max(1, history.length - 1)) * 304;
+        const y = 82 - ((value - low) / Math.max(1, high - low)) * 68;
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).filter(Boolean).join(' ');
+
+      return `
+        <article class="chart">
+          <header><strong>${series.label}</strong><span>${min.toFixed(1)}-${max.toFixed(1)}°C</span></header>
+          <svg viewBox="0 0 320 92" role="img" aria-label="${series.label} graph">
+            <line class="grid" x1="8" y1="14" x2="312" y2="14"></line>
+            <line class="grid" x1="8" y1="48" x2="312" y2="48"></line>
+            <line class="grid" x1="8" y1="82" x2="312" y2="82"></line>
+            <polyline class="line" style="stroke:${series.color}" points="${points}"></polyline>
+          </svg>
+        </article>
+      `;
+    }
+
+    function number(value) {
+      return typeof value === 'number' && Number.isFinite(value) ? value : null;
+    }
+
+    function celsius(value, decimals = 1) {
+      return number(value) === null ? '-' : `${value.toFixed(decimals)}°C`;
+    }
+
+    function text(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function escapeText(value) {
+      return String(value).replace(/[&<>"']/g, (char) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+      }[char]));
+    }
+  </script>
+</body>
+</html>

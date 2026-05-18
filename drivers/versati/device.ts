@@ -20,6 +20,7 @@ const POLL_INTERVAL_MS = 30_000;
 const MIN_POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_INTERVAL_MS = 300_000;
 const UNAVAILABLE_AFTER_FAILURES = 3;
+const TELEMETRY_HISTORY_LIMIT = 480;
 const DEFAULT_CURVE_DEADBAND = 1;
 const DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS = 1800;
 const WEATHER_CURVE_PRESETS = {
@@ -130,6 +131,18 @@ interface WeatherCurveSettings {
   config: WeatherCurveConfig;
   deadband: number;
   minWriteIntervalMs: number;
+}
+
+interface TelemetryHistorySample {
+  at: string;
+  waterOutTemperature: number | null;
+  waterInTemperature: number | null;
+  hotWaterTemperature: number | null;
+  remoteRoomTemperature: number | null;
+  heatingTargetTemperature: number | null;
+  hotWaterTargetTemperature: number | null;
+  curveOutdoorTemperature: number | null;
+  curveHeatingTarget: number | null;
 }
 
 type SettingsValue = boolean | string | number | undefined | null;
@@ -311,6 +324,21 @@ class GreeVersatiDevice extends Homey.Device {
     return this.weatherCurveWidgetState();
   }
 
+  async telemetryWidgetState(): Promise<Record<string, unknown>> {
+    const history = telemetryHistory(this.getStore().telemetryHistory);
+    const latest = history.at(-1);
+    return {
+      device: {
+        id: this.getData().id,
+        name: this.getName(),
+      },
+      updatedAt: latest?.at ?? '',
+      sampleCount: history.length,
+      history,
+      latest: latest ?? null,
+    };
+  }
+
   private async refreshState(): Promise<void> {
     const device = this.boundDevice();
     const state = await this.clientOrThrow().getState(device);
@@ -323,6 +351,7 @@ class GreeVersatiDevice extends Homey.Device {
     await this.applyCapabilities(state);
     await this.updateDiagnostics(device, state);
     await this.applyWeatherCurveControl(device, state);
+    await this.appendTelemetryHistory(state);
     await this.setAvailable();
     this.reachable = true;
     if (!wasReachable) {
@@ -710,6 +739,22 @@ class GreeVersatiDevice extends Homey.Device {
     ]);
   }
 
+  private async appendTelemetryHistory(state: GreeVersatiState): Promise<void> {
+    const history = telemetryHistory(this.getStore().telemetryHistory);
+    const sample: TelemetryHistorySample = {
+      at: new Date().toISOString(),
+      waterOutTemperature: state.waterOutTemperature,
+      waterInTemperature: state.waterInTemperature,
+      hotWaterTemperature: state.hotWaterTemperature,
+      remoteRoomTemperature: state.remoteRoomTemperature,
+      heatingTargetTemperature: state.heatingTargetTemperature,
+      hotWaterTargetTemperature: state.hotWaterTargetTemperature,
+      curveOutdoorTemperature: numberOrNull(this.getCapabilityValue('weather_curve_outdoor_temperature')),
+      curveHeatingTarget: numberOrNull(this.getCapabilityValue('weather_curve_heating_target')),
+    };
+    await this.setStoreValue('telemetryHistory', [...history, sample].slice(-TELEMETRY_HISTORY_LIMIT));
+  }
+
   private async persistEndpoint(device: BoundGreeVersatiDevice): Promise<void> {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     const normalizedMac = normalizeMac(device.mac);
@@ -793,6 +838,36 @@ function normalizeMac(mac: string): string {
 
 function stringStoreValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function numberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function telemetryHistory(value: unknown): TelemetryHistorySample[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((sample) => {
+    if (!isRecord(sample) || typeof sample.at !== 'string') {
+      return [];
+    }
+    return [{
+      at: sample.at,
+      waterOutTemperature: numberOrNull(sample.waterOutTemperature),
+      waterInTemperature: numberOrNull(sample.waterInTemperature),
+      hotWaterTemperature: numberOrNull(sample.hotWaterTemperature),
+      remoteRoomTemperature: numberOrNull(sample.remoteRoomTemperature),
+      heatingTargetTemperature: numberOrNull(sample.heatingTargetTemperature),
+      hotWaterTargetTemperature: numberOrNull(sample.hotWaterTargetTemperature),
+      curveOutdoorTemperature: numberOrNull(sample.curveOutdoorTemperature),
+      curveHeatingTarget: numberOrNull(sample.curveHeatingTarget),
+    }];
+  }).slice(-TELEMETRY_HISTORY_LIMIT);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 function numberSetting(value: unknown, fallback: number): number {

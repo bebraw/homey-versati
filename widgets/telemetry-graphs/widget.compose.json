@@ -1,0 +1,21 @@
+{
+  "name": {
+    "en": "Versati Graphs"
+  },
+  "height": 420,
+  "transparent": false,
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "class": "heater",
+      "capabilities": "measure_temperature_water_out"
+    }
+  },
+  "api": {
+    "getTelemetry": {
+      "method": "GET",
+      "path": "/"
+    }
+  }
+}
