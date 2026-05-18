@@ -284,24 +284,40 @@ Curve shape controls how the target bends between the two configured points. `Li
 
 The `Versati Weather Curve` dashboard widget shows the current target, calculated target, outdoor input, write safety status, last skip reason, last write time, and curve shape. It can update the same curve settings as the device settings page. Widgets require Homey `12.3.0` or newer.
 
+## Estimated COP
+
+The app can calculate an estimated coefficient of performance from the measured heating water delta, a configured water flow rate, and a configured electrical input:
+
+`estimated COP = estimated heat output / estimated electrical input`
+
+`estimated heat output` uses water out minus water in, the configured liters per minute, and water's heat capacity. The estimate stays empty while the heat pump is off, defrosting, water out is not warmer than water in, or either COP setting is `0`.
+
+Configure these device settings to enable the estimate:
+
+- `COP water flow`: heating circuit flow in liters per minute
+- `COP electrical input`: electrical input in kW
+
+For the electrical input, the best source is whole heat-pump consumption: outdoor unit compressor/fans plus indoor unit pumps, controls, and backup/tank heaters. A meter covering both indoor and outdoor units, or the entire heat-pump supply, gives the least misleading estimate. Outdoor-unit-only consumption makes COP look too optimistic when indoor pumps or heaters are active. Indoor-unit-only consumption usually misses the compressor and is not enough for COP. Until a real meter is connected, use a conservative fixed kW estimate and treat `Estimated COP`, `Estimated heat output`, and `Estimated electrical input` as trend signals rather than lab-grade performance data.
+
 ## Homey Insights
 
 The driver exposes Gree values as Homey capabilities and explicitly leaves Insights enabled for telemetry that is useful to graph over time:
 
 - water out, water in, hot water, optional water sensor, and remote room temperatures
 - heating, cooling, and hot water targets
+- estimated water delta, heat output, electrical input, and COP
 - power, mode, Rapid, Silence, W-depend, Disinfect, defrosting, heater, frost protection, and EVU states
 - Homey-managed curve outdoor temperature and calculated heating target
 
 Open Homey Insights and select the paired Gree Versati device to view the graphs. Static diagnostics such as `ModelType`, `VersatiSeries`, IP address, MAC address, and device key stay in the device store/settings and are not exposed as graphable capabilities.
 
-For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The app keeps a bounded local history of the latest `480` successful polls and graphs water out temperature, hot water temperature, heating target, and curve target directly in the widget. The widget also shows poll health, redacted endpoint details, curve control state, and the latest curve decision. The widget refreshes every 30 seconds and can filter the view to `1h`, `6h`, `24h`, or all retained samples. This local widget history is separate from Homey Insights and starts filling after the updated app has run successfully.
+For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The app keeps a bounded local history of the latest `480` successful polls and graphs water out temperature, hot water temperature, heating target, curve target, and estimated COP directly in the widget. The widget also shows poll health, redacted endpoint details, curve control state, and the latest curve decision. The widget refreshes every 30 seconds and can filter the view to `1h`, `6h`, `24h`, or all retained samples. This local widget history is separate from Homey Insights and starts filling after the updated app has run successfully.
 
 Homey should automatically create device Insights for graphable capabilities. The app also creates explicit app-managed Insights logs as a fallback for the main Gree values. These logs appear under the Gree Versati app after the app has run long enough to poll at least once.
 
 Use the `Insights` button in the `Versati Graphs` widget to check whether the app-managed Insights logs exist and whether entries have been written since the app started.
 
-In the Homey mobile app, open the Gree Versati device and use the native graph views for `Water out`, water in, hot water, optional water, remote room, heating target, cooling target, hot water target, curve outdoor temperature, and curve heating target. These are backed by Homey's standard temperature capabilities and mirror the Gree-specific capability values.
+In the Homey mobile app, open the Gree Versati device and use the native graph views for `Water out`, water in, hot water, optional water, remote room, heating target, cooling target, hot water target, curve outdoor temperature, curve heating target, water delta, estimated heat output, estimated electrical input, and estimated COP. These are backed by Homey's standard graphable capabilities where possible and mirror the Gree-specific capability values.
 
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
 

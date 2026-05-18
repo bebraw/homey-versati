@@ -67,6 +67,10 @@
         "measure_temperature.hot_water_target",
         "measure_temperature.curve_outdoor",
         "measure_temperature.curve_heating_target",
+        "measure_temperature.water_delta",
+        "measure_power.heat_output_estimated",
+        "measure_power.electrical_input_estimated",
+        "measure_cop_estimated",
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
@@ -151,6 +155,27 @@
           "title": {
             "en": "Curve heating target"
           },
+          "preventInsights": false
+        },
+        "measure_temperature.water_delta": {
+          "title": {
+            "en": "Water delta"
+          },
+          "preventInsights": false
+        },
+        "measure_power.heat_output_estimated": {
+          "title": {
+            "en": "Estimated heat output"
+          },
+          "preventInsights": false
+        },
+        "measure_power.electrical_input_estimated": {
+          "title": {
+            "en": "Estimated electrical input"
+          },
+          "preventInsights": false
+        },
+        "measure_cop_estimated": {
           "preventInsights": false
         },
         "measure_temperature_water_out": {
@@ -637,6 +662,32 @@
           "value": 1800,
           "min": 300,
           "max": 86400
+        },
+        {
+          "id": "copWaterFlowRateLMin",
+          "type": "number",
+          "label": {
+            "en": "COP water flow"
+          },
+          "hint": {
+            "en": "Estimated heating circuit flow in liters per minute. Set to 0 to disable COP estimation."
+          },
+          "value": 0,
+          "min": 0,
+          "max": 200
+        },
+        {
+          "id": "copElectricalInputKw",
+          "type": "number",
+          "label": {
+            "en": "COP electrical input"
+          },
+          "hint": {
+            "en": "Estimated whole heat-pump electrical input in kW. Prefer a meter covering indoor and outdoor unit consumption."
+          },
+          "value": 0,
+          "min": 0,
+          "max": 50
         }
       ]
     }
@@ -893,6 +944,15 @@
         "en": "°C"
       },
       "decimals": 0,
+      "getable": true,
+      "setable": false
+    },
+    "measure_cop_estimated": {
+      "type": "number",
+      "title": {
+        "en": "Estimated COP"
+      },
+      "decimals": 2,
       "getable": true,
       "setable": false
     }

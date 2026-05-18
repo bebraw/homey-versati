@@ -70,7 +70,7 @@ declare module 'homey' {
     ): void;
     setAvailable(): Promise<void>;
     setUnavailable(message?: string): Promise<void>;
-    setCapabilityValue(capability: string, value: boolean | number | string): Promise<void>;
+    setCapabilityValue(capability: string, value: boolean | number | string | null): Promise<void>;
   }
 
   namespace Driver {

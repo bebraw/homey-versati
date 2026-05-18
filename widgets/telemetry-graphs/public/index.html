@@ -15,6 +15,7 @@
       --hot: #b45309;
       --target: #2563eb;
       --curve: #7c3aed;
+      --cop: #be123c;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -215,6 +216,7 @@
       <div class="metric"><span>Hot water</span><strong id="hotWater">-</strong></div>
       <div class="metric"><span>Heating target</span><strong id="heatingTarget">-</strong></div>
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
+      <div class="metric"><span>Estimated COP</span><strong id="estimatedCop">-</strong></div>
     </section>
 
     <section class="status">
@@ -229,10 +231,11 @@
 
   <script>
     const SERIES = [
-      { key: 'waterOutTemperature', label: 'Water out', color: 'var(--water)' },
-      { key: 'hotWaterTemperature', label: 'Hot water', color: 'var(--hot)' },
-      { key: 'heatingTargetTemperature', label: 'Heating target', color: 'var(--target)' },
-      { key: 'curveHeatingTarget', label: 'Curve target', color: 'var(--curve)' }
+      { key: 'waterOutTemperature', label: 'Water out', color: 'var(--water)', unit: '°C', decimals: 1 },
+      { key: 'hotWaterTemperature', label: 'Hot water', color: 'var(--hot)', unit: '°C', decimals: 1 },
+      { key: 'heatingTargetTemperature', label: 'Heating target', color: 'var(--target)', unit: '°C', decimals: 0 },
+      { key: 'curveHeatingTarget', label: 'Curve target', color: 'var(--curve)', unit: '°C', decimals: 0 },
+      { key: 'estimatedCop', label: 'Estimated COP', color: 'var(--cop)', unit: '', decimals: 2 }
     ];
 
     let HomeyApi;
@@ -317,6 +320,7 @@
       text('hotWater', celsius(latest.hotWaterTemperature));
       text('heatingTarget', celsius(latest.heatingTargetTemperature, 0));
       text('curveTarget', celsius(latest.curveHeatingTarget, 0));
+      text('estimatedCop', formatValue(latest.estimatedCop, '', 2));
       renderDiagnostics(state.diagnostics || {});
 
       if (history.length < 2) {
@@ -369,7 +373,7 @@
 
       return `
         <article class="chart">
-          <header><strong>${series.label}</strong><span>${min.toFixed(1)}-${max.toFixed(1)}°C</span></header>
+          <header><strong>${series.label}</strong><span>${formatValue(min, series.unit, series.decimals)}-${formatValue(max, series.unit, series.decimals)}</span></header>
           <svg viewBox="0 0 320 92" role="img" aria-label="${series.label} graph">
             <line class="grid" x1="8" y1="14" x2="312" y2="14"></line>
             <line class="grid" x1="8" y1="48" x2="312" y2="48"></line>
@@ -386,6 +390,10 @@
 
     function celsius(value, decimals = 1) {
       return number(value) === null ? '-' : `${value.toFixed(decimals)}°C`;
+    }
+
+    function formatValue(value, unit, decimals) {
+      return number(value) === null ? '-' : `${value.toFixed(decimals)}${unit}`;
     }
 
     function text(id, value) {
