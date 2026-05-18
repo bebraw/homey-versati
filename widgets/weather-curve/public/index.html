@@ -213,10 +213,31 @@
       white-space: nowrap;
     }
 
+    .boost-controls {
+      display: grid;
+      grid-template-columns: 74px 1fr auto auto;
+      gap: 8px;
+      align-items: end;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .boost-controls button {
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 0 10px;
+      color: var(--ink);
+      background: var(--surface);
+      font-weight: 700;
+    }
+
     @media (max-width: 360px) {
       .status,
       .controls,
-      .safety {
+      .safety,
+      .boost-controls {
         grid-template-columns: 1fr;
       }
     }
@@ -312,12 +333,26 @@
       <div id="auditRows"></div>
     </section>
 
+    <section class="boost-controls">
+      <label>Boost
+        <input id="boostOffset" type="number" min="-5" max="5" step="0.5" value="1">
+      </label>
+      <label>Duration
+        <select id="boostDuration">
+          <option value="60">1 hour</option>
+          <option value="360" selected>6 hours</option>
+          <option value="1440">24 hours</option>
+          <option value="manual">Until cleared</option>
+        </select>
+      </label>
+      <button id="boostApply" type="button">Apply boost</button>
+      <button id="boostClear" type="button">Clear</button>
+    </section>
+
     <section class="actions">
       <button id="save" type="button">Apply</button>
       <button id="pause" class="secondary" type="button">Pause 6h</button>
       <button id="resume" class="secondary" type="button">Resume</button>
-      <button id="boostUp" class="secondary" type="button">+1°C 6h</button>
-      <button id="boostClear" class="secondary" type="button">Clear boost</button>
       <button id="exportProfile" class="secondary" type="button">Export</button>
       <button id="importProfile" class="secondary" type="button">Import</button>
       <input id="profileFile" type="file" accept="application/json" hidden>
@@ -350,12 +385,12 @@
       document.getElementById('save').addEventListener('click', save);
       document.getElementById('pause').addEventListener('click', pause);
       document.getElementById('resume').addEventListener('click', resume);
-      document.getElementById('boostUp').addEventListener('click', () => boost(1, 360));
+      document.getElementById('boostApply').addEventListener('click', applyBoost);
       document.getElementById('boostClear').addEventListener('click', clearBoost);
       document.getElementById('exportProfile').addEventListener('click', exportProfile);
       document.getElementById('importProfile').addEventListener('click', () => document.getElementById('profileFile').click());
       document.getElementById('profileFile').addEventListener('change', importProfile);
-      load().finally(() => Homey.ready({ height: 480 }));
+      load().finally(() => Homey.ready({ height: 530 }));
     }
 
     async function load() {
@@ -414,6 +449,10 @@
       } catch (error) {
         note(error.message || String(error));
       }
+    }
+
+    async function applyBoost() {
+      await boost(Number(document.getElementById('boostOffset').value), document.getElementById('boostDuration').value);
     }
 
     async function clearBoost() {
@@ -490,7 +529,11 @@
       document.getElementById('pause').disabled = Boolean(pausedUntil);
       document.getElementById('resume').disabled = !pausedUntil;
       const boostState = state.boost || {};
-      text('boostState', boostState.active ? `${formatSigned(boostState.offset)}°C` : '-');
+      text('boostState', boostState.active ? `${formatSigned(boostState.offset)}°C ${boostUntil(boostState.until)}` : '-');
+      if (boostState.active) {
+        setValue('boostOffset', boostState.offset);
+        setValue('boostDuration', boostState.until === 'manual' ? 'manual' : '360');
+      }
       document.getElementById('boostPill').classList.toggle('warn', Boolean(boostState.active));
       document.getElementById('boostClear').disabled = !boostState.active;
       renderForecast(state.forecast || {});
@@ -558,6 +601,12 @@
 
     function formatSigned(value) {
       return Number(value) > 0 ? `+${Number(value).toFixed(1)}` : Number(value).toFixed(1);
+    }
+
+    function boostUntil(value) {
+      if (!value) return '';
+      if (value === 'manual') return 'until cleared';
+      return `until ${new Date(value).toLocaleTimeString()}`;
     }
 
     function time(value) {

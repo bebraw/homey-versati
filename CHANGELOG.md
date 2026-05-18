@@ -39,4 +39,5 @@
 - Add a maintenance action to reset app-managed Gree Insights logs.
 - Add a combined interactive cooling mode confirmation script.
 - Add reviewed cooling mode mapping artifact generation for confirmed probe reports.
+- Add selectable boost offset and duration controls to the weather-curve widget.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

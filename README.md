@@ -277,7 +277,7 @@ Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating tar
 
 Use the curve widget or Flow actions to pause Homey-managed curve writes for 1 hour, 6 hours, 24 hours, or until manually resumed. Pausing only stops automatic curve writes; telemetry, graphing, and manual Homey controls continue to work.
 
-Use the curve widget or Flow actions to apply a temporary curve boost from `-5°C` to `+5°C`. The boost offsets the calculated target for 1 hour, 6 hours, 24 hours, or until cleared, while leaving the saved curve points unchanged. Boost writes use separate boost min/max safety limits so a comfort offset cannot exceed the range you allow for boosted operation.
+Use the curve widget or Flow actions to apply a temporary curve boost from `-5°C` to `+5°C`. The widget lets you choose the offset and duration, then shows the active offset and expiry. The boost offsets the calculated target for 1 hour, 6 hours, 24 hours, or until cleared, while leaving the saved curve points unchanged. Boost writes use separate boost min/max safety limits so a comfort offset cannot exceed the range you allow for boosted operation.
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
 
