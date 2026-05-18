@@ -1185,9 +1185,15 @@
           {
             "name": "temperature",
             "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
             "min": 0,
             "max": 80,
-            "step": 1
+            "step": 1,
+            "placeholder": {
+              "en": "45"
+            }
           }
         ]
       },
@@ -1334,9 +1340,15 @@
           {
             "name": "temperature",
             "type": "number",
+            "title": {
+              "en": "Heating target"
+            },
             "min": 20,
             "max": 55,
-            "step": 1
+            "step": 1,
+            "placeholder": {
+              "en": "35"
+            }
           }
         ]
       },
@@ -1357,9 +1369,15 @@
           {
             "name": "temperature",
             "type": "number",
+            "title": {
+              "en": "Hot water target"
+            },
             "min": 30,
             "max": 60,
-            "step": 1
+            "step": 1,
+            "placeholder": {
+              "en": "50"
+            }
           }
         ]
       },

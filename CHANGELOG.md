@@ -15,4 +15,5 @@
 - Document that the indoor controller's `T-Outdoor` value is not yet confirmed in the local Wi-Fi status API and expand diagnostics candidates for future probing.
 - Add Homey Flow triggers for weather-curve calculated values, skipped reasons, write events, and errors.
 - Add a `Refresh now` maintenance action for immediate polling from device settings.
+- Add visible default placeholders for temperature Flow action and condition fields.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

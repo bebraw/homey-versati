@@ -56,6 +56,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
+- Use temperature Flow action fields with visible default placeholders for common heating and hot water targets.
 - Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
 - Use the `Refresh now` maintenance action in device settings to poll the heat pump immediately.
 
