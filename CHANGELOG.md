@@ -19,4 +19,5 @@
 - Add weather-curve presets and a Homey dashboard widget for visual curve adjustment.
 - Document runtime/energy probe status and add client test coverage for Cool and Hot water mode writes.
 - Add a `Versati Graphs` dashboard widget backed by bounded local telemetry history.
+- Add auto-refresh and range filters to the `Versati Graphs` widget.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

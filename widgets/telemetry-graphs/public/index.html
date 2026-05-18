@@ -65,6 +65,44 @@
       white-space: nowrap;
     }
 
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .ranges {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      padding: 3px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    button {
+      min-height: 28px;
+      border: 0;
+      border-radius: 4px;
+      color: var(--muted);
+      background: transparent;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    button.active {
+      color: white;
+      background: var(--water);
+    }
+
+    .refresh {
+      border: 1px solid var(--line);
+      padding: 0 10px;
+      background: var(--surface);
+    }
+
     .metrics {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -149,6 +187,16 @@
       <span class="stamp" id="stamp">Loading...</span>
     </section>
 
+    <section class="toolbar">
+      <div class="ranges" id="ranges">
+        <button type="button" data-range="1h">1h</button>
+        <button type="button" data-range="6h">6h</button>
+        <button type="button" data-range="24h">24h</button>
+        <button type="button" data-range="all" class="active">All</button>
+      </div>
+      <button class="refresh" id="refresh" type="button">Refresh</button>
+    </section>
+
     <section class="metrics">
       <div class="metric"><span>Water out</span><strong id="waterOut">-</strong></div>
       <div class="metric"><span>Hot water</span><strong id="hotWater">-</strong></div>
@@ -169,27 +217,49 @@
 
     let HomeyApi;
     let deviceId = '';
+    let activeRange = 'all';
+    let lastState = null;
+    let refreshTimer = null;
 
     function onHomeyReady(Homey) {
       HomeyApi = Homey;
       deviceId = Homey.getDeviceIds()[0] || '';
-      load().finally(() => Homey.ready({ height: 420 }));
+      document.getElementById('refresh').addEventListener('click', load);
+      for (const button of document.querySelectorAll('[data-range]')) {
+        button.addEventListener('click', () => setRange(button.dataset.range));
+      }
+      load().finally(() => {
+        refreshTimer = setInterval(load, 30000);
+        Homey.ready({ height: 420 });
+      });
     }
 
     async function load() {
       try {
         const state = await HomeyApi.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`, {});
+        lastState = state;
         render(state);
       } catch (error) {
         document.getElementById('charts').innerHTML = `<div class="empty">${escapeText(error.message || String(error))}</div>`;
       }
     }
 
+    function setRange(range) {
+      activeRange = range;
+      for (const button of document.querySelectorAll('[data-range]')) {
+        button.classList.toggle('active', button.dataset.range === range);
+      }
+      if (lastState) {
+        render(lastState);
+      }
+    }
+
     function render(state) {
-      const history = Array.isArray(state.history) ? state.history : [];
-      const latest = state.latest || history[history.length - 1] || {};
+      const allHistory = Array.isArray(state.history) ? state.history : [];
+      const history = rangeHistory(allHistory);
+      const latest = state.latest || allHistory[allHistory.length - 1] || {};
       text('title', state.device && state.device.name ? state.device.name : 'Gree Versati');
-      text('stamp', state.updatedAt ? `Updated ${new Date(state.updatedAt).toLocaleTimeString()}` : `${history.length} samples`);
+      text('stamp', state.updatedAt ? `Updated ${new Date(state.updatedAt).toLocaleTimeString()} · ${history.length}/${allHistory.length} samples` : `${history.length} samples`);
       text('waterOut', celsius(latest.waterOutTemperature));
       text('hotWater', celsius(latest.hotWaterTemperature));
       text('heatingTarget', celsius(latest.heatingTargetTemperature, 0));
@@ -201,6 +271,15 @@
       }
 
       document.getElementById('charts').innerHTML = SERIES.map((series) => chart(series, history)).join('');
+    }
+
+    function rangeHistory(history) {
+      if (activeRange === 'all') {
+        return history;
+      }
+      const hours = activeRange === '1h' ? 1 : activeRange === '6h' ? 6 : 24;
+      const cutoff = Date.now() - hours * 60 * 60 * 1000;
+      return history.filter((sample) => Date.parse(sample.at) >= cutoff);
     }
 
     function chart(series, history) {
