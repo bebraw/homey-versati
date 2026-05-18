@@ -21,6 +21,7 @@ const MIN_POLL_INTERVAL_MS = 15_000;
 const MAX_POLL_INTERVAL_MS = 300_000;
 const UNAVAILABLE_AFTER_FAILURES = 3;
 const TELEMETRY_HISTORY_LIMIT = 480;
+const WEATHER_CURVE_AUDIT_LIMIT = 120;
 const DEFAULT_CURVE_DEADBAND = 1;
 const DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS = 1800;
 const WEATHER_CURVE_PRESETS = {
@@ -143,6 +144,19 @@ interface TelemetryHistorySample {
   hotWaterTargetTemperature: number | null;
   curveOutdoorTemperature: number | null;
   curveHeatingTarget: number | null;
+}
+
+interface WeatherCurveAuditEntry {
+  at: string;
+  action: 'skip' | 'write' | 'error';
+  reason: string;
+  controlMode: WeatherCurveSettings['controlMode'];
+  heatPumpMode: GreeVersatiState['mode'] | null;
+  outdoorTemperature: number | null;
+  calculatedTarget: number | null;
+  previousTarget: number | null;
+  writtenTarget: number | null;
+  message: string;
 }
 
 type SettingsValue = boolean | string | number | undefined | null;
@@ -329,6 +343,7 @@ class GreeVersatiDevice extends Homey.Device {
         lastWriteAt: stringStoreValue(this.getStore().weatherCurveLastWriteAt),
         lastSkippedReason: stringStoreValue(this.getStore().weatherCurveLastSkippedReason),
         lastError: stringStoreValue(this.getStore().weatherCurveLastError),
+        auditHistory: weatherCurveAuditHistory(this.getStore().weatherCurveAuditHistory).slice(-12).reverse(),
       },
     };
   }
@@ -423,6 +438,7 @@ class GreeVersatiDevice extends Homey.Device {
         lastWrittenTarget: store.weatherCurveLastWrittenTarget,
         lastSkippedReason: store.weatherCurveLastSkippedReason,
         lastError: store.weatherCurveLastError,
+        auditHistory: weatherCurveAuditHistory(store.weatherCurveAuditHistory).slice(-20).reverse(),
       },
       telemetryHistorySamples: telemetryHistory(store.telemetryHistory).length,
     };
@@ -671,6 +687,12 @@ class GreeVersatiDevice extends Homey.Device {
     const settings = this.weatherCurveSettings();
     await this.setStoreValue('weatherCurveMode', settings.controlMode);
     if (settings.controlMode === 'disabled') {
+      await this.appendWeatherCurveAudit({
+        action: 'skip',
+        reason: 'disabled',
+        settings,
+        state,
+      });
       await this.setWeatherCurveSkipped('disabled');
       return;
     }
@@ -685,22 +707,67 @@ class GreeVersatiDevice extends Homey.Device {
       await this.setStoreValue('weatherCurveLastEvaluatedAt', new Date().toISOString());
 
       if (settings.controlMode === 'dry_run') {
+        await this.appendWeatherCurveAudit({
+          action: 'skip',
+          reason: 'dry_run',
+          settings,
+          state,
+          outdoorTemperature: result.outdoorTemperature,
+          calculatedTarget: result.targetTemperature,
+          previousTarget: state.heatingTargetTemperature,
+        });
         await this.setWeatherCurveSkipped('dry_run');
         return;
       }
       if (state.mode !== 'heat_hot_water') {
-        await this.setWeatherCurveSkipped(`mode:${state.mode}`);
+        const reason = `mode:${state.mode}`;
+        await this.appendWeatherCurveAudit({
+          action: 'skip',
+          reason,
+          settings,
+          state,
+          outdoorTemperature: result.outdoorTemperature,
+          calculatedTarget: result.targetTemperature,
+          previousTarget: state.heatingTargetTemperature,
+        });
+        await this.setWeatherCurveSkipped(reason);
         return;
       }
       if (state.heatingTargetTemperature === null) {
+        await this.appendWeatherCurveAudit({
+          action: 'skip',
+          reason: 'missing_current_heating_target',
+          settings,
+          state,
+          outdoorTemperature: result.outdoorTemperature,
+          calculatedTarget: result.targetTemperature,
+        });
         await this.setWeatherCurveSkipped('missing_current_heating_target');
         return;
       }
       if (Math.abs(state.heatingTargetTemperature - result.targetTemperature) < settings.deadband) {
+        await this.appendWeatherCurveAudit({
+          action: 'skip',
+          reason: 'deadband',
+          settings,
+          state,
+          outdoorTemperature: result.outdoorTemperature,
+          calculatedTarget: result.targetTemperature,
+          previousTarget: state.heatingTargetTemperature,
+        });
         await this.setWeatherCurveSkipped('deadband');
         return;
       }
       if (!this.weatherCurveWriteIntervalElapsed(settings.minWriteIntervalMs)) {
+        await this.appendWeatherCurveAudit({
+          action: 'skip',
+          reason: 'minimum_write_interval',
+          settings,
+          state,
+          outdoorTemperature: result.outdoorTemperature,
+          calculatedTarget: result.targetTemperature,
+          previousTarget: state.heatingTargetTemperature,
+        });
         await this.setWeatherCurveSkipped('minimum_write_interval');
         return;
       }
@@ -711,14 +778,58 @@ class GreeVersatiDevice extends Homey.Device {
       await this.setStoreValue('weatherCurveLastWriteAt', new Date().toISOString());
       await this.setStoreValue('weatherCurveLastWrittenTarget', result.targetTemperature);
       await this.setStoreValue('weatherCurveLastSkippedReason', '');
+      await this.appendWeatherCurveAudit({
+        action: 'write',
+        reason: 'written',
+        settings,
+        state,
+        outdoorTemperature: result.outdoorTemperature,
+        calculatedTarget: result.targetTemperature,
+        previousTarget,
+        writtenTarget: result.targetTemperature,
+      });
       await this.triggerWeatherCurveWritten(result.outdoorTemperature, result.targetTemperature, previousTarget);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.setStoreValue('weatherCurveLastError', message);
+      await this.appendWeatherCurveAudit({
+        action: 'error',
+        reason: 'error',
+        settings,
+        state,
+        message,
+      });
       await this.setWeatherCurveSkipped(`error:${message}`);
       await this.triggerWeatherCurveError(message);
       this.error('Failed to apply Homey curve control', error);
     }
+  }
+
+  private async appendWeatherCurveAudit(input: {
+    action: WeatherCurveAuditEntry['action'];
+    reason: string;
+    settings: WeatherCurveSettings;
+    state: GreeVersatiState;
+    outdoorTemperature?: number | null;
+    calculatedTarget?: number | null;
+    previousTarget?: number | null;
+    writtenTarget?: number | null;
+    message?: string;
+  }): Promise<void> {
+    const history = weatherCurveAuditHistory(this.getStore().weatherCurveAuditHistory);
+    const entry: WeatherCurveAuditEntry = {
+      at: new Date().toISOString(),
+      action: input.action,
+      reason: input.reason,
+      controlMode: input.settings.controlMode,
+      heatPumpMode: input.state.mode,
+      outdoorTemperature: numberOrNull(input.outdoorTemperature),
+      calculatedTarget: numberOrNull(input.calculatedTarget),
+      previousTarget: numberOrNull(input.previousTarget),
+      writtenTarget: numberOrNull(input.writtenTarget),
+      message: input.message ?? '',
+    };
+    await this.setStoreValue('weatherCurveAuditHistory', [...history, entry].slice(-WEATHER_CURVE_AUDIT_LIMIT));
   }
 
   private async setWeatherCurveSkipped(reason: string): Promise<void> {
@@ -960,6 +1071,29 @@ function telemetryHistory(value: unknown): TelemetryHistorySample[] {
   }).slice(-TELEMETRY_HISTORY_LIMIT);
 }
 
+function weatherCurveAuditHistory(value: unknown): WeatherCurveAuditEntry[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.flatMap((entry) => {
+    if (!isRecord(entry) || typeof entry.at !== 'string') {
+      return [];
+    }
+    return [{
+      at: entry.at,
+      action: weatherCurveAuditAction(entry.action),
+      reason: stringStoreValue(entry.reason),
+      controlMode: weatherCurveControlMode(entry.controlMode),
+      heatPumpMode: weatherCurveHeatPumpMode(entry.heatPumpMode),
+      outdoorTemperature: numberOrNull(entry.outdoorTemperature),
+      calculatedTarget: numberOrNull(entry.calculatedTarget),
+      previousTarget: numberOrNull(entry.previousTarget),
+      writtenTarget: numberOrNull(entry.writtenTarget),
+      message: stringStoreValue(entry.message),
+    }];
+  }).filter((entry) => entry.reason).slice(-WEATHER_CURVE_AUDIT_LIMIT);
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -973,6 +1107,20 @@ function weatherCurvePreset(value: unknown): WeatherCurvePreset {
   return value === 'mild_floor' || value === 'radiators' || value === 'conservative'
     ? value
     : 'custom';
+}
+
+function weatherCurveAuditAction(value: unknown): WeatherCurveAuditEntry['action'] {
+  return value === 'write' || value === 'error' ? value : 'skip';
+}
+
+function weatherCurveControlMode(value: unknown): WeatherCurveSettings['controlMode'] {
+  return value === 'disabled' || value === 'write' ? value : 'dry_run';
+}
+
+function weatherCurveHeatPumpMode(value: unknown): GreeVersatiState['mode'] | null {
+  return value === 'off' || value === 'heat_hot_water' || value === 'cool' || value === 'hot_water' || value === 'other'
+    ? value
+    : null;
 }
 
 function weatherCurveShape(value: unknown): WeatherCurveShape {

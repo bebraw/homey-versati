@@ -177,6 +177,36 @@
       white-space: nowrap;
     }
 
+    .audit {
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .audit h2 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .audit-row {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) 54px;
+      gap: 8px;
+      align-items: center;
+      min-width: 0;
+      font-size: 12px;
+    }
+
+    .audit-row span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     @media (max-width: 360px) {
       .status,
       .controls,
@@ -263,6 +293,11 @@
       </label>
     </section>
 
+    <section class="audit">
+      <h2>Recent decisions</h2>
+      <div id="auditRows"></div>
+    </section>
+
     <section class="actions">
       <button id="save" type="button">Apply</button>
       <span class="message" id="message">Loading curve...</span>
@@ -342,7 +377,17 @@
       document.getElementById('writePill').classList.toggle('warn', !canWrite);
       text('skipReason', state.diagnostics && state.diagnostics.lastSkippedReason ? state.diagnostics.lastSkippedReason : '-');
       text('lastWrite', state.diagnostics && state.diagnostics.lastWriteAt ? new Date(state.diagnostics.lastWriteAt).toLocaleTimeString() : '-');
+      renderAudit(state.diagnostics && Array.isArray(state.diagnostics.auditHistory) ? state.diagnostics.auditHistory : []);
       draw(config);
+    }
+
+    function renderAudit(history) {
+      const rows = history.slice(0, 5).map((entry) => {
+        const target = typeof entry.calculatedTarget === 'number' ? `${entry.calculatedTarget.toFixed(0)}°C` : '-';
+        const reason = entry.action === 'write' ? 'Wrote target' : entry.reason || entry.action;
+        return `<div class="audit-row"><span>${time(entry.at)}</span><span>${escapeHtml(reason)}</span><span>${target}</span></div>`;
+      }).join('');
+      document.getElementById('auditRows').innerHTML = rows || '<div class="audit-row"><span>-</span><span>No decisions yet</span><span>-</span></div>';
     }
 
     function draw(config) {
@@ -385,6 +430,19 @@
       if (value === 'write') return 'Write';
       if (value === 'disabled') return 'Disabled';
       return '-';
+    }
+
+    function time(value) {
+      return value ? new Date(value).toLocaleTimeString() : '-';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
     function text(id, value) {
