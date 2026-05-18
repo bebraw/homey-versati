@@ -35,4 +35,5 @@
 - Add weather-curve profile export and import from the curve widget.
 - Add a cooling mode probe report analyzer for mapping review.
 - Add explicit app-managed Homey Insights logs for key Gree telemetry and states.
+- Add an Insights status check to the graph widget and diagnostic export.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

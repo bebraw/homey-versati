@@ -893,6 +893,10 @@
         "getDiagnostics": {
           "method": "GET",
           "path": "/diagnostics"
+        },
+        "getInsightsStatus": {
+          "method": "GET",
+          "path": "/insights"
         }
       }
     }

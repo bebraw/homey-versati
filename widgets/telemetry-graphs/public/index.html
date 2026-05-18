@@ -98,7 +98,8 @@
     }
 
     .refresh,
-    .export {
+    .export,
+    .insights {
       border: 1px solid var(--line);
       padding: 0 10px;
       background: var(--surface);
@@ -205,6 +206,7 @@
       <div>
         <button class="refresh" id="refresh" type="button">Refresh</button>
         <button class="export" id="export" type="button">Export</button>
+        <button class="insights" id="insights" type="button">Insights</button>
       </div>
     </section>
 
@@ -244,6 +246,7 @@
       deviceId = Homey.getDeviceIds()[0] || '';
       document.getElementById('refresh').addEventListener('click', load);
       document.getElementById('export').addEventListener('click', exportDiagnostics);
+      document.getElementById('insights').addEventListener('click', showInsightsStatus);
       for (const button of document.querySelectorAll('[data-range]')) {
         button.addEventListener('click', () => setRange(button.dataset.range));
       }
@@ -263,6 +266,22 @@
         link.download = `gree-versati-diagnostics-${new Date().toISOString().replaceAll(':', '-')}.json`;
         link.click();
         URL.revokeObjectURL(url);
+      } catch (error) {
+        document.getElementById('charts').innerHTML = `<div class="empty">${escapeText(error.message || String(error))}</div>`;
+      }
+    }
+
+    async function showInsightsStatus() {
+      try {
+        const status = await HomeyApi.api('GET', `/insights?deviceId=${encodeURIComponent(deviceId)}`, {});
+        const failed = Array.isArray(status.logs) ? status.logs.filter((log) => !log.exists || log.lastError) : [];
+        const stale = Array.isArray(status.logs) ? status.logs.filter((log) => log.exists && !log.lastEntryAt) : [];
+        const message = failed.length
+          ? `${status.created}/${status.total} Insights logs ready · ${failed.length} with errors`
+          : stale.length
+            ? `${status.created}/${status.total} Insights logs ready · waiting for entries`
+            : `${status.created}/${status.total} Insights logs ready`;
+        document.getElementById('charts').insertAdjacentHTML('afterbegin', `<div class="empty">${escapeText(message)}</div>`);
       } catch (error) {
         document.getElementById('charts').innerHTML = `<div class="empty">${escapeText(error.message || String(error))}</div>`;
       }

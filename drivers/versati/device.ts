@@ -624,6 +624,44 @@ class GreeVersatiDevice extends Homey.Device {
     };
   }
 
+  async insightsStatus(): Promise<Record<string, unknown>> {
+    const logs = await Promise.all(INSIGHTS_LOG_SPECS.map(async (spec) => {
+      const id = this.insightsLogId(spec.id);
+      try {
+        await this.homey.insights.getLog(id);
+        return {
+          id,
+          metric: spec.id,
+          title: spec.title,
+          type: spec.type,
+          exists: true,
+          lastEntryAt: stringStoreValue(this.getStore()[`insightsLastEntryAt:${spec.id}`]),
+          lastError: stringStoreValue(this.getStore()[`insightsLastError:${spec.id}`]),
+        };
+      } catch (error) {
+        return {
+          id,
+          metric: spec.id,
+          title: spec.title,
+          type: spec.type,
+          exists: false,
+          lastEntryAt: stringStoreValue(this.getStore()[`insightsLastEntryAt:${spec.id}`]),
+          lastError: error instanceof Error ? error.message : String(error),
+        };
+      }
+    }));
+    return {
+      checkedAt: new Date().toISOString(),
+      device: {
+        id: redactMac(String(this.getData().id ?? '')),
+        name: this.getName(),
+      },
+      created: logs.filter((log) => log.exists).length,
+      total: logs.length,
+      logs,
+    };
+  }
+
   async diagnosticSnapshot(): Promise<Record<string, unknown>> {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     const store = this.getStore();
@@ -697,6 +735,7 @@ class GreeVersatiDevice extends Homey.Device {
         auditHistory: weatherCurveAuditHistory(store.weatherCurveAuditHistory).slice(-20).reverse(),
       },
       telemetryHistorySamples: telemetryHistory(store.telemetryHistory).length,
+      insights: await this.insightsStatus(),
     };
   }
 
@@ -1396,7 +1435,10 @@ class GreeVersatiDevice extends Homey.Device {
       try {
         const log = await this.insightsLog(spec);
         await log.createEntry(value);
+        await this.setStoreValue(`insightsLastEntryAt:${spec.id}`, new Date().toISOString());
+        await this.setStoreValue(`insightsLastError:${spec.id}`, '');
       } catch (error) {
+        await this.setStoreValue(`insightsLastError:${spec.id}`, error instanceof Error ? error.message : String(error));
         this.error(`Failed to write Insights log ${spec.id}`, error);
       }
     }

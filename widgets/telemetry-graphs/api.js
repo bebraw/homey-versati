@@ -8,4 +8,8 @@ module.exports = {
   async getDiagnostics({ homey, query }) {
     return homey.app.getDiagnosticSnapshot(query.deviceId);
   },
+
+  async getInsightsStatus({ homey, query }) {
+    return homey.app.getInsightsStatus(query.deviceId);
+  },
 };

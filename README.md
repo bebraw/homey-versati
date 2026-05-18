@@ -280,6 +280,8 @@ For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The a
 
 Homey should automatically create device Insights for graphable capabilities. The app also creates explicit app-managed Insights logs as a fallback for the main Gree values. These logs appear under the Gree Versati app after the app has run long enough to poll at least once.
 
+Use the `Insights` button in the `Versati Graphs` widget to check whether the app-managed Insights logs exist and whether entries have been written since the app started.
+
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
 
 The curve widget includes a forecast pill showing whether the next poll would write a heating target and which target it would choose. If it would skip, the pill shows the same reason used by the control loop.
