@@ -352,13 +352,18 @@ The `Versati Graphs` widget also has an `Export` button for a redacted diagnosti
 Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
-2. Tune the Homey-managed weather curve against real heating behavior.
-3. Finish `Cool + hot water` mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
-4. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
-5. Revisit runtime and energy counters only after diagnostics returns non-empty compressor, pump, fan, power, or energy fields on real hardware.
-6. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
-7. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
-8. Refine app artwork further if needed before distribution outside local development.
+2. Add a settings sanity checker in the widget and diagnostic export for missing COP inputs, stale Flow-fed power, curve write enabled without a usable outdoor source, cooling writes enabled, disabled alert thresholds, and missing graph history.
+3. Add rolling energy summary rollups for selected ranges: average/min/max COP, estimated heat output, water delta, and time spent in each operating state.
+4. Add an operating timeline strip to `Versati Graphs` showing heating, hot water, defrosting, backup heater, idle, and cooling transitions over the selected range.
+5. Document concrete Homey Flow recipes for feeding COP electrical input, feeding outdoor temperature, low-COP notifications, hot-water recovery alerts, and curve pause/boost.
+6. Add a Homey-level live smoke script for non-risky surfaces: COP settings, operating state derivation, Insights values, alert thresholds, and widget diagnostic output.
+7. Tune the Homey-managed weather curve against real heating behavior.
+8. Finish `Cool + hot water` mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
+9. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
+10. Revisit runtime and energy counters only after diagnostics returns non-empty compressor, pump, fan, power, or energy fields on real hardware.
+11. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
+12. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
+13. Refine app artwork further if needed before distribution outside local development.
 
 ## Protocol Notes
 
