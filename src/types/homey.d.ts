@@ -26,6 +26,7 @@ declare module 'homey' {
       decimals?: number;
     }): Promise<InsightsLog>;
     getLog(id: string): Promise<InsightsLog>;
+    deleteLog(log: InsightsLog): Promise<void>;
   }
 
   interface HomeyRuntime {

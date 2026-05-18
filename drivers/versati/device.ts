@@ -356,6 +356,10 @@ class GreeVersatiDevice extends Homey.Device {
     this.registerCapabilityListener('button.refresh', async () => {
       await this.refreshState();
     });
+    this.registerCapabilityListener('button.reset_insights', async () => {
+      await this.resetInsightsLogs();
+      await this.refreshState();
+    });
     await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
       this.refreshState().catch((error) => this.handleRefreshFailure(error, false));
@@ -660,6 +664,21 @@ class GreeVersatiDevice extends Homey.Device {
       total: logs.length,
       logs,
     };
+  }
+
+  async resetInsightsLogs(): Promise<void> {
+    for (const spec of INSIGHTS_LOG_SPECS) {
+      const id = this.insightsLogId(spec.id);
+      try {
+        const log = await this.homey.insights.getLog(id);
+        await this.homey.insights.deleteLog(log);
+      } catch {
+        // Missing logs are fine; they will be recreated below.
+      }
+      await this.setStoreValue(`insightsLastEntryAt:${spec.id}`, '');
+      await this.setStoreValue(`insightsLastError:${spec.id}`, '');
+      await this.insightsLog(spec);
+    }
   }
 
   async diagnosticSnapshot(): Promise<Record<string, unknown>> {

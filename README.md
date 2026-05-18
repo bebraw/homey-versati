@@ -217,6 +217,8 @@ Changing the endpoint settings tests the connection before saving. If the device
 
 The maintenance actions section includes `Refresh now`, which runs an immediate poll and updates the Homey capabilities used by device tiles, Flow cards, and Insights.
 
+It also includes `Reset Insights logs`, which deletes and recreates the app-managed Gree Insights logs, then runs an immediate poll. Use this if a development install shows only Homey app CPU/memory in Insights after the app has polled successfully.
+
 The app also keeps internal diagnostics in the Homey device store:
 
 - last successful poll time

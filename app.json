@@ -79,7 +79,8 @@
         "heatpump_evu",
         "weather_curve_outdoor_temperature",
         "weather_curve_heating_target",
-        "button.refresh"
+        "button.refresh",
+        "button.reset_insights"
       ],
       "capabilitiesOptions": {
         "measure_temperature_water_out": {
@@ -155,6 +156,15 @@
           },
           "desc": {
             "en": "Poll the heat pump immediately and update Homey capabilities."
+          }
+        },
+        "button.reset_insights": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Reset Insights logs"
+          },
+          "desc": {
+            "en": "Recreate the app-managed Insights logs for Gree telemetry."
           }
         }
       },
