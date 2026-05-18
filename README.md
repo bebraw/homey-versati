@@ -301,7 +301,7 @@ Homey should automatically create device Insights for graphable capabilities. Th
 
 Use the `Insights` button in the `Versati Graphs` widget to check whether the app-managed Insights logs exist and whether entries have been written since the app started.
 
-In the Homey mobile app, open the Gree Versati device and use the native `Water out` temperature graph. This is backed by Homey's standard `measure_temperature` capability and mirrors the Gree `Water out` value.
+In the Homey mobile app, open the Gree Versati device and use the native graph views for `Water out`, water in, hot water, optional water, remote room, heating target, cooling target, hot water target, curve outdoor temperature, and curve heating target. These are backed by Homey's standard temperature capabilities and mirror the Gree-specific capability values.
 
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
 

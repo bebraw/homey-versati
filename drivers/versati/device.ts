@@ -24,7 +24,18 @@ const TELEMETRY_HISTORY_LIMIT = 480;
 const WEATHER_CURVE_AUDIT_LIMIT = 120;
 const DEFAULT_CURVE_DEADBAND = 1;
 const DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS = 1800;
-const REQUIRED_CAPABILITIES = ['measure_temperature'] as const;
+const REQUIRED_CAPABILITIES = [
+  'measure_temperature',
+  'measure_temperature.water_in',
+  'measure_temperature.hot_water',
+  'measure_temperature.optional_water',
+  'measure_temperature.remote_room',
+  'measure_temperature.heating_target',
+  'measure_temperature.cooling_target',
+  'measure_temperature.hot_water_target',
+  'measure_temperature.curve_outdoor',
+  'measure_temperature.curve_heating_target',
+] as const;
 const WEATHER_CURVE_PRESETS = {
   custom: null,
   mild_floor: {
@@ -688,6 +699,15 @@ class GreeVersatiDevice extends Homey.Device {
     const store = this.getStore();
     const capabilities = [
       'measure_temperature',
+      'measure_temperature.water_in',
+      'measure_temperature.hot_water',
+      'measure_temperature.optional_water',
+      'measure_temperature.remote_room',
+      'measure_temperature.heating_target',
+      'measure_temperature.cooling_target',
+      'measure_temperature.hot_water_target',
+      'measure_temperature.curve_outdoor',
+      'measure_temperature.curve_heating_target',
       'measure_temperature_water_out',
       'measure_temperature_water_in',
       'measure_temperature_hot_water',
@@ -784,6 +804,13 @@ class GreeVersatiDevice extends Homey.Device {
 
   private async applyCapabilities(state: GreeVersatiState): Promise<void> {
     await this.setCapabilityIfPresent('measure_temperature', state.waterOutTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.water_in', state.waterInTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.hot_water', state.hotWaterTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.optional_water', state.optimalWaterTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.remote_room', state.remoteRoomTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.heating_target', state.heatingTargetTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.cooling_target', state.coolingTargetTemperature);
+    await this.setCapabilityIfPresent('measure_temperature.hot_water_target', state.hotWaterTargetTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_out', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_in', state.waterInTemperature);
     await this.setCapabilityIfPresent('measure_temperature_hot_water', state.hotWaterTemperature);
@@ -1041,6 +1068,8 @@ class GreeVersatiDevice extends Homey.Device {
       const targetTemperature = this.applyWeatherCurveBoost(result.targetTemperature, settings);
       await this.setCapabilityIfPresent('weather_curve_outdoor_temperature', result.outdoorTemperature);
       await this.setCapabilityIfPresent('weather_curve_heating_target', targetTemperature);
+      await this.setCapabilityIfPresent('measure_temperature.curve_outdoor', result.outdoorTemperature);
+      await this.setCapabilityIfPresent('measure_temperature.curve_heating_target', targetTemperature);
       await this.setStoreValue('weatherCurveOutdoorTemperature', result.outdoorTemperature);
       await this.setStoreValue('weatherCurveHeatingTarget', targetTemperature);
       await this.setStoreValue('weatherCurveLastEvaluatedAt', new Date().toISOString());

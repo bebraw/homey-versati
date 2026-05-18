@@ -58,6 +58,15 @@
       },
       "capabilities": [
         "measure_temperature",
+        "measure_temperature.water_in",
+        "measure_temperature.hot_water",
+        "measure_temperature.optional_water",
+        "measure_temperature.remote_room",
+        "measure_temperature.heating_target",
+        "measure_temperature.cooling_target",
+        "measure_temperature.hot_water_target",
+        "measure_temperature.curve_outdoor",
+        "measure_temperature.curve_heating_target",
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
@@ -87,6 +96,60 @@
         "measure_temperature": {
           "title": {
             "en": "Water out"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.water_in": {
+          "title": {
+            "en": "Water in"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.hot_water": {
+          "title": {
+            "en": "Hot water"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.optional_water": {
+          "title": {
+            "en": "Optional water"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.remote_room": {
+          "title": {
+            "en": "Remote room"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.heating_target": {
+          "title": {
+            "en": "Heating target"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.cooling_target": {
+          "title": {
+            "en": "Cooling target"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.hot_water_target": {
+          "title": {
+            "en": "Hot water target"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.curve_outdoor": {
+          "title": {
+            "en": "Curve outdoor"
+          },
+          "preventInsights": false
+        },
+        "measure_temperature.curve_heating_target": {
+          "title": {
+            "en": "Curve heating target"
           },
           "preventInsights": false
         },

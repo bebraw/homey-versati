@@ -41,4 +41,5 @@
 - Add reviewed cooling mode mapping artifact generation for confirmed probe reports.
 - Add selectable boost offset and duration controls to the weather-curve widget.
 - Expose water out temperature through Homey's standard `measure_temperature` capability for native mobile app graphs.
+- Expose all numeric graphed Gree values through standard Homey temperature capabilities for native device Insights.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.
