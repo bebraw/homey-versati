@@ -16,12 +16,13 @@
     "build": "tsc -p tsconfig.json",
     "probe:diagnostics": "npm run build && node .homeybuild/scripts/probe-diagnostics.js",
     "probe:fields": "npm run build && node .homeybuild/scripts/probe-fields.js",
+    "probe:modes": "npm run build && node .homeybuild/scripts/probe-modes.js",
+    "probe:weather-curve": "npm run build && node .homeybuild/scripts/probe-weather-curve.js",
     "smoke:toggles": "npm run build && node .homeybuild/scripts/smoke-toggles.js",
     "snapshot": "npm run build && node .homeybuild/scripts/snapshot.js",
     "test": "npm run build && node --test .homeybuild/test/*.test.js",
     "test:live": "npm run build && node .homeybuild/scripts/test-live.js",
-    "validate": "npm run test && homey app validate",
-    "probe:weather-curve": "npm run build && node .homeybuild/scripts/probe-weather-curve.js"
+    "validate": "npm run test && homey app validate"
   },
   "devDependencies": {
     "@types/node": "^20.12.12",

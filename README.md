@@ -110,6 +110,14 @@ Probe likely weather-dependent heating curve fields while changing one curve set
 npm run probe:weather-curve -- --ip 192.168.1.50 --mac 001122334455 --samples 2 --interval-ms 30000
 ```
 
+Probe cooling mode mappings while changing mode externally:
+
+```bash
+npm run probe:modes -- --ip 192.168.1.50 --mac 001122334455 --modes cool,cool_hot_water
+```
+
+The mode probe is read-only. It captures a baseline, prompts you to change modes in the official Gree app or indoor controller, captures the resulting raw status fields, then prompts you to restore the original mode.
+
 Smoke-test guarded toggle commands against a live unit:
 
 ```bash

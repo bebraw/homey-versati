@@ -23,4 +23,5 @@
 - Add weather-curve safety status to the `Versati Weather Curve` widget.
 - Add redacted diagnostic export from the `Versati Graphs` widget.
 - Add Flow conditions for weather-curve state and local graph history.
+- Add a read-only guided mode probe for confirming Cool and Cool + hot water mappings.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

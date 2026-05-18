@@ -22,6 +22,14 @@ npm run probe:weather-curve -- --ip 192.168.1.50 --mac 001122334455 --samples 2 
 
 The weather-curve probe is read-only. It captures likely curve fields repeatedly and reports fields that changed between samples. Change exactly one weather-curve setting externally between samples, then record the official label and the probe output. Add `--fields A,B,C` for extra candidates or `--only-fields A,B,C` to narrow the probe.
 
+Use the guided mode probe when investigating cooling modes:
+
+```bash
+npm run probe:modes -- --ip 192.168.1.50 --mac 001122334455 --modes cool,cool_hot_water
+```
+
+The mode probe is read-only. It prompts you to change modes externally in the official Gree app or indoor controller, captures normalized state and likely raw mode fields after each change, and reports the changed fields.
+
 Record:
 
 - the official app screen name
@@ -65,8 +73,8 @@ Runtime and energy mapping status:
 
 Cooling mapping status:
 
-- `Cool` uses upstream `Mod: 1` and is covered by the local UDP client tests, but it is not yet live-tested on this heating-only installation.
-- `Cool + hot water` is visible in the official app but is not mapped yet. Do not add a command until a before/after snapshot confirms the raw mode/property combination and restore behavior.
+- `Cool` uses upstream `Mod: 1` and is covered by the local UDP client tests, but it is not yet live-tested on this heating-only installation. Use `npm run probe:modes` to confirm it on real hardware without sending commands from this app.
+- `Cool + hot water` is visible in the official app but is not mapped yet. Use `npm run probe:modes -- --modes cool_hot_water` to confirm the raw mode/property combination and restore behavior before adding a command.
 
 Start with low-risk read/write changes:
 
