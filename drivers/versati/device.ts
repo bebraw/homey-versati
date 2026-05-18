@@ -339,6 +339,79 @@ class GreeVersatiDevice extends Homey.Device {
     };
   }
 
+  async diagnosticSnapshot(): Promise<Record<string, unknown>> {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const store = this.getStore();
+    const capabilities = [
+      'measure_temperature_water_out',
+      'measure_temperature_water_in',
+      'measure_temperature_hot_water',
+      'measure_temperature_optional_water',
+      'measure_temperature_remote_room',
+      'target_temperature_heating',
+      'target_temperature_cooling',
+      'target_temperature_hot_water',
+      'heatpump_power',
+      'heatpump_mode',
+      'heatpump_fast_hot_water',
+      'heatpump_silence',
+      'heatpump_weather_dependent',
+      'heatpump_disinfect',
+      'heatpump_defrosting',
+      'heatpump_tank_heater',
+      'heatpump_hp_heater_1',
+      'heatpump_hp_heater_2',
+      'heatpump_frost_protection',
+      'heatpump_evu',
+      'weather_curve_outdoor_temperature',
+      'weather_curve_heating_target',
+    ];
+
+    return {
+      capturedAt: new Date().toISOString(),
+      device: {
+        id: redactMac(String(this.getData().id ?? '')),
+        name: this.getName(),
+      },
+      endpoint: {
+        ip: '<redacted-ip>',
+        port: Number(settings.port || store.port || 7000),
+        mac: redactMac(String(settings.mac || store.mac || '')),
+        encryptionVersion: Number(settings.encryptionVersion || store.encryptionVersion || 1),
+        hasKey: Boolean(settings.key || store.key),
+      },
+      capabilities: Object.fromEntries(capabilities.map((capability) => [
+        capability,
+        this.hasCapability(capability) ? this.getCapabilityValue(capability) : null,
+      ])),
+      diagnostics: {
+        lastSuccessfulPollAt: stringStoreValue(store.lastSuccessfulPollAt),
+        lastPollError: stringStoreValue(store.lastPollError),
+        lastPollErrorAt: stringStoreValue(store.lastPollErrorAt),
+        consecutivePollFailures: Number(store.consecutivePollFailures || 0),
+        normalizedMode: store.diagnosticNormalizedMode,
+        rawPower: store.diagnosticPower,
+        rawMode: store.diagnosticMode,
+        rawEVU: store.diagnosticEVU,
+        modelType: store.diagnosticModelType,
+        versatiSeries: store.diagnosticVersatiSeries,
+        rawWeatherDependent: store.diagnosticWeatherDependent,
+        rawDisinfect: store.diagnosticDisinfect,
+      },
+      weatherCurve: {
+        mode: store.weatherCurveMode,
+        outdoorTemperature: store.weatherCurveOutdoorTemperature,
+        heatingTarget: store.weatherCurveHeatingTarget,
+        lastEvaluatedAt: store.weatherCurveLastEvaluatedAt,
+        lastWriteAt: store.weatherCurveLastWriteAt,
+        lastWrittenTarget: store.weatherCurveLastWrittenTarget,
+        lastSkippedReason: store.weatherCurveLastSkippedReason,
+        lastError: store.weatherCurveLastError,
+      },
+      telemetryHistorySamples: telemetryHistory(store.telemetryHistory).length,
+    };
+  }
+
   private async refreshState(): Promise<void> {
     const device = this.boundDevice();
     const state = await this.clientOrThrow().getState(device);
@@ -834,6 +907,11 @@ function cleanString(value: unknown): string {
 
 function normalizeMac(mac: string): string {
   return mac.replace(/[^0-9a-f]/gi, '').toLowerCase();
+}
+
+function redactMac(mac: string): string {
+  const normalized = normalizeMac(mac);
+  return normalized ? `********${normalized.slice(-4)}` : '';
 }
 
 function stringStoreValue(value: unknown): string {

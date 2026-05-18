@@ -97,7 +97,8 @@
       background: var(--water);
     }
 
-    .refresh {
+    .refresh,
+    .export {
       border: 1px solid var(--line);
       padding: 0 10px;
       background: var(--surface);
@@ -194,7 +195,10 @@
         <button type="button" data-range="24h">24h</button>
         <button type="button" data-range="all" class="active">All</button>
       </div>
-      <button class="refresh" id="refresh" type="button">Refresh</button>
+      <div>
+        <button class="refresh" id="refresh" type="button">Refresh</button>
+        <button class="export" id="export" type="button">Export</button>
+      </div>
     </section>
 
     <section class="metrics">
@@ -225,6 +229,7 @@
       HomeyApi = Homey;
       deviceId = Homey.getDeviceIds()[0] || '';
       document.getElementById('refresh').addEventListener('click', load);
+      document.getElementById('export').addEventListener('click', exportDiagnostics);
       for (const button of document.querySelectorAll('[data-range]')) {
         button.addEventListener('click', () => setRange(button.dataset.range));
       }
@@ -232,6 +237,21 @@
         refreshTimer = setInterval(load, 30000);
         Homey.ready({ height: 420 });
       });
+    }
+
+    async function exportDiagnostics() {
+      try {
+        const snapshot = await HomeyApi.api('GET', `/diagnostics?deviceId=${encodeURIComponent(deviceId)}`, {});
+        const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `gree-versati-diagnostics-${new Date().toISOString().replaceAll(':', '-')}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch (error) {
+        document.getElementById('charts').innerHTML = `<div class="empty">${escapeText(error.message || String(error))}</div>`;
+      }
     }
 
     async function load() {

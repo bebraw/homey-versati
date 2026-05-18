@@ -21,4 +21,5 @@
 - Add a `Versati Graphs` dashboard widget backed by bounded local telemetry history.
 - Add auto-refresh and range filters to the `Versati Graphs` widget.
 - Add weather-curve safety status to the `Versati Weather Curve` widget.
+- Add redacted diagnostic export from the `Versati Graphs` widget.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

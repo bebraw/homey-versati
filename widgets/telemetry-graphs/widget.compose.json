@@ -16,6 +16,10 @@
     "getTelemetry": {
       "method": "GET",
       "path": "/"
+    },
+    "getDiagnostics": {
+      "method": "GET",
+      "path": "/diagnostics"
     }
   }
 }

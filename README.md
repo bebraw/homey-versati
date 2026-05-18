@@ -249,6 +249,8 @@ Open Homey Insights and select the paired Gree Versati device to view the graphs
 
 For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The app keeps a bounded local history of the latest `480` successful polls and graphs water out temperature, hot water temperature, heating target, and curve target directly in the widget. The widget refreshes every 30 seconds and can filter the view to `1h`, `6h`, `24h`, or all retained samples. This local widget history is separate from Homey Insights and starts filling after the updated app has run successfully.
 
+The `Versati Graphs` widget also has an `Export` button for a redacted diagnostic snapshot. It includes current capabilities, poll health, selected raw diagnostics, weather-curve status, and telemetry sample count. IP address and device key are not exported, and MAC addresses are masked.
+
 ## Roadmap
 
 Planned follow-up work, roughly in priority order:
