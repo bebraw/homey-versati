@@ -119,7 +119,7 @@ Probe cooling mode mappings while changing mode externally:
 npm run probe:modes -- --ip 192.168.1.50 --mac 001122334455 --modes cool,cool_hot_water
 ```
 
-The mode probe is read-only. It captures a baseline, prompts you to change modes in the official Gree app or indoor controller, captures the resulting raw status fields, then prompts you to restore the original mode.
+The mode probe is read-only. It captures a baseline, prompts you to change modes in the official Gree app or indoor controller, captures the resulting raw status fields, then prompts you to restore the original mode. Add `--output tmp/cooling-modes.json` to keep a redacted confirmation report for mapping work.
 
 Smoke-test guarded toggle commands against a live unit:
 

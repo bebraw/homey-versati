@@ -28,7 +28,7 @@ Use the guided mode probe when investigating cooling modes:
 npm run probe:modes -- --ip 192.168.1.50 --mac 001122334455 --modes cool,cool_hot_water
 ```
 
-The mode probe is read-only. It prompts you to change modes externally in the official Gree app or indoor controller, captures normalized state and likely raw mode fields after each change, and reports the changed fields.
+The mode probe is read-only. It prompts you to change modes externally in the official Gree app or indoor controller, captures normalized state and likely raw mode fields after each change, and reports the changed fields. Add `--output tmp/cooling-modes.json` to save a redacted report for review.
 
 Record:
 

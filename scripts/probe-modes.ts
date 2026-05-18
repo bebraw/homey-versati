@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises';
 import readline from 'node:readline/promises';
 import { stdin as input, stdout as output } from 'node:process';
 import {
@@ -13,6 +14,7 @@ interface CliOptions {
   port: number;
   waitMs: number;
   modes: ProbeMode[];
+  output?: string;
   redact: boolean;
 }
 
@@ -38,6 +40,26 @@ interface ModeObservation {
   before: Snapshot;
   after: Snapshot;
   changedFields: Record<string, { before: unknown; after: unknown }>;
+}
+
+interface ProbeReport {
+  capturedAt: string;
+  device: {
+    ip: string;
+    port: number;
+    mac: string;
+    name?: string;
+    brand?: string;
+    model?: string;
+    firmware?: string;
+    encryptionVersion: number;
+  };
+  fields: readonly string[];
+  guidance: string[];
+  baseline: Snapshot;
+  observations: ModeObservation[];
+  restored: Snapshot;
+  restoreChangedFields: Record<string, { before: unknown; after: unknown }>;
 }
 
 type ProbeMode = 'cool' | 'cool_hot_water';
@@ -106,18 +128,20 @@ async function main(): Promise<void> {
     await rl.question(`Restore the previous mode (${baseline.normalized.mode}) in the Gree app/controller, wait for it to apply, then press Enter.`);
     const restored = await captureSnapshot(client, bound);
 
-    console.log(JSON.stringify({
+    const reportDevice: ProbeReport['device'] = {
+      ip: redactIp(bound.ip, options.redact),
+      port: bound.port,
+      mac: redactMac(bound.mac, options.redact),
+      encryptionVersion: bound.encryptionVersion,
+    };
+    if (bound.name) reportDevice.name = bound.name;
+    if (bound.brand) reportDevice.brand = bound.brand;
+    if (bound.model) reportDevice.model = bound.model;
+    if (bound.version) reportDevice.firmware = bound.version;
+
+    const report: ProbeReport = {
       capturedAt: new Date().toISOString(),
-      device: {
-        ip: redactIp(bound.ip, options.redact),
-        port: bound.port,
-        mac: redactMac(bound.mac, options.redact),
-        name: bound.name,
-        brand: bound.brand,
-        model: bound.model,
-        firmware: bound.version,
-        encryptionVersion: bound.encryptionVersion,
-      },
+      device: reportDevice,
       fields: RAW_MODE_FIELDS,
       guidance: [
         'This script is read-only; all mode changes are made externally.',
@@ -128,10 +152,21 @@ async function main(): Promise<void> {
       observations,
       restored,
       restoreChangedFields: changedFields(baseline, restored),
-    }, null, 2));
+    };
+    await writeReport(report, options);
   } finally {
     rl.close();
   }
+}
+
+async function writeReport(report: ProbeReport, options: CliOptions): Promise<void> {
+  const serialized = `${JSON.stringify(report, null, 2)}\n`;
+  if (!options.output) {
+    console.log(serialized);
+    return;
+  }
+  await fs.writeFile(options.output, serialized, 'utf8');
+  console.error(`Wrote redacted mode probe report to ${options.output}`);
 }
 
 async function captureSnapshot(client: GreeVersatiClient, device: BoundGreeVersatiDevice): Promise<Snapshot> {
@@ -210,6 +245,9 @@ function parseArgs(args: string[]): CliOptions {
       index += 1;
     } else if (arg === '--modes' && value) {
       options.modes = parseModes(value);
+      index += 1;
+    } else if (arg === '--output' && value) {
+      options.output = value;
       index += 1;
     } else if (arg === '--redact') {
       options.redact = true;
@@ -294,7 +332,7 @@ function redactIp(ip: string, redact: boolean): string {
 }
 
 function printHelp(): void {
-  console.log(`Usage: npm run probe:modes -- [--ip <address>] [--mac <mac>] [--port 7000] [--modes cool,cool_hot_water] [--no-redact]
+  console.log(`Usage: npm run probe:modes -- [--ip <address>] [--mac <mac>] [--port 7000] [--modes cool,cool_hot_water] [--output report.json] [--no-redact]
 
 Workflow:
   1. Run the script while the heat pump is in its normal mode.
