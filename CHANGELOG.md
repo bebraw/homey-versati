@@ -16,4 +16,5 @@
 - Add Homey Flow triggers for weather-curve calculated values, skipped reasons, write events, and errors.
 - Add a `Refresh now` maintenance action for immediate polling from device settings.
 - Add visible default placeholders for temperature Flow action and condition fields.
+- Add weather-curve presets and a Homey dashboard widget for visual curve adjustment.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

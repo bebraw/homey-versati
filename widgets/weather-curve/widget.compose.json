@@ -1,0 +1,25 @@
+{
+  "name": {
+    "en": "Versati Weather Curve"
+  },
+  "height": 420,
+  "transparent": false,
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "class": "heater",
+      "capabilities": "weather_curve_heating_target"
+    }
+  },
+  "api": {
+    "getCurve": {
+      "method": "GET",
+      "path": "/"
+    },
+    "updateCurve": {
+      "method": "PUT",
+      "path": "/"
+    }
+  }
+}

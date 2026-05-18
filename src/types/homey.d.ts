@@ -16,6 +16,9 @@ declare module 'homey' {
 
   interface HomeyRuntime {
     flow: FlowManager;
+    drivers: {
+      getDriver(id: string): Driver & { getDevices(): Device[] };
+    };
     setInterval(callback: () => void, ms: number): NodeJS.Timeout;
     clearInterval(timer: NodeJS.Timeout): void;
   }
@@ -39,6 +42,8 @@ declare module 'homey' {
     getSettings(): Record<string, unknown>;
     setSettings(settings: Record<string, unknown>): Promise<void>;
     getStore(): Record<string, unknown>;
+    getData(): Record<string, unknown>;
+    getName(): string;
     setStoreValue(key: string, value: unknown): Promise<void>;
     hasCapability(capability: string): boolean;
     getCapabilityValue(capability: string): boolean | number | string | null;

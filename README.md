@@ -44,6 +44,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - Disinfect schedule/state
 - Run Homey-managed weather compensation:
   - Homey calculates a heating water target from its own two-point outdoor temperature curve
+  - presets provide starting profiles for mild floor heating, radiators, and conservative tuning
   - dry-run mode previews the calculated target without writing
   - write mode updates the heating target only in `Heat + hot water` mode
   - writes are clamped, deadbanded, and rate-limited
@@ -59,6 +60,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Use temperature Flow action fields with visible default placeholders for common heating and hot water targets.
 - Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
 - Use the `Refresh now` maintenance action in device settings to poll the heat pump immediately.
+- Add the `Versati Weather Curve` Homey dashboard widget to inspect and adjust the Homey-managed curve visually.
 
 ## Requirements
 
@@ -217,6 +219,7 @@ The Gree indoor controller can show `T-Outdoor`, but that value is not confirmed
 
 Default settings are conservative:
 
+- curve preset: `Custom`
 - control mode: `Dry run`
 - outdoor source: `Manual temperature`
 - `-20°C` outdoor maps to `40°C` heating target
@@ -229,6 +232,8 @@ Default settings are conservative:
 Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
+
+The `Versati Weather Curve` dashboard widget shows the current target, calculated target, outdoor input, and curve shape. It can update the same curve settings as the device settings page. Widgets require Homey `12.3.0` or newer.
 
 ## Homey Insights
 

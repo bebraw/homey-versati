@@ -85,6 +85,43 @@
     "max": 300
   },
   {
+    "id": "curvePreset",
+    "type": "dropdown",
+    "label": {
+      "en": "Curve preset"
+    },
+    "hint": {
+      "en": "Choose a starting profile. Custom uses the detailed curve settings below."
+    },
+    "value": "custom",
+    "values": [
+      {
+        "id": "custom",
+        "label": {
+          "en": "Custom"
+        }
+      },
+      {
+        "id": "mild_floor",
+        "label": {
+          "en": "Mild floor heating"
+        }
+      },
+      {
+        "id": "radiators",
+        "label": {
+          "en": "Radiators"
+        }
+      },
+      {
+        "id": "conservative",
+        "label": {
+          "en": "Conservative"
+        }
+      }
+    ]
+  },
+  {
     "id": "curveControlMode",
     "type": "dropdown",
     "label": {

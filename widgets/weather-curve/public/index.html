@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #18201d;
+      --muted: #5f6964;
+      --line: #d7ddd9;
+      --panel: #f7faf8;
+      --accent: #0f766e;
+      --accent-2: #c2410c;
+      --surface: #ffffff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #eef6f2;
+        --muted: #a6b3ad;
+        --line: #33433d;
+        --panel: #14211d;
+        --surface: #0d1513;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font: 13px/1.35 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .wrap {
+      display: grid;
+      gap: 12px;
+      padding: 14px;
+    }
+
+    .status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .metric {
+      min-width: 0;
+      padding: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .metric span {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 3px;
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .curve {
+      width: 100%;
+      height: 128px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 1px),
+        linear-gradient(color-mix(in srgb, var(--line) 40%, transparent) 1px, transparent 1px),
+        var(--panel);
+      background-size: 36px 36px;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 6px 8px;
+      color: var(--ink);
+      background: var(--surface);
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .actions button {
+      min-height: 36px;
+      border: 0;
+      border-radius: 6px;
+      padding: 0 14px;
+      color: white;
+      background: var(--accent);
+      font-weight: 700;
+    }
+
+    .message {
+      min-width: 0;
+      overflow: hidden;
+      color: var(--muted);
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 360px) {
+      .status,
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="status">
+      <div class="metric"><span>Current target</span><strong id="currentTarget">-</strong></div>
+      <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
+      <div class="metric"><span>Outdoor input</span><strong id="outdoorInput">-</strong></div>
+      <div class="metric"><span>Mode</span><strong id="mode">-</strong></div>
+    </section>
+
+    <svg class="curve" id="curve" viewBox="0 0 320 128" role="img" aria-label="Heating target weather curve">
+      <line x1="28" y1="104" x2="296" y2="104" stroke="var(--line)" stroke-width="1"></line>
+      <line x1="28" y1="18" x2="28" y2="104" stroke="var(--line)" stroke-width="1"></line>
+      <path id="curvePath" d="" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"></path>
+      <circle id="lowPoint" r="5" fill="var(--accent-2)"></circle>
+      <circle id="highPoint" r="5" fill="var(--accent)"></circle>
+      <text id="lowLabel" x="30" y="122" fill="var(--muted)" font-size="10"></text>
+      <text id="highLabel" x="236" y="122" fill="var(--muted)" font-size="10"></text>
+    </svg>
+
+    <section class="controls">
+      <label>Preset
+        <select id="curvePreset">
+          <option value="custom">Custom</option>
+          <option value="mild_floor">Mild floor heating</option>
+          <option value="radiators">Radiators</option>
+          <option value="conservative">Conservative</option>
+        </select>
+      </label>
+      <label>Control
+        <select id="curveControlMode">
+          <option value="disabled">Disabled</option>
+          <option value="dry_run">Dry run</option>
+          <option value="write">Write target</option>
+        </select>
+      </label>
+      <label>Outdoor low
+        <input id="curveOutdoorLow" type="number" min="-50" max="30" step="1">
+      </label>
+      <label>Target at low
+        <input id="curveTargetAtOutdoorLow" type="number" min="20" max="55" step="1">
+      </label>
+      <label>Outdoor high
+        <input id="curveOutdoorHigh" type="number" min="-30" max="50" step="1">
+      </label>
+      <label>Target at high
+        <input id="curveTargetAtOutdoorHigh" type="number" min="20" max="55" step="1">
+      </label>
+      <label>Shape
+        <select id="curveShape">
+          <option value="linear">Linear</option>
+          <option value="mild">Mild bend</option>
+          <option value="normal">Normal bend</option>
+          <option value="aggressive">Aggressive bend</option>
+          <option value="custom">Custom bend</option>
+        </select>
+      </label>
+      <label>Custom bend
+        <input id="curveBend" type="number" min="-100" max="100" step="1">
+      </label>
+      <label>Manual outdoor
+        <input id="curveManualOutdoorTemperature" type="number" min="-50" max="50" step="0.1">
+      </label>
+      <label>Outdoor source
+        <select id="curveOutdoorSource">
+          <option value="manual">Manual</option>
+          <option value="flow">Flow</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="actions">
+      <button id="save" type="button">Apply</button>
+      <span class="message" id="message">Loading curve...</span>
+    </section>
+  </main>
+
+  <script>
+    const fields = [
+      'curvePreset',
+      'curveControlMode',
+      'curveOutdoorSource',
+      'curveManualOutdoorTemperature',
+      'curveOutdoorLow',
+      'curveTargetAtOutdoorLow',
+      'curveOutdoorHigh',
+      'curveTargetAtOutdoorHigh',
+      'curveShape',
+      'curveBend'
+    ];
+
+    let HomeyApi;
+    let deviceId = '';
+
+    function onHomeyReady(Homey) {
+      HomeyApi = Homey;
+      deviceId = Homey.getDeviceIds()[0] || '';
+      document.getElementById('save').addEventListener('click', save);
+      load().finally(() => Homey.ready({ height: 420 }));
+    }
+
+    async function load() {
+      try {
+        const state = await HomeyApi.api('GET', `/?deviceId=${encodeURIComponent(deviceId)}`, {});
+        render(state);
+        note('Ready');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    async function save() {
+      try {
+        note('Applying...');
+        const body = Object.fromEntries(fields.map((field) => {
+          const input = document.getElementById(field);
+          return [field, input.type === 'number' ? Number(input.value) : input.value];
+        }));
+        const state = await HomeyApi.api('PUT', `/?deviceId=${encodeURIComponent(deviceId)}`, body);
+        render(state);
+        note('Applied');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    function render(state) {
+      const config = state.config || {};
+      setValue('curvePreset', state.preset);
+      setValue('curveControlMode', state.controlMode);
+      setValue('curveOutdoorSource', state.outdoorSource);
+      setValue('curveManualOutdoorTemperature', state.manualOutdoorTemperature);
+      setValue('curveOutdoorLow', config.outdoorLow);
+      setValue('curveTargetAtOutdoorLow', config.targetAtOutdoorLow);
+      setValue('curveOutdoorHigh', config.outdoorHigh);
+      setValue('curveTargetAtOutdoorHigh', config.targetAtOutdoorHigh);
+      setValue('curveShape', config.shape);
+      setValue('curveBend', config.bend);
+
+      text('currentTarget', celsius(state.values && state.values.heatingTargetTemperature, 0));
+      text('curveTarget', celsius(state.values && state.values.curveHeatingTarget, 0));
+      text('outdoorInput', celsius(state.values && state.values.curveOutdoorTemperature, 1));
+      text('mode', state.values && state.values.mode ? String(state.values.mode).replaceAll('_', ' ') : '-');
+      draw(config);
+    }
+
+    function draw(config) {
+      const xLow = 28;
+      const xHigh = 296;
+      const yLow = y(config.targetAtOutdoorLow);
+      const yHigh = y(config.targetAtOutdoorHigh);
+      const bend = Number(config.bend || 0);
+      const controlY = (yLow + yHigh) / 2 + bend * 0.28;
+      document.getElementById('curvePath').setAttribute('d', `M ${xLow} ${yLow} C 112 ${controlY}, 212 ${controlY}, ${xHigh} ${yHigh}`);
+      move('lowPoint', xLow, yLow);
+      move('highPoint', xHigh, yHigh);
+      text('lowLabel', `${config.outdoorLow}°C -> ${config.targetAtOutdoorLow}°C`);
+      text('highLabel', `${config.outdoorHigh}°C -> ${config.targetAtOutdoorHigh}°C`);
+    }
+
+    function y(value) {
+      return 104 - ((Number(value) - 20) / 35) * 86;
+    }
+
+    function move(id, x, yValue) {
+      const element = document.getElementById(id);
+      element.setAttribute('cx', String(x));
+      element.setAttribute('cy', String(yValue));
+    }
+
+    function setValue(id, value) {
+      const element = document.getElementById(id);
+      if (value !== undefined && value !== null) {
+        element.value = String(value);
+      }
+    }
+
+    function celsius(value, decimals) {
+      return typeof value === 'number' ? `${value.toFixed(decimals)}°C` : '-';
+    }
+
+    function text(id, value) {
+      document.getElementById(id).textContent = value;
+    }
+
+    function note(value) {
+      text('message', value);
+    }
+  </script>
+</body>
+</html>
