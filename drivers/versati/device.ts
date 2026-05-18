@@ -42,6 +42,8 @@ const FLOW_TRIGGER_TOKENS: Record<string, string> = {
   target_temperature_heating: 'target_temperature_heating',
   target_temperature_hot_water: 'target_temperature_hot_water',
   heatpump_mode: 'heatpump_mode',
+  weather_curve_outdoor_temperature: 'outdoor_temperature',
+  weather_curve_heating_target: 'heating_target',
 };
 const BOOLEAN_FLOW_TRIGGER_IDS: Record<string, { true: string; false: string }> = {
   heatpump_defrosting: {
@@ -474,7 +476,7 @@ class GreeVersatiDevice extends Homey.Device {
     const settings = this.weatherCurveSettings();
     await this.setStoreValue('weatherCurveMode', settings.controlMode);
     if (settings.controlMode === 'disabled') {
-      await this.setStoreValue('weatherCurveLastSkippedReason', 'disabled');
+      await this.setWeatherCurveSkipped('disabled');
       return;
     }
 
@@ -488,37 +490,73 @@ class GreeVersatiDevice extends Homey.Device {
       await this.setStoreValue('weatherCurveLastEvaluatedAt', new Date().toISOString());
 
       if (settings.controlMode === 'dry_run') {
-        await this.setStoreValue('weatherCurveLastSkippedReason', 'dry_run');
+        await this.setWeatherCurveSkipped('dry_run');
         return;
       }
       if (state.mode !== 'heat_hot_water') {
-        await this.setStoreValue('weatherCurveLastSkippedReason', `mode:${state.mode}`);
+        await this.setWeatherCurveSkipped(`mode:${state.mode}`);
         return;
       }
       if (state.heatingTargetTemperature === null) {
-        await this.setStoreValue('weatherCurveLastSkippedReason', 'missing_current_heating_target');
+        await this.setWeatherCurveSkipped('missing_current_heating_target');
         return;
       }
       if (Math.abs(state.heatingTargetTemperature - result.targetTemperature) < settings.deadband) {
-        await this.setStoreValue('weatherCurveLastSkippedReason', 'deadband');
+        await this.setWeatherCurveSkipped('deadband');
         return;
       }
       if (!this.weatherCurveWriteIntervalElapsed(settings.minWriteIntervalMs)) {
-        await this.setStoreValue('weatherCurveLastSkippedReason', 'minimum_write_interval');
+        await this.setWeatherCurveSkipped('minimum_write_interval');
         return;
       }
 
+      const previousTarget = state.heatingTargetTemperature;
       await this.clientOrThrow().setHeatingTargetTemperature(device, result.targetTemperature);
       await this.setCapabilityIfPresent('target_temperature_heating', result.targetTemperature);
       await this.setStoreValue('weatherCurveLastWriteAt', new Date().toISOString());
       await this.setStoreValue('weatherCurveLastWrittenTarget', result.targetTemperature);
       await this.setStoreValue('weatherCurveLastSkippedReason', '');
+      await this.triggerWeatherCurveWritten(result.outdoorTemperature, result.targetTemperature, previousTarget);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.setStoreValue('weatherCurveLastError', message);
-      await this.setStoreValue('weatherCurveLastSkippedReason', `error:${message}`);
+      await this.setWeatherCurveSkipped(`error:${message}`);
+      await this.triggerWeatherCurveError(message);
       this.error('Failed to apply Homey curve control', error);
     }
+  }
+
+  private async setWeatherCurveSkipped(reason: string): Promise<void> {
+    const previous = stringStoreValue(this.getStore().weatherCurveLastSkippedReason);
+    await this.setStoreValue('weatherCurveLastSkippedReason', reason);
+    if (previous === reason) {
+      return;
+    }
+    await this.homey.flow.getTriggerCard('weather_curve_skipped').trigger(this, { reason }).catch((error) => {
+      this.error('Failed to trigger weather_curve_skipped flow', error);
+    });
+  }
+
+  private async triggerWeatherCurveWritten(
+    outdoorTemperature: number,
+    targetTemperature: number,
+    previousTarget: number,
+  ): Promise<void> {
+    await this.homey.flow.getTriggerCard('weather_curve_written').trigger(this, {
+      outdoor_temperature: outdoorTemperature,
+      heating_target: targetTemperature,
+      previous_heating_target: previousTarget,
+    }).catch((error) => {
+      this.error('Failed to trigger weather_curve_written flow', error);
+    });
+  }
+
+  private async triggerWeatherCurveError(message: string): Promise<void> {
+    await this.homey.flow.getTriggerCard('weather_curve_error').trigger(this, {
+      error: message,
+    }).catch((error) => {
+      this.error('Failed to trigger weather_curve_error flow', error);
+    });
   }
 
   private async weatherCurveOutdoorTemperature(settings: WeatherCurveSettings): Promise<number> {

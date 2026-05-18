@@ -819,6 +819,116 @@
         ]
       },
       {
+        "id": "weather_curve_outdoor_temperature_changed",
+        "title": {
+          "en": "Curve outdoor temperature changed"
+        },
+        "tokens": [
+          {
+            "name": "outdoor_temperature",
+            "type": "number",
+            "title": {
+              "en": "Outdoor temperature"
+            },
+            "example": {
+              "en": "2.5"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_heating_target_changed",
+        "title": {
+          "en": "Curve heating target changed"
+        },
+        "tokens": [
+          {
+            "name": "heating_target",
+            "type": "number",
+            "title": {
+              "en": "Heating target"
+            },
+            "example": {
+              "en": "34"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_written",
+        "title": {
+          "en": "Weather curve wrote heating target"
+        },
+        "tokens": [
+          {
+            "name": "outdoor_temperature",
+            "type": "number",
+            "title": {
+              "en": "Outdoor temperature"
+            },
+            "example": {
+              "en": "2.5"
+            }
+          },
+          {
+            "name": "heating_target",
+            "type": "number",
+            "title": {
+              "en": "New heating target"
+            },
+            "example": {
+              "en": "34"
+            }
+          },
+          {
+            "name": "previous_heating_target",
+            "type": "number",
+            "title": {
+              "en": "Previous heating target"
+            },
+            "example": {
+              "en": "35"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_skipped",
+        "title": {
+          "en": "Weather curve skipped"
+        },
+        "tokens": [
+          {
+            "name": "reason",
+            "type": "string",
+            "title": {
+              "en": "Reason"
+            },
+            "example": {
+              "en": "dry_run"
+            }
+          }
+        ]
+      },
+      {
+        "id": "weather_curve_error",
+        "title": {
+          "en": "Weather curve failed"
+        },
+        "tokens": [
+          {
+            "name": "error",
+            "type": "string",
+            "title": {
+              "en": "Error"
+            },
+            "example": {
+              "en": "No flow-provided outdoor temperature is available yet"
+            }
+          }
+        ]
+      },
+      {
         "id": "heatpump_defrosting_true",
         "title": {
           "en": "Defrosting started"

@@ -51,6 +51,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Use Homey Flow cards:
   - triggers for mode, hot water temperature, target temperature, Rapid, W-depend, Disinfect, and defrosting changes
   - triggers for EVU changes
+  - triggers for Homey-managed weather-curve calculated values, skipped reasons, write events, and errors
   - triggers for polling failures, IP address changes, device unavailable transitions, and device available recovery
   - conditions for current mode, hot water thresholds, Rapid, W-depend, Disinfect, defrosting, and EVU state
   - conditions for device reachability
@@ -241,7 +242,7 @@ Open Homey Insights and select the paired Gree Versati device to view the graphs
 Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
-2. Tune the Homey-managed weather curve against real heating behavior and consider adding Flow cards for curve skipped/write events if useful.
+2. Tune the Homey-managed weather curve against real heating behavior.
 3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
 5. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
