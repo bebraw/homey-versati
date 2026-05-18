@@ -29,4 +29,5 @@
 - Add notification-oriented Flow triggers for weather-curve pause, resume, and blocked write states.
 - Add poll, endpoint, and curve decision status to the `Versati Graphs` widget.
 - Add file output support for guided cooling mode confirmation reports.
+- Add temporary Homey-managed weather-curve boost offsets.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

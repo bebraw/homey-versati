@@ -28,6 +28,14 @@
     "resumeCurve": {
       "method": "POST",
       "path": "/resume"
+    },
+    "setBoost": {
+      "method": "POST",
+      "path": "/boost"
+    },
+    "clearBoost": {
+      "method": "DELETE",
+      "path": "/boost"
     }
   }
 }

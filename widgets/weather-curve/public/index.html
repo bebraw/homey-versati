@@ -236,6 +236,7 @@
       <div class="pill" id="writePill"><span>Write allowed</span><strong id="writeAllowed">-</strong></div>
       <div class="pill warn"><span>Last skip</span><strong id="skipReason">-</strong></div>
       <div class="pill"><span>Last write</span><strong id="lastWrite">-</strong></div>
+      <div class="pill" id="boostPill"><span>Boost</span><strong id="boostState">-</strong></div>
     </section>
 
     <svg class="curve" id="curve" viewBox="0 0 320 128" role="img" aria-label="Heating target weather curve">
@@ -308,6 +309,8 @@
       <button id="save" type="button">Apply</button>
       <button id="pause" class="secondary" type="button">Pause 6h</button>
       <button id="resume" class="secondary" type="button">Resume</button>
+      <button id="boostUp" class="secondary" type="button">+1°C 6h</button>
+      <button id="boostClear" class="secondary" type="button">Clear boost</button>
       <span class="message" id="message">Loading curve...</span>
     </section>
   </main>
@@ -335,6 +338,8 @@
       document.getElementById('save').addEventListener('click', save);
       document.getElementById('pause').addEventListener('click', pause);
       document.getElementById('resume').addEventListener('click', resume);
+      document.getElementById('boostUp').addEventListener('click', () => boost(1, 360));
+      document.getElementById('boostClear').addEventListener('click', clearBoost);
       load().finally(() => Homey.ready({ height: 480 }));
     }
 
@@ -385,6 +390,28 @@
       }
     }
 
+    async function boost(offset, minutes) {
+      try {
+        note('Boosting...');
+        const state = await HomeyApi.api('POST', `/boost?deviceId=${encodeURIComponent(deviceId)}`, { offset, minutes });
+        render(state);
+        note('Boost applied');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    async function clearBoost() {
+      try {
+        note('Clearing boost...');
+        const state = await HomeyApi.api('DELETE', `/boost?deviceId=${encodeURIComponent(deviceId)}`, {});
+        render(state);
+        note('Boost cleared');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
     function render(state) {
       const config = state.config || {};
       setValue('curvePreset', state.preset);
@@ -412,6 +439,10 @@
       const pausedUntil = state.diagnostics && state.diagnostics.pausedUntil ? state.diagnostics.pausedUntil : '';
       document.getElementById('pause').disabled = Boolean(pausedUntil);
       document.getElementById('resume').disabled = !pausedUntil;
+      const boostState = state.boost || {};
+      text('boostState', boostState.active ? `${formatSigned(boostState.offset)}°C` : '-');
+      document.getElementById('boostPill').classList.toggle('warn', Boolean(boostState.active));
+      document.getElementById('boostClear').disabled = !boostState.active;
       renderAudit(state.diagnostics && Array.isArray(state.diagnostics.auditHistory) ? state.diagnostics.auditHistory : []);
       draw(config);
     }
@@ -465,6 +496,10 @@
       if (value === 'write') return 'Write';
       if (value === 'disabled') return 'Disabled';
       return '-';
+    }
+
+    function formatSigned(value) {
+      return Number(value) > 0 ? `+${Number(value).toFixed(1)}` : Number(value).toFixed(1);
     }
 
     function time(value) {

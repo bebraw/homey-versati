@@ -824,6 +824,14 @@
         "resumeCurve": {
           "method": "POST",
           "path": "/resume"
+        },
+        "setBoost": {
+          "method": "POST",
+          "path": "/boost"
+        },
+        "clearBoost": {
+          "method": "DELETE",
+          "path": "/boost"
         }
       }
     },
@@ -1903,6 +1911,78 @@
         "id": "resume_weather_curve",
         "title": {
           "en": "Resume Homey weather curve"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "set_weather_curve_boost",
+        "title": {
+          "en": "Set weather curve boost"
+        },
+        "titleFormatted": {
+          "en": "Offset weather curve by [[offset]] °C for [[duration]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "offset",
+            "type": "number",
+            "title": {
+              "en": "Offset"
+            },
+            "min": -5,
+            "max": 5,
+            "step": 0.5,
+            "placeholder": {
+              "en": "1"
+            }
+          },
+          {
+            "name": "duration",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "60",
+                "label": {
+                  "en": "1 hour"
+                }
+              },
+              {
+                "id": "360",
+                "label": {
+                  "en": "6 hours"
+                }
+              },
+              {
+                "id": "1440",
+                "label": {
+                  "en": "24 hours"
+                }
+              },
+              {
+                "id": "manual",
+                "label": {
+                  "en": "Until cleared"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "clear_weather_curve_boost",
+        "title": {
+          "en": "Clear weather curve boost"
         },
         "args": [
           {

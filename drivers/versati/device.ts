@@ -132,6 +132,13 @@ interface WeatherCurveSettings {
   config: WeatherCurveConfig;
   deadband: number;
   minWriteIntervalMs: number;
+  boost: WeatherCurveBoost;
+}
+
+interface WeatherCurveBoost {
+  offset: number;
+  until: string;
+  active: boolean;
 }
 
 interface TelemetryHistorySample {
@@ -154,6 +161,7 @@ interface WeatherCurveAuditEntry {
   heatPumpMode: GreeVersatiState['mode'] | null;
   outdoorTemperature: number | null;
   calculatedTarget: number | null;
+  boostOffset: number;
   previousTarget: number | null;
   writtenTarget: number | null;
   message: string;
@@ -291,6 +299,14 @@ class GreeVersatiDevice extends Homey.Device {
     await this.resumeWeatherCurve();
   }
 
+  async flowSetWeatherCurveBoost(offset: unknown, minutes: unknown): Promise<void> {
+    await this.setWeatherCurveBoost(offset, minutes);
+  }
+
+  async flowClearWeatherCurveBoost(): Promise<void> {
+    await this.clearWeatherCurveBoost();
+  }
+
   flowModeIs(mode: unknown): boolean {
     return this.getCapabilityValue('heatpump_mode') === mode;
   }
@@ -339,6 +355,7 @@ class GreeVersatiDevice extends Homey.Device {
       config: settings.config,
       deadband: settings.deadband,
       minWriteIntervalSeconds: Math.round(settings.minWriteIntervalMs / 1000),
+      boost: settings.boost,
       values: {
         waterOutTemperature: this.getCapabilityValue('measure_temperature_water_out'),
         heatingTargetTemperature: this.getCapabilityValue('target_temperature_heating'),
@@ -371,6 +388,16 @@ class GreeVersatiDevice extends Homey.Device {
 
   async resumeWeatherCurveFromWidget(): Promise<Record<string, unknown>> {
     await this.resumeWeatherCurve();
+    return this.weatherCurveWidgetState();
+  }
+
+  async setWeatherCurveBoostFromWidget(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+    await this.setWeatherCurveBoost(input.offset, input.minutes);
+    return this.weatherCurveWidgetState();
+  }
+
+  async clearWeatherCurveBoostFromWidget(): Promise<Record<string, unknown>> {
+    await this.clearWeatherCurveBoost();
     return this.weatherCurveWidgetState();
   }
 
@@ -474,6 +501,7 @@ class GreeVersatiDevice extends Homey.Device {
       weatherCurve: {
         mode: store.weatherCurveMode,
         pausedUntil: store.weatherCurvePausedUntil,
+        boost: weatherCurveBoost(store.weatherCurveBoostOffset, store.weatherCurveBoostUntil),
         outdoorTemperature: store.weatherCurveOutdoorTemperature,
         heatingTarget: store.weatherCurveHeatingTarget,
         lastEvaluatedAt: store.weatherCurveLastEvaluatedAt,
@@ -754,10 +782,11 @@ class GreeVersatiDevice extends Homey.Device {
     try {
       const outdoorTemperature = await this.weatherCurveOutdoorTemperature(settings);
       const result = calculateWeatherCurveTarget(outdoorTemperature, settings.config);
+      const targetTemperature = this.applyWeatherCurveBoost(result.targetTemperature, settings);
       await this.setCapabilityIfPresent('weather_curve_outdoor_temperature', result.outdoorTemperature);
-      await this.setCapabilityIfPresent('weather_curve_heating_target', result.targetTemperature);
+      await this.setCapabilityIfPresent('weather_curve_heating_target', targetTemperature);
       await this.setStoreValue('weatherCurveOutdoorTemperature', result.outdoorTemperature);
-      await this.setStoreValue('weatherCurveHeatingTarget', result.targetTemperature);
+      await this.setStoreValue('weatherCurveHeatingTarget', targetTemperature);
       await this.setStoreValue('weatherCurveLastEvaluatedAt', new Date().toISOString());
 
       if (settings.controlMode === 'dry_run') {
@@ -767,7 +796,7 @@ class GreeVersatiDevice extends Homey.Device {
           settings,
           state,
           outdoorTemperature: result.outdoorTemperature,
-          calculatedTarget: result.targetTemperature,
+          calculatedTarget: targetTemperature,
           previousTarget: state.heatingTargetTemperature,
         });
         await this.setWeatherCurveSkipped('dry_run');
@@ -781,7 +810,7 @@ class GreeVersatiDevice extends Homey.Device {
           settings,
           state,
           outdoorTemperature: result.outdoorTemperature,
-          calculatedTarget: result.targetTemperature,
+          calculatedTarget: targetTemperature,
           previousTarget: state.heatingTargetTemperature,
         });
         await this.setWeatherCurveSkipped(reason);
@@ -794,19 +823,19 @@ class GreeVersatiDevice extends Homey.Device {
           settings,
           state,
           outdoorTemperature: result.outdoorTemperature,
-          calculatedTarget: result.targetTemperature,
+          calculatedTarget: targetTemperature,
         });
         await this.setWeatherCurveSkipped('missing_current_heating_target');
         return;
       }
-      if (Math.abs(state.heatingTargetTemperature - result.targetTemperature) < settings.deadband) {
+      if (Math.abs(state.heatingTargetTemperature - targetTemperature) < settings.deadband) {
         await this.appendWeatherCurveAudit({
           action: 'skip',
           reason: 'deadband',
           settings,
           state,
           outdoorTemperature: result.outdoorTemperature,
-          calculatedTarget: result.targetTemperature,
+          calculatedTarget: targetTemperature,
           previousTarget: state.heatingTargetTemperature,
         });
         await this.setWeatherCurveSkipped('deadband');
@@ -819,7 +848,7 @@ class GreeVersatiDevice extends Homey.Device {
           settings,
           state,
           outdoorTemperature: result.outdoorTemperature,
-          calculatedTarget: result.targetTemperature,
+          calculatedTarget: targetTemperature,
           previousTarget: state.heatingTargetTemperature,
         });
         await this.setWeatherCurveSkipped('minimum_write_interval');
@@ -827,10 +856,10 @@ class GreeVersatiDevice extends Homey.Device {
       }
 
       const previousTarget = state.heatingTargetTemperature;
-      await this.clientOrThrow().setHeatingTargetTemperature(device, result.targetTemperature);
-      await this.setCapabilityIfPresent('target_temperature_heating', result.targetTemperature);
+      await this.clientOrThrow().setHeatingTargetTemperature(device, targetTemperature);
+      await this.setCapabilityIfPresent('target_temperature_heating', targetTemperature);
       await this.setStoreValue('weatherCurveLastWriteAt', new Date().toISOString());
-      await this.setStoreValue('weatherCurveLastWrittenTarget', result.targetTemperature);
+      await this.setStoreValue('weatherCurveLastWrittenTarget', targetTemperature);
       await this.setStoreValue('weatherCurveLastSkippedReason', '');
       await this.appendWeatherCurveAudit({
         action: 'write',
@@ -838,11 +867,11 @@ class GreeVersatiDevice extends Homey.Device {
         settings,
         state,
         outdoorTemperature: result.outdoorTemperature,
-        calculatedTarget: result.targetTemperature,
+        calculatedTarget: targetTemperature,
         previousTarget,
-        writtenTarget: result.targetTemperature,
+        writtenTarget: targetTemperature,
       });
-      await this.triggerWeatherCurveWritten(result.outdoorTemperature, result.targetTemperature, previousTarget);
+      await this.triggerWeatherCurveWritten(result.outdoorTemperature, targetTemperature, previousTarget);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       await this.setStoreValue('weatherCurveLastError', message);
@@ -866,6 +895,23 @@ class GreeVersatiDevice extends Homey.Device {
       : new Date(Date.now() + durationMinutes * 60_000).toISOString();
     await this.setStoreValue('weatherCurvePausedUntil', pausedUntil);
     await this.triggerWeatherCurvePaused(pausedUntil);
+    await this.refreshState();
+  }
+
+  private async setWeatherCurveBoost(offset: unknown, minutes: unknown): Promise<void> {
+    const boostOffset = clampedNumber(offset, -5, 5, 0);
+    const durationMinutes = weatherCurvePauseMinutes(minutes);
+    const until = durationMinutes === 0
+      ? 'manual'
+      : new Date(Date.now() + durationMinutes * 60_000).toISOString();
+    await this.setStoreValue('weatherCurveBoostOffset', boostOffset);
+    await this.setStoreValue('weatherCurveBoostUntil', until);
+    await this.refreshState();
+  }
+
+  private async clearWeatherCurveBoost(): Promise<void> {
+    await this.setStoreValue('weatherCurveBoostOffset', 0);
+    await this.setStoreValue('weatherCurveBoostUntil', '');
     await this.refreshState();
   }
 
@@ -896,6 +942,13 @@ class GreeVersatiDevice extends Homey.Device {
     return '';
   }
 
+  private applyWeatherCurveBoost(targetTemperature: number, settings: WeatherCurveSettings): number {
+    if (!settings.boost.active || settings.boost.offset === 0) {
+      return targetTemperature;
+    }
+    return Math.min(Math.max(Math.round(targetTemperature + settings.boost.offset), settings.config.targetMin), settings.config.targetMax);
+  }
+
   private async appendWeatherCurveAudit(input: {
     action: WeatherCurveAuditEntry['action'];
     reason: string;
@@ -916,6 +969,7 @@ class GreeVersatiDevice extends Homey.Device {
       heatPumpMode: input.state.mode,
       outdoorTemperature: numberOrNull(input.outdoorTemperature),
       calculatedTarget: numberOrNull(input.calculatedTarget),
+      boostOffset: input.settings.boost.active ? input.settings.boost.offset : 0,
       previousTarget: numberOrNull(input.previousTarget),
       writtenTarget: numberOrNull(input.writtenTarget),
       message: input.message ?? '',
@@ -1054,6 +1108,7 @@ class GreeVersatiDevice extends Homey.Device {
         settings.curveMinWriteInterval,
         DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS,
       ) * 1000),
+      boost: weatherCurveBoost(this.getStore().weatherCurveBoostOffset, this.getStore().weatherCurveBoostUntil),
     };
   }
 
@@ -1226,6 +1281,7 @@ function weatherCurveAuditHistory(value: unknown): WeatherCurveAuditEntry[] {
       heatPumpMode: weatherCurveHeatPumpMode(entry.heatPumpMode),
       outdoorTemperature: numberOrNull(entry.outdoorTemperature),
       calculatedTarget: numberOrNull(entry.calculatedTarget),
+      boostOffset: numberOrNull(entry.boostOffset) ?? 0,
       previousTarget: numberOrNull(entry.previousTarget),
       writtenTarget: numberOrNull(entry.writtenTarget),
       message: stringStoreValue(entry.message),
@@ -1271,6 +1327,19 @@ function weatherCurvePauseMinutes(value: unknown): number {
     return minutes;
   }
   throw new Error('Weather curve pause duration must be 1 hour, 6 hours, 24 hours, or until resumed');
+}
+
+function weatherCurveBoost(offsetValue: unknown, untilValue: unknown): WeatherCurveBoost {
+  const offset = clampedNumber(offsetValue, -5, 5, 0);
+  const until = stringStoreValue(untilValue);
+  if (!offset || !until) {
+    return { offset: 0, until: '', active: false };
+  }
+  if (until === 'manual') {
+    return { offset, until, active: true };
+  }
+  const untilMs = Date.parse(until);
+  return { offset, until, active: Number.isFinite(untilMs) && Date.now() < untilMs };
 }
 
 function weatherCurveShape(value: unknown): WeatherCurveShape {

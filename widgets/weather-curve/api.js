@@ -16,4 +16,12 @@ module.exports = {
   async resumeCurve({ homey, query }) {
     return homey.app.resumeWeatherCurveFromWidget(query.deviceId);
   },
+
+  async setBoost({ homey, query, body }) {
+    return homey.app.setWeatherCurveBoostFromWidget(query.deviceId, body);
+  },
+
+  async clearBoost({ homey, query }) {
+    return homey.app.clearWeatherCurveBoostFromWidget(query.deviceId);
+  },
 };
