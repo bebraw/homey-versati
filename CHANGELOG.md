@@ -32,4 +32,5 @@
 - Add temporary Homey-managed weather-curve boost offsets.
 - Add weather-curve write forecasting to the curve widget.
 - Add separate safety clamps for boosted weather-curve targets.
+- Add weather-curve profile export and import from the curve widget.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

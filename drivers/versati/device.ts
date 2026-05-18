@@ -419,6 +419,40 @@ class GreeVersatiDevice extends Homey.Device {
     return this.weatherCurveWidgetState();
   }
 
+  async exportWeatherCurveFromWidget(): Promise<Record<string, unknown>> {
+    const settings = this.weatherCurveSettings();
+    return {
+      schema: 'com.gree.versati.weatherCurveProfile.v1',
+      exportedAt: new Date().toISOString(),
+      profile: {
+        curvePreset: settings.preset,
+        curveControlMode: settings.controlMode,
+        curveOutdoorSource: settings.outdoorSource,
+        curveManualOutdoorTemperature: settings.manualOutdoorTemperature,
+        curveOutdoorLow: settings.config.outdoorLow,
+        curveTargetAtOutdoorLow: settings.config.targetAtOutdoorLow,
+        curveOutdoorHigh: settings.config.outdoorHigh,
+        curveTargetAtOutdoorHigh: settings.config.targetAtOutdoorHigh,
+        curveTargetMin: settings.config.targetMin,
+        curveTargetMax: settings.config.targetMax,
+        curveBoostTargetMin: settings.boostTargetMin,
+        curveBoostTargetMax: settings.boostTargetMax,
+        curveShape: settings.config.shape,
+        curveBend: settings.config.bend,
+        curveDeadband: settings.deadband,
+        curveMinWriteInterval: Math.round(settings.minWriteIntervalMs / 1000),
+      },
+    };
+  }
+
+  async importWeatherCurveFromWidget(input: Record<string, unknown>): Promise<Record<string, unknown>> {
+    const profile = isRecord(input.profile) ? input.profile : input;
+    const updates = weatherCurveWidgetSettings(profile);
+    await this.setSettings(updates);
+    await this.refreshState();
+    return this.weatherCurveWidgetState();
+  }
+
   async telemetryWidgetState(): Promise<Record<string, unknown>> {
     const history = telemetryHistory(this.getStore().telemetryHistory);
     const latest = history.at(-1);

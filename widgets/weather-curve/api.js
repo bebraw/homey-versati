@@ -24,4 +24,12 @@ module.exports = {
   async clearBoost({ homey, query }) {
     return homey.app.clearWeatherCurveBoostFromWidget(query.deviceId);
   },
+
+  async exportCurve({ homey, query }) {
+    return homey.app.exportWeatherCurveFromWidget(query.deviceId);
+  },
+
+  async importCurve({ homey, query, body }) {
+    return homey.app.importWeatherCurveFromWidget(query.deviceId, body);
+  },
 };

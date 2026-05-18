@@ -858,6 +858,14 @@
         "clearBoost": {
           "method": "DELETE",
           "path": "/boost"
+        },
+        "exportCurve": {
+          "method": "GET",
+          "path": "/profile"
+        },
+        "importCurve": {
+          "method": "PUT",
+          "path": "/profile"
         }
       }
     },

@@ -318,6 +318,9 @@
       <button id="resume" class="secondary" type="button">Resume</button>
       <button id="boostUp" class="secondary" type="button">+1°C 6h</button>
       <button id="boostClear" class="secondary" type="button">Clear boost</button>
+      <button id="exportProfile" class="secondary" type="button">Export</button>
+      <button id="importProfile" class="secondary" type="button">Import</button>
+      <input id="profileFile" type="file" accept="application/json" hidden>
       <span class="message" id="message">Loading curve...</span>
     </section>
   </main>
@@ -349,6 +352,9 @@
       document.getElementById('resume').addEventListener('click', resume);
       document.getElementById('boostUp').addEventListener('click', () => boost(1, 360));
       document.getElementById('boostClear').addEventListener('click', clearBoost);
+      document.getElementById('exportProfile').addEventListener('click', exportProfile);
+      document.getElementById('importProfile').addEventListener('click', () => document.getElementById('profileFile').click());
+      document.getElementById('profileFile').addEventListener('change', importProfile);
       load().finally(() => Homey.ready({ height: 480 }));
     }
 
@@ -418,6 +424,39 @@
         note('Boost cleared');
       } catch (error) {
         note(error.message || String(error));
+      }
+    }
+
+    async function exportProfile() {
+      try {
+        note('Exporting...');
+        const profile = await HomeyApi.api('GET', `/profile?deviceId=${encodeURIComponent(deviceId)}`, {});
+        const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `gree-versati-curve-${new Date().toISOString().replaceAll(':', '-')}.json`;
+        link.click();
+        URL.revokeObjectURL(url);
+        note('Exported');
+      } catch (error) {
+        note(error.message || String(error));
+      }
+    }
+
+    async function importProfile(event) {
+      try {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        note('Importing...');
+        const profile = JSON.parse(await file.text());
+        const state = await HomeyApi.api('PUT', `/profile?deviceId=${encodeURIComponent(deviceId)}`, profile);
+        render(state);
+        note('Imported');
+      } catch (error) {
+        note(error.message || String(error));
+      } finally {
+        event.target.value = '';
       }
     }
 

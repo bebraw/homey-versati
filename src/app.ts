@@ -8,6 +8,8 @@ interface WeatherCurveWidgetDevice {
   resumeWeatherCurveFromWidget(): Promise<unknown>;
   setWeatherCurveBoostFromWidget(input: Record<string, unknown>): Promise<unknown>;
   clearWeatherCurveBoostFromWidget(): Promise<unknown>;
+  exportWeatherCurveFromWidget(): Promise<unknown>;
+  importWeatherCurveFromWidget(input: Record<string, unknown>): Promise<unknown>;
   telemetryWidgetState(): Promise<unknown>;
   diagnosticSnapshot(): Promise<unknown>;
 }
@@ -39,6 +41,14 @@ class GreeVersatiApp extends Homey.App {
 
   async clearWeatherCurveBoostFromWidget(deviceId?: string): Promise<unknown> {
     return this.weatherCurveWidgetDevice(deviceId).clearWeatherCurveBoostFromWidget();
+  }
+
+  async exportWeatherCurveFromWidget(deviceId?: string): Promise<unknown> {
+    return this.weatherCurveWidgetDevice(deviceId).exportWeatherCurveFromWidget();
+  }
+
+  async importWeatherCurveFromWidget(deviceId: string | undefined, input: Record<string, unknown>): Promise<unknown> {
+    return this.weatherCurveWidgetDevice(deviceId).importWeatherCurveFromWidget(input);
   }
 
   async getTelemetryWidgetState(deviceId?: string): Promise<unknown> {
