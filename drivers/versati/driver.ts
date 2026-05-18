@@ -28,6 +28,10 @@ interface FlowDevice {
   flowHotWaterBelow(temperature: unknown): boolean;
   flowCapabilityIsOn(capability: string): boolean;
   flowIsReachable(): boolean;
+  flowCurveControlModeIs(mode: unknown): boolean;
+  flowCurveSkippedReasonIs(reason: unknown): boolean;
+  flowCurveWriteAllowed(): boolean;
+  flowHasPollHistory(): boolean;
 }
 
 class GreeVersatiDriver extends Homey.Driver {
@@ -119,6 +123,22 @@ class GreeVersatiDriver extends Homey.Driver {
 
     this.homey.flow.getConditionCard('device_is_reachable').registerRunListener((args) => {
       return flowDevice(args).flowIsReachable();
+    });
+
+    this.homey.flow.getConditionCard('curve_control_mode_is').registerRunListener((args) => {
+      return flowDevice(args).flowCurveControlModeIs(dropdownValue(args.mode));
+    });
+
+    this.homey.flow.getConditionCard('curve_skipped_reason_is').registerRunListener((args) => {
+      return flowDevice(args).flowCurveSkippedReasonIs(dropdownValue(args.reason));
+    });
+
+    this.homey.flow.getConditionCard('curve_write_is_allowed').registerRunListener((args) => {
+      return flowDevice(args).flowCurveWriteAllowed();
+    });
+
+    this.homey.flow.getConditionCard('has_poll_history').registerRunListener((args) => {
+      return flowDevice(args).flowHasPollHistory();
     });
   }
 }

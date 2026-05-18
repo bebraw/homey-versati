@@ -1367,6 +1367,148 @@
             "filter": "driver_id=versati"
           }
         ]
+      },
+      {
+        "id": "curve_control_mode_is",
+        "title": {
+          "en": "Weather curve control !{{is|isn't}} ..."
+        },
+        "titleFormatted": {
+          "en": "Weather curve control !{{is|isn't}} [[mode]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "mode",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "disabled",
+                "label": {
+                  "en": "Disabled"
+                }
+              },
+              {
+                "id": "dry_run",
+                "label": {
+                  "en": "Dry run"
+                }
+              },
+              {
+                "id": "write",
+                "label": {
+                  "en": "Write heating target"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "curve_skipped_reason_is",
+        "title": {
+          "en": "Weather curve skip reason !{{is|isn't}} ..."
+        },
+        "titleFormatted": {
+          "en": "Weather curve skip reason !{{is|isn't}} [[reason]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "reason",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "disabled",
+                "label": {
+                  "en": "Disabled"
+                }
+              },
+              {
+                "id": "dry_run",
+                "label": {
+                  "en": "Dry run"
+                }
+              },
+              {
+                "id": "mode:off",
+                "label": {
+                  "en": "Mode: off"
+                }
+              },
+              {
+                "id": "mode:hot_water",
+                "label": {
+                  "en": "Mode: hot water"
+                }
+              },
+              {
+                "id": "mode:cool",
+                "label": {
+                  "en": "Mode: cool"
+                }
+              },
+              {
+                "id": "mode:other",
+                "label": {
+                  "en": "Mode: other"
+                }
+              },
+              {
+                "id": "missing_current_heating_target",
+                "label": {
+                  "en": "Missing heating target"
+                }
+              },
+              {
+                "id": "deadband",
+                "label": {
+                  "en": "Inside deadband"
+                }
+              },
+              {
+                "id": "minimum_write_interval",
+                "label": {
+                  "en": "Minimum write interval"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "curve_write_is_allowed",
+        "title": {
+          "en": "Weather curve !{{can|can't}} write now"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
+      },
+      {
+        "id": "has_poll_history",
+        "title": {
+          "en": "Gree Versati !{{has|doesn't have}} graph history"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          }
+        ]
       }
     ],
     "actions": [

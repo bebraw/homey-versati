@@ -22,4 +22,5 @@
 - Add auto-refresh and range filters to the `Versati Graphs` widget.
 - Add weather-curve safety status to the `Versati Weather Curve` widget.
 - Add redacted diagnostic export from the `Versati Graphs` widget.
+- Add Flow conditions for weather-curve state and local graph history.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

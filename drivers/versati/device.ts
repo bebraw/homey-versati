@@ -287,6 +287,22 @@ class GreeVersatiDevice extends Homey.Device {
     return this.reachable;
   }
 
+  flowCurveControlModeIs(mode: unknown): boolean {
+    return this.getStore().weatherCurveMode === mode;
+  }
+
+  flowCurveSkippedReasonIs(reason: unknown): boolean {
+    return this.getStore().weatherCurveLastSkippedReason === reason;
+  }
+
+  flowCurveWriteAllowed(): boolean {
+    return this.getStore().weatherCurveMode === 'write' && this.getCapabilityValue('heatpump_mode') === 'heat_hot_water';
+  }
+
+  flowHasPollHistory(): boolean {
+    return telemetryHistory(this.getStore().telemetryHistory).length > 1;
+  }
+
   async weatherCurveWidgetState(): Promise<Record<string, unknown>> {
     const settings = this.weatherCurveSettings();
     return {
