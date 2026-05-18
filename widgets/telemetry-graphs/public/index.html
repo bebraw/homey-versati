@@ -108,13 +108,13 @@
 
     .metrics {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
       gap: 8px;
     }
 
     .status {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(94px, 1fr));
       gap: 8px;
     }
 
@@ -217,6 +217,7 @@
       <div class="metric"><span>Heating target</span><strong id="heatingTarget">-</strong></div>
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
       <div class="metric"><span>Estimated COP</span><strong id="estimatedCop">-</strong></div>
+      <div class="metric"><span>COP status</span><strong id="copStatus">-</strong></div>
     </section>
 
     <section class="status">
@@ -342,6 +343,8 @@
       text('curveMode', `${curve.mode || '-'}${paused}`);
       const decision = curve.lastDecision || {};
       text('curveDecision', decision.reason || curve.lastSkippedReason || '-');
+      const cop = diagnostics.cop || {};
+      text('copStatus', cop.status ? label(cop.status) : '-');
     }
 
     function rangeHistory(history) {
@@ -398,6 +401,10 @@
 
     function text(id, value) {
       document.getElementById(id).textContent = value;
+    }
+
+    function label(value) {
+      return String(value).replaceAll('_', ' ');
     }
 
     function escapeText(value) {

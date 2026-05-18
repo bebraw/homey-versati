@@ -294,10 +294,16 @@ The app can calculate an estimated coefficient of performance from the measured 
 
 Configure these device settings to enable the estimate:
 
+- `COP electrical input source`: `Fixed estimate` or `Flow-provided input`
 - `COP water flow`: heating circuit flow in liters per minute
 - `COP electrical input`: electrical input in kW
+- `Low COP threshold`: optional Flow alert threshold
 
-For the electrical input, the best source is whole heat-pump consumption: outdoor unit compressor/fans plus indoor unit pumps, controls, and backup/tank heaters. A meter covering both indoor and outdoor units, or the entire heat-pump supply, gives the least misleading estimate. Outdoor-unit-only consumption makes COP look too optimistic when indoor pumps or heaters are active. Indoor-unit-only consumption usually misses the compressor and is not enough for COP. Until a real meter is connected, use a conservative fixed kW estimate and treat `Estimated COP`, `Estimated heat output`, and `Estimated electrical input` as trend signals rather than lab-grade performance data.
+Use the `Set COP electrical input` Flow action when the source is `Flow-provided input`. Feed it from a smart meter, energy plug, or another Homey energy app in kW. The app stores the latest Flow-fed value and uses it on the next poll.
+
+For the electrical input, the best source is whole heat-pump consumption: outdoor unit compressor/fans plus indoor unit pumps, controls, and backup/tank heaters. A meter covering both indoor and outdoor units, or the entire heat-pump supply, gives the least misleading estimate. Outdoor-unit-only consumption makes COP look too optimistic when indoor pumps or heaters are active. Indoor-unit-only consumption usually misses the compressor and is not enough for COP. Until a real meter is connected, use a conservative fixed kW estimate and treat `Estimated COP`, `Estimated heat output`, and `Estimated electrical input` as trend signals rather than lab-grade performance data. The `COP status` capability and widget field explain why the estimate is unavailable or whether it currently uses a fixed estimate.
+
+Cooling mode writes are guarded by default. Enable `Allow cooling mode writes` in device settings only after confirming cooling operation is safe for your installation.
 
 ## Homey Insights
 

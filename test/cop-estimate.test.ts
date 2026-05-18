@@ -17,6 +17,7 @@ test('estimates COP from water delta, flow rate, and electrical input', () => {
     heatOutputKw: 6.98,
     electricalInputKw: 2,
     cop: 3.49,
+    status: 'ok',
   });
 });
 
@@ -28,7 +29,7 @@ test('does not estimate COP without usable operating inputs', () => {
     electricalInputKw: 2,
     power: true,
     defrosting: false,
-  }), null);
+  }).status, 'no_positive_water_delta');
   assert.equal(calculateCopEstimate({
     waterInTemperature: 25,
     waterOutTemperature: 30,
@@ -36,7 +37,7 @@ test('does not estimate COP without usable operating inputs', () => {
     electricalInputKw: 2,
     power: true,
     defrosting: false,
-  }), null);
+  }).status, 'missing_flow');
   assert.equal(calculateCopEstimate({
     waterInTemperature: 25,
     waterOutTemperature: 30,
@@ -44,7 +45,7 @@ test('does not estimate COP without usable operating inputs', () => {
     electricalInputKw: 0,
     power: true,
     defrosting: false,
-  }), null);
+  }).status, 'missing_electrical_input');
   assert.equal(calculateCopEstimate({
     waterInTemperature: 25,
     waterOutTemperature: 30,
@@ -52,7 +53,7 @@ test('does not estimate COP without usable operating inputs', () => {
     electricalInputKw: 2,
     power: false,
     defrosting: false,
-  }), null);
+  }).status, 'off');
   assert.equal(calculateCopEstimate({
     waterInTemperature: 25,
     waterOutTemperature: 30,
@@ -60,5 +61,5 @@ test('does not estimate COP without usable operating inputs', () => {
     electricalInputKw: 2,
     power: true,
     defrosting: true,
-  }), null);
+  }).status, 'defrosting');
 });

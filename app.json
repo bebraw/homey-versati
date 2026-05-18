@@ -71,6 +71,7 @@
         "measure_power.heat_output_estimated",
         "measure_power.electrical_input_estimated",
         "measure_cop_estimated",
+        "heatpump_cop_status",
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
@@ -176,6 +177,9 @@
           "preventInsights": false
         },
         "measure_cop_estimated": {
+          "preventInsights": false
+        },
+        "heatpump_cop_status": {
           "preventInsights": false
         },
         "measure_temperature_water_out": {
@@ -664,6 +668,42 @@
           "max": 86400
         },
         {
+          "id": "allowCoolingModeWrites",
+          "type": "checkbox",
+          "label": {
+            "en": "Allow cooling mode writes"
+          },
+          "hint": {
+            "en": "Keeps Cool mode guarded until you have confirmed cooling operation is safe for the installation."
+          },
+          "value": false
+        },
+        {
+          "id": "copElectricalInputSource",
+          "type": "dropdown",
+          "label": {
+            "en": "COP electrical input source"
+          },
+          "hint": {
+            "en": "Use a fixed kW estimate or let a Homey Flow feed live electrical input."
+          },
+          "value": "fixed",
+          "values": [
+            {
+              "id": "fixed",
+              "label": {
+                "en": "Fixed estimate"
+              }
+            },
+            {
+              "id": "flow",
+              "label": {
+                "en": "Flow-provided input"
+              }
+            }
+          ]
+        },
+        {
           "id": "copWaterFlowRateLMin",
           "type": "number",
           "label": {
@@ -688,6 +728,19 @@
           "value": 0,
           "min": 0,
           "max": 50
+        },
+        {
+          "id": "copLowThreshold",
+          "type": "number",
+          "label": {
+            "en": "Low COP threshold"
+          },
+          "hint": {
+            "en": "Triggers the low-COP Flow when Estimated COP crosses below this value. Set to 0 to disable the alert."
+          },
+          "value": 2,
+          "min": 0,
+          "max": 10
         }
       ]
     }
@@ -953,6 +1006,64 @@
         "en": "Estimated COP"
       },
       "decimals": 2,
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_cop_status": {
+      "type": "enum",
+      "title": {
+        "en": "COP status"
+      },
+      "values": [
+        {
+          "id": "ok",
+          "title": {
+            "en": "OK"
+          }
+        },
+        {
+          "id": "fixed_estimate",
+          "title": {
+            "en": "Fixed estimate"
+          }
+        },
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "defrosting",
+          "title": {
+            "en": "Defrosting"
+          }
+        },
+        {
+          "id": "missing_temperature",
+          "title": {
+            "en": "Missing temperature"
+          }
+        },
+        {
+          "id": "missing_flow",
+          "title": {
+            "en": "Missing flow"
+          }
+        },
+        {
+          "id": "missing_electrical_input",
+          "title": {
+            "en": "Missing electrical input"
+          }
+        },
+        {
+          "id": "no_positive_water_delta",
+          "title": {
+            "en": "No positive water delta"
+          }
+        }
+      ],
       "getable": true,
       "setable": false
     }
@@ -1458,6 +1569,62 @@
             }
           }
         ]
+      },
+      {
+        "id": "cop_below_threshold",
+        "title": {
+          "en": "Estimated COP dropped below threshold"
+        },
+        "tokens": [
+          {
+            "name": "cop",
+            "type": "number",
+            "title": {
+              "en": "Estimated COP"
+            },
+            "example": {
+              "en": "1.8"
+            }
+          },
+          {
+            "name": "threshold",
+            "type": "number",
+            "title": {
+              "en": "Threshold"
+            },
+            "example": {
+              "en": "2"
+            }
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "title": {
+              "en": "Status"
+            },
+            "example": {
+              "en": "fixed_estimate"
+            }
+          }
+        ]
+      },
+      {
+        "id": "cop_status_changed",
+        "title": {
+          "en": "COP status changed"
+        },
+        "tokens": [
+          {
+            "name": "status",
+            "type": "string",
+            "title": {
+              "en": "Status"
+            },
+            "example": {
+              "en": "missing_electrical_input"
+            }
+          }
+        ]
       }
     ],
     "conditions": [
@@ -1767,6 +1934,99 @@
             "filter": "driver_id=versati"
           }
         ]
+      },
+      {
+        "id": "cop_below",
+        "title": {
+          "en": "Estimated COP !{{is below|is not below}} ..."
+        },
+        "titleFormatted": {
+          "en": "Estimated COP !{{is below|is not below}} [[cop]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "cop",
+            "type": "number",
+            "title": {
+              "en": "COP"
+            },
+            "min": 0,
+            "max": 10,
+            "step": 0.1,
+            "placeholder": {
+              "en": "2"
+            }
+          }
+        ]
+      },
+      {
+        "id": "cop_status_is",
+        "title": {
+          "en": "COP status !{{is|isn't}} ..."
+        },
+        "titleFormatted": {
+          "en": "COP status !{{is|isn't}} [[status]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "status",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "ok",
+                "label": {
+                  "en": "OK"
+                }
+              },
+              {
+                "id": "fixed_estimate",
+                "label": {
+                  "en": "Fixed estimate"
+                }
+              },
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "defrosting",
+                "label": {
+                  "en": "Defrosting"
+                }
+              },
+              {
+                "id": "missing_flow",
+                "label": {
+                  "en": "Missing flow"
+                }
+              },
+              {
+                "id": "missing_electrical_input",
+                "label": {
+                  "en": "Missing electrical input"
+                }
+              },
+              {
+                "id": "no_positive_water_delta",
+                "label": {
+                  "en": "No positive water delta"
+                }
+              }
+            ]
+          }
+        ]
       }
     ],
     "actions": [
@@ -2035,6 +2295,35 @@
             "step": 0.1,
             "placeholder": {
               "en": "0"
+            }
+          }
+        ]
+      },
+      {
+        "id": "set_cop_electrical_input",
+        "title": {
+          "en": "Set COP electrical input"
+        },
+        "titleFormatted": {
+          "en": "Set COP electrical input to [[power]] kW"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "power",
+            "type": "number",
+            "title": {
+              "en": "Electrical input"
+            },
+            "min": 0,
+            "max": 50,
+            "step": 0.01,
+            "placeholder": {
+              "en": "2.5"
             }
           }
         ]

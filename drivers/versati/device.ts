@@ -40,6 +40,7 @@ const REQUIRED_CAPABILITIES = [
   'measure_power.heat_output_estimated',
   'measure_power.electrical_input_estimated',
   'measure_cop_estimated',
+  'heatpump_cop_status',
 ] as const;
 const WEATHER_CURVE_PRESETS = {
   custom: null,
@@ -94,8 +95,10 @@ const CURVE_SETTING_KEYS = [
   'curveMinWriteInterval',
 ] as const;
 const COP_SETTING_KEYS = [
+  'copElectricalInputSource',
   'copWaterFlowRateLMin',
   'copElectricalInputKw',
+  'copLowThreshold',
 ] as const;
 const FLOW_TRIGGER_TOKENS: Record<string, string> = {
   measure_temperature_hot_water: 'measure_temperature_hot_water',
@@ -302,8 +305,11 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveBend?: number;
   curveDeadband?: number;
   curveMinWriteInterval?: number;
+  allowCoolingModeWrites?: boolean;
+  copElectricalInputSource?: 'fixed' | 'flow';
   copWaterFlowRateLMin?: number;
   copElectricalInputKw?: number;
+  copLowThreshold?: number;
 };
 
 interface WeatherCurveSettings {
@@ -348,6 +354,7 @@ interface TelemetryHistorySample {
   estimatedHeatOutputW: number | null;
   estimatedElectricalInputW: number | null;
   estimatedCop: number | null;
+  estimatedCopStatus: CopStatus;
 }
 
 interface WeatherCurveAuditEntry {
@@ -373,6 +380,7 @@ interface InsightsLogSpec {
   value(state: GreeVersatiState, device: GreeVersatiDevice): number | boolean | null;
 }
 
+type CopStatus = CopEstimate['status'] | 'fixed_estimate';
 type SettingsValue = boolean | string | number | undefined | null;
 
 interface SettingsEvent {
@@ -506,6 +514,16 @@ class GreeVersatiDevice extends Homey.Device {
     await this.refreshState();
   }
 
+  async flowSetCopElectricalInput(power: unknown): Promise<void> {
+    const electricalInputKw = Number(power);
+    if (!Number.isFinite(electricalInputKw) || electricalInputKw < 0 || electricalInputKw > 50) {
+      throw new Error(`Invalid COP electrical input: ${String(power)}`);
+    }
+    await this.setStoreValue('copFlowElectricalInputKw', electricalInputKw);
+    await this.setStoreValue('copFlowElectricalInputAt', new Date().toISOString());
+    await this.refreshState();
+  }
+
   async flowPauseWeatherCurve(minutes: unknown): Promise<void> {
     await this.pauseWeatherCurve(minutes);
   }
@@ -556,6 +574,16 @@ class GreeVersatiDevice extends Homey.Device {
     return telemetryHistory(this.getStore().telemetryHistory).length > 1;
   }
 
+  flowCopBelow(cop: unknown): boolean {
+    const threshold = Number(cop);
+    const current = this.getCapabilityValue('measure_cop_estimated');
+    return Number.isFinite(threshold) && typeof current === 'number' && current < threshold;
+  }
+
+  flowCopStatusIs(status: unknown): boolean {
+    return this.getCapabilityValue('heatpump_cop_status') === status;
+  }
+
   async weatherCurveWidgetState(): Promise<Record<string, unknown>> {
     const settings = this.weatherCurveSettings();
     return {
@@ -578,6 +606,8 @@ class GreeVersatiDevice extends Homey.Device {
         heatingTargetTemperature: this.getCapabilityValue('target_temperature_heating'),
         curveOutdoorTemperature: this.getCapabilityValue('weather_curve_outdoor_temperature'),
         curveHeatingTarget: this.getCapabilityValue('weather_curve_heating_target'),
+        estimatedCop: this.getCapabilityValue('measure_cop_estimated'),
+        estimatedCopStatus: this.getCapabilityValue('heatpump_cop_status'),
         mode: this.getCapabilityValue('heatpump_mode'),
       },
       diagnostics: {
@@ -687,6 +717,7 @@ class GreeVersatiDevice extends Homey.Device {
           lastWriteAt: stringStoreValue(store.weatherCurveLastWriteAt),
           lastDecision: lastCurveDecision,
         },
+        cop: this.copDiagnostics(),
       },
     };
   }
@@ -762,6 +793,7 @@ class GreeVersatiDevice extends Homey.Device {
       'measure_power.heat_output_estimated',
       'measure_power.electrical_input_estimated',
       'measure_cop_estimated',
+      'heatpump_cop_status',
       'measure_temperature_water_out',
       'measure_temperature_water_in',
       'measure_temperature_hot_water',
@@ -817,6 +849,7 @@ class GreeVersatiDevice extends Homey.Device {
         rawWeatherDependent: store.diagnosticWeatherDependent,
         rawDisinfect: store.diagnosticDisinfect,
       },
+      cop: this.copDiagnostics(),
       weatherCurve: {
         mode: store.weatherCurveMode,
         pausedUntil: store.weatherCurvePausedUntil,
@@ -858,6 +891,7 @@ class GreeVersatiDevice extends Homey.Device {
 
   private async applyCapabilities(state: GreeVersatiState): Promise<void> {
     const copEstimate = this.copEstimate(state);
+    const copStatus = this.copStatus(copEstimate);
     await this.setCapabilityIfPresent('measure_temperature', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature.water_in', state.waterInTemperature);
     await this.setCapabilityIfPresent('measure_temperature.hot_water', state.hotWaterTemperature);
@@ -866,10 +900,11 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('measure_temperature.heating_target', state.heatingTargetTemperature);
     await this.setCapabilityIfPresent('measure_temperature.cooling_target', state.coolingTargetTemperature);
     await this.setCapabilityIfPresent('measure_temperature.hot_water_target', state.hotWaterTargetTemperature);
-    await this.setNullableCapabilityIfPresent('measure_temperature.water_delta', copEstimate?.waterDeltaTemperature ?? null);
-    await this.setNullableCapabilityIfPresent('measure_power.heat_output_estimated', copEstimate ? copEstimate.heatOutputKw * 1000 : null);
-    await this.setNullableCapabilityIfPresent('measure_power.electrical_input_estimated', copEstimate ? copEstimate.electricalInputKw * 1000 : null);
-    await this.setNullableCapabilityIfPresent('measure_cop_estimated', copEstimate?.cop ?? null);
+    await this.setNullableCapabilityIfPresent('measure_temperature.water_delta', copEstimate.status === 'ok' ? copEstimate.waterDeltaTemperature : null);
+    await this.setNullableCapabilityIfPresent('measure_power.heat_output_estimated', copEstimate.status === 'ok' ? copEstimate.heatOutputKw * 1000 : null);
+    await this.setNullableCapabilityIfPresent('measure_power.electrical_input_estimated', copEstimate.status === 'ok' ? copEstimate.electricalInputKw * 1000 : null);
+    await this.setNullableCapabilityIfPresent('measure_cop_estimated', copEstimate.status === 'ok' ? copEstimate.cop : null);
+    await this.setCapabilityIfPresent('heatpump_cop_status', copStatus);
     await this.setCapabilityIfPresent('measure_temperature_water_out', state.waterOutTemperature);
     await this.setCapabilityIfPresent('measure_temperature_water_in', state.waterInTemperature);
     await this.setCapabilityIfPresent('measure_temperature_hot_water', state.hotWaterTemperature);
@@ -890,18 +925,47 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('heatpump_hp_heater_2', state.hpHeater2Active);
     await this.setCapabilityIfPresent('heatpump_frost_protection', state.frostProtection);
     await this.setCapabilityIfPresent('heatpump_evu', state.evuActive);
+    await this.updateCopFlowAlerts(copEstimate, copStatus);
   }
 
-  private copEstimate(state: GreeVersatiState): CopEstimate | null {
+  private copEstimate(state: GreeVersatiState): CopEstimate {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     return calculateCopEstimate({
       waterInTemperature: state.waterInTemperature,
       waterOutTemperature: state.waterOutTemperature,
       waterFlowRateLMin: numberSetting(settings.copWaterFlowRateLMin, 0),
-      electricalInputKw: numberSetting(settings.copElectricalInputKw, 0),
+      electricalInputKw: this.copElectricalInputKw(settings),
       power: state.power,
       defrosting: state.defrosting,
     });
+  }
+
+  private copElectricalInputKw(settings = this.getSettings() as Partial<VersatiSettings>): number {
+    if (settings.copElectricalInputSource === 'flow') {
+      return numberOrNull(this.getStore().copFlowElectricalInputKw) ?? 0;
+    }
+    return numberSetting(settings.copElectricalInputKw, 0);
+  }
+
+  private copStatus(estimate: CopEstimate): CopStatus {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    if (estimate.status === 'ok' && settings.copElectricalInputSource !== 'flow') {
+      return 'fixed_estimate';
+    }
+    return estimate.status;
+  }
+
+  private copDiagnostics(): Record<string, unknown> {
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    return {
+      inputSource: settings.copElectricalInputSource ?? 'fixed',
+      waterFlowRateLMin: numberSetting(settings.copWaterFlowRateLMin, 0),
+      fixedElectricalInputKw: numberSetting(settings.copElectricalInputKw, 0),
+      flowElectricalInputKw: numberOrNull(this.getStore().copFlowElectricalInputKw),
+      flowElectricalInputAt: stringStoreValue(this.getStore().copFlowElectricalInputAt),
+      lowThreshold: numberSetting(settings.copLowThreshold, 2),
+      status: this.getCapabilityValue('heatpump_cop_status'),
+    };
   }
 
   private async setCapabilityIfPresent(capability: string, value: boolean | number | string | null): Promise<void> {
@@ -1000,6 +1064,10 @@ class GreeVersatiDevice extends Homey.Device {
   private async setModeFromHomey(value: unknown): Promise<void> {
     if (!isWritableMode(value)) {
       throw new Error(`Unsupported Gree Versati mode: ${String(value)}`);
+    }
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    if (value === 'cool' && settings.allowCoolingModeWrites !== true) {
+      throw new Error('Cool mode writes are disabled. Enable "Allow cooling mode writes" in device settings after confirming cooling is safe for this installation.');
     }
     await this.clientOrThrow().setMode(this.boundDevice(), value);
     await this.refreshState();
@@ -1463,6 +1531,31 @@ class GreeVersatiDevice extends Homey.Device {
     });
   }
 
+  private async updateCopFlowAlerts(estimate: CopEstimate, status: CopStatus): Promise<void> {
+    const previousStatus = stringStoreValue(this.getStore().copLastStatus);
+    if (previousStatus !== status) {
+      await this.setStoreValue('copLastStatus', status);
+      await this.homey.flow.getTriggerCard('cop_status_changed').trigger(this, { status }).catch((error) => {
+        this.error('Failed to trigger cop_status_changed flow', error);
+      });
+    }
+
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const threshold = numberSetting(settings.copLowThreshold, 2);
+    const belowThreshold = threshold > 0 && estimate.status === 'ok' && estimate.cop < threshold;
+    const wasBelowThreshold = this.getStore().copWasBelowThreshold === true;
+    await this.setStoreValue('copWasBelowThreshold', belowThreshold);
+    if (belowThreshold && !wasBelowThreshold) {
+      await this.homey.flow.getTriggerCard('cop_below_threshold').trigger(this, {
+        cop: estimate.cop,
+        threshold,
+        status,
+      }).catch((error) => {
+        this.error('Failed to trigger cop_below_threshold flow', error);
+      });
+    }
+  }
+
   private hoursSinceLastWeatherCurveWrite(): number {
     const lastWriteAt = stringStoreValue(this.getStore().weatherCurveLastWriteAt);
     if (!lastWriteAt) {
@@ -1559,6 +1652,7 @@ class GreeVersatiDevice extends Homey.Device {
   private async appendTelemetryHistory(state: GreeVersatiState): Promise<void> {
     const history = telemetryHistory(this.getStore().telemetryHistory);
     const copEstimate = this.copEstimate(state);
+    const copStatus = this.copStatus(copEstimate);
     const sample: TelemetryHistorySample = {
       at: new Date().toISOString(),
       waterOutTemperature: state.waterOutTemperature,
@@ -1569,10 +1663,11 @@ class GreeVersatiDevice extends Homey.Device {
       hotWaterTargetTemperature: state.hotWaterTargetTemperature,
       curveOutdoorTemperature: numberOrNull(this.getCapabilityValue('weather_curve_outdoor_temperature')),
       curveHeatingTarget: numberOrNull(this.getCapabilityValue('weather_curve_heating_target')),
-      estimatedWaterDeltaTemperature: copEstimate?.waterDeltaTemperature ?? null,
-      estimatedHeatOutputW: copEstimate ? copEstimate.heatOutputKw * 1000 : null,
-      estimatedElectricalInputW: copEstimate ? copEstimate.electricalInputKw * 1000 : null,
-      estimatedCop: copEstimate?.cop ?? null,
+      estimatedWaterDeltaTemperature: copEstimate.status === 'ok' ? copEstimate.waterDeltaTemperature : null,
+      estimatedHeatOutputW: copEstimate.status === 'ok' ? copEstimate.heatOutputKw * 1000 : null,
+      estimatedElectricalInputW: copEstimate.status === 'ok' ? copEstimate.electricalInputKw * 1000 : null,
+      estimatedCop: copEstimate.status === 'ok' ? copEstimate.cop : null,
+      estimatedCopStatus: copStatus,
     };
     await this.setStoreValue('telemetryHistory', [...history, sample].slice(-TELEMETRY_HISTORY_LIMIT));
   }
@@ -1726,6 +1821,19 @@ function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
 }
 
+function copStatus(value: unknown): CopStatus {
+  return value === 'ok' ||
+    value === 'fixed_estimate' ||
+    value === 'off' ||
+    value === 'defrosting' ||
+    value === 'missing_temperature' ||
+    value === 'missing_flow' ||
+    value === 'missing_electrical_input' ||
+    value === 'no_positive_water_delta'
+    ? value
+    : 'missing_electrical_input';
+}
+
 function telemetryHistory(value: unknown): TelemetryHistorySample[] {
   if (!Array.isArray(value)) {
     return [];
@@ -1748,6 +1856,7 @@ function telemetryHistory(value: unknown): TelemetryHistorySample[] {
       estimatedHeatOutputW: numberOrNull(sample.estimatedHeatOutputW),
       estimatedElectricalInputW: numberOrNull(sample.estimatedElectricalInputW),
       estimatedCop: numberOrNull(sample.estimatedCop),
+      estimatedCopStatus: copStatus(sample.estimatedCopStatus),
     }];
   }).slice(-TELEMETRY_HISTORY_LIMIT);
 }

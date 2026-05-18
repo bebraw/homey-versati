@@ -43,4 +43,5 @@
 - Expose water out temperature through Homey's standard `measure_temperature` capability for native mobile app graphs.
 - Expose all numeric graphed Gree values through standard Homey temperature capabilities for native device Insights.
 - Add estimated COP, water delta, heat output, and electrical input graphing from configured flow and consumption estimates.
+- Add Flow-fed COP electrical input, COP status/low-COP Flow cards, and a guarded cooling mode write setting.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.
