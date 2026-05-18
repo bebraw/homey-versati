@@ -78,7 +78,8 @@
         "heatpump_frost_protection",
         "heatpump_evu",
         "weather_curve_outdoor_temperature",
-        "weather_curve_heating_target"
+        "weather_curve_heating_target",
+        "button.refresh"
       ],
       "capabilitiesOptions": {
         "measure_temperature_water_out": {
@@ -146,6 +147,15 @@
         },
         "weather_curve_heating_target": {
           "preventInsights": false
+        },
+        "button.refresh": {
+          "maintenanceAction": true,
+          "title": {
+            "en": "Refresh now"
+          },
+          "desc": {
+            "en": "Poll the heat pump immediately and update Homey capabilities."
+          }
         }
       },
       "pair": [

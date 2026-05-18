@@ -133,6 +133,9 @@ class GreeVersatiDevice extends Homey.Device {
     this.registerCapabilityListener('heatpump_disinfect', async (value) => {
       await this.setDisinfectFromHomey(value);
     });
+    this.registerCapabilityListener('button.refresh', async () => {
+      await this.refreshState();
+    });
     await this.refreshState().catch((error) => this.handleRefreshFailure(error, true));
     this.pollTimer = this.homey.setInterval(() => {
       this.refreshState().catch((error) => this.handleRefreshFailure(error, false));

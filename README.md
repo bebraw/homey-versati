@@ -57,6 +57,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - conditions for device reachability
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, and Disinfect
 - Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
+- Use the `Refresh now` maintenance action in device settings to poll the heat pump immediately.
 
 ## Requirements
 
@@ -184,6 +185,8 @@ The device settings page exposes the current local endpoint:
 - poll interval
 
 Changing the endpoint settings tests the connection before saving. If the device key is left empty, the app attempts to bind again and stores the returned key.
+
+The maintenance actions section includes `Refresh now`, which runs an immediate poll and updates the Homey capabilities used by device tiles, Flow cards, and Insights.
 
 The app also keeps internal diagnostics in the Homey device store:
 
