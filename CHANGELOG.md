@@ -38,4 +38,5 @@
 - Add an Insights status check to the graph widget and diagnostic export.
 - Add a maintenance action to reset app-managed Gree Insights logs.
 - Add a combined interactive cooling mode confirmation script.
+- Add reviewed cooling mode mapping artifact generation for confirmed probe reports.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

@@ -38,6 +38,14 @@ npm run probe:modes:analyze -- tmp/cooling-modes.json
 
 The analyzer checks raw `Pow`/`Mod`, normalized mode, changed fields, and restore cleanliness. It is intentionally conservative and should be treated as a mapping review aid, not automatic approval.
 
+If the analyzer confirms the report, write a reviewed mapping artifact:
+
+```bash
+npm run probe:modes:analyze -- tmp/cooling-modes.json --write-mapping tmp/cooling-mode-mapping.json
+```
+
+Keep this artifact with the implementation notes when promoting any new cooling command.
+
 To capture and analyze in one interactive run:
 
 ```bash

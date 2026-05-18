@@ -37,11 +37,13 @@ interface ModeSummary {
 }
 
 async function main(): Promise<void> {
-  const file = process.argv[2];
+  const args = process.argv.slice(2);
+  const file = args[0];
   if (!file || file === '--help') {
     printHelp();
     process.exit(file ? 0 : 1);
   }
+  const mappingOutput = optionValue(args, '--write-mapping');
 
   const report = JSON.parse(await fs.readFile(file, 'utf8')) as ProbeReport;
   const summaries = (report.observations ?? []).map(summarizeObservation);
@@ -59,9 +61,40 @@ async function main(): Promise<void> {
       : 'Do not add command support yet. Resolve warnings or rerun the guided probe.',
   }, null, 2));
 
+  if (mappingOutput) {
+    if (!allConfirmed) {
+      throw new Error('Refusing to write mapping artifact because the report is not confirmed');
+    }
+    await fs.writeFile(mappingOutput, `${JSON.stringify(mappingArtifact(report, summaries), null, 2)}\n`, 'utf8');
+    console.error(`Wrote reviewed cooling mapping artifact to ${mappingOutput}`);
+  }
+
   if (!allConfirmed) {
     process.exitCode = 1;
   }
+}
+
+function optionValue(args: string[], option: string): string | undefined {
+  const index = args.indexOf(option);
+  return index >= 0 ? args[index + 1] : undefined;
+}
+
+function mappingArtifact(report: ProbeReport, summaries: ModeSummary[]): Record<string, unknown> {
+  return {
+    schema: 'com.gree.versati.coolingModeMapping.v1',
+    createdAt: new Date().toISOString(),
+    capturedAt: report.capturedAt ?? '',
+    note: 'Generated from a confirmed read-only probe. Review manually before implementing command writes.',
+    modes: Object.fromEntries(summaries.map((summary) => [
+      summary.id,
+      {
+        label: summary.label,
+        normalizedMode: summary.normalizedMode,
+        raw: summary.likelyMapping,
+        changedFields: summary.changedFields,
+      },
+    ])),
+  };
 }
 
 function summarizeObservation(observation: Observation): ModeSummary {
@@ -132,7 +165,7 @@ function restoreWarningsFor(report: ProbeReport): string[] {
 }
 
 function printHelp(): void {
-  console.log(`Usage: npm run probe:modes:analyze -- <report.json>
+  console.log(`Usage: npm run probe:modes:analyze -- <report.json> [--write-mapping tmp/cooling-mode-mapping.json]
 
 Analyze a redacted report created by:
   npm run probe:modes -- --mac <mac> --modes cool,cool_hot_water --output tmp/cooling-modes.json

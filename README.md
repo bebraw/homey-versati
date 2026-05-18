@@ -134,6 +134,14 @@ npm run probe:modes:analyze -- tmp/cooling-modes.json
 
 The analyzer summarizes raw mode fields, restore cleanliness, and warnings. Treat its output as a review aid; do not add new command support until the raw mapping is clear.
 
+When the analyzer reports a clean confirmation, generate a reviewed mapping artifact:
+
+```bash
+npm run probe:modes:analyze -- tmp/cooling-modes.json --write-mapping tmp/cooling-mode-mapping.json
+```
+
+The analyzer refuses to write the mapping artifact if the report has warnings.
+
 Run the full interactive cooling confirmation workflow:
 
 ```bash
