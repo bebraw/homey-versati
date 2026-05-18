@@ -451,6 +451,32 @@
           "max": 55
         },
         {
+          "id": "curveBoostTargetMin",
+          "type": "number",
+          "label": {
+            "en": "Boost target minimum"
+          },
+          "hint": {
+            "en": "Minimum heating water target while a temporary Homey curve boost is active."
+          },
+          "value": 20,
+          "min": 20,
+          "max": 55
+        },
+        {
+          "id": "curveBoostTargetMax",
+          "type": "number",
+          "label": {
+            "en": "Boost target maximum"
+          },
+          "hint": {
+            "en": "Maximum heating water target while a temporary Homey curve boost is active."
+          },
+          "value": 55,
+          "min": 20,
+          "max": 55
+        },
+        {
           "id": "curveShape",
           "type": "dropdown",
           "label": {

@@ -49,6 +49,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - write mode updates the heating target only in `Heat + hot water` mode
   - temporary pause/resume controls can suspend Homey-managed curve writes without changing other heat pump settings
   - temporary boost offsets can raise or lower the calculated target without changing the base curve
+  - separate boost safety limits clamp temporary boost targets
   - writes are clamped, deadbanded, and rate-limited
   - outdoor temperature can come from a manual setting or a Homey Flow action
 - Use Homey Flow cards:
@@ -248,7 +249,7 @@ Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating tar
 
 Use the curve widget or Flow actions to pause Homey-managed curve writes for 1 hour, 6 hours, 24 hours, or until manually resumed. Pausing only stops automatic curve writes; telemetry, graphing, and manual Homey controls continue to work.
 
-Use the curve widget or Flow actions to apply a temporary curve boost from `-5°C` to `+5°C`. The boost offsets the calculated target for 1 hour, 6 hours, 24 hours, or until cleared, while leaving the saved curve points unchanged.
+Use the curve widget or Flow actions to apply a temporary curve boost from `-5°C` to `+5°C`. The boost offsets the calculated target for 1 hour, 6 hours, 24 hours, or until cleared, while leaving the saved curve points unchanged. Boost writes use separate boost min/max safety limits so a comfort offset cannot exceed the range you allow for boosted operation.
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
 

@@ -278,6 +278,12 @@
       <label>Target at high
         <input id="curveTargetAtOutdoorHigh" type="number" min="20" max="55" step="1">
       </label>
+      <label>Boost min
+        <input id="curveBoostTargetMin" type="number" min="20" max="55" step="1">
+      </label>
+      <label>Boost max
+        <input id="curveBoostTargetMax" type="number" min="20" max="55" step="1">
+      </label>
       <label>Shape
         <select id="curveShape">
           <option value="linear">Linear</option>
@@ -326,6 +332,8 @@
       'curveTargetAtOutdoorLow',
       'curveOutdoorHigh',
       'curveTargetAtOutdoorHigh',
+      'curveBoostTargetMin',
+      'curveBoostTargetMax',
       'curveShape',
       'curveBend'
     ];
@@ -423,6 +431,8 @@
       setValue('curveTargetAtOutdoorLow', config.targetAtOutdoorLow);
       setValue('curveOutdoorHigh', config.outdoorHigh);
       setValue('curveTargetAtOutdoorHigh', config.targetAtOutdoorHigh);
+      setValue('curveBoostTargetMin', state.boostTargetMin);
+      setValue('curveBoostTargetMax', state.boostTargetMax);
       setValue('curveShape', config.shape);
       setValue('curveBend', config.bend);
 

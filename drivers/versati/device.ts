@@ -69,6 +69,8 @@ const CURVE_SETTING_KEYS = [
   'curveTargetAtOutdoorHigh',
   'curveTargetMin',
   'curveTargetMax',
+  'curveBoostTargetMin',
+  'curveBoostTargetMax',
   'curveShape',
   'curveBend',
   'curveDeadband',
@@ -118,6 +120,8 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveTargetAtOutdoorHigh?: number;
   curveTargetMin?: number;
   curveTargetMax?: number;
+  curveBoostTargetMin?: number;
+  curveBoostTargetMax?: number;
   curveShape?: WeatherCurveShape;
   curveBend?: number;
   curveDeadband?: number;
@@ -133,6 +137,8 @@ interface WeatherCurveSettings {
   deadband: number;
   minWriteIntervalMs: number;
   boost: WeatherCurveBoost;
+  boostTargetMin: number;
+  boostTargetMax: number;
 }
 
 interface WeatherCurveBoost {
@@ -365,6 +371,8 @@ class GreeVersatiDevice extends Homey.Device {
       deadband: settings.deadband,
       minWriteIntervalSeconds: Math.round(settings.minWriteIntervalMs / 1000),
       boost: settings.boost,
+      boostTargetMin: settings.boostTargetMin,
+      boostTargetMax: settings.boostTargetMax,
       values: {
         waterOutTemperature: this.getCapabilityValue('measure_temperature_water_out'),
         heatingTargetTemperature: this.getCapabilityValue('target_temperature_heating'),
@@ -1002,7 +1010,7 @@ class GreeVersatiDevice extends Homey.Device {
     if (!settings.boost.active || settings.boost.offset === 0) {
       return targetTemperature;
     }
-    return Math.min(Math.max(Math.round(targetTemperature + settings.boost.offset), settings.config.targetMin), settings.config.targetMax);
+    return Math.min(Math.max(Math.round(targetTemperature + settings.boost.offset), settings.boostTargetMin), settings.boostTargetMax);
   }
 
   private async appendWeatherCurveAudit(input: {
@@ -1169,6 +1177,8 @@ class GreeVersatiDevice extends Homey.Device {
         DEFAULT_CURVE_MIN_WRITE_INTERVAL_SECONDS,
       ) * 1000),
       boost: weatherCurveBoost(this.getStore().weatherCurveBoostOffset, this.getStore().weatherCurveBoostUntil),
+      boostTargetMin: clampedNumber(settings.curveBoostTargetMin, HEATING_TARGET_MIN, HEATING_TARGET_MAX, config.targetMin),
+      boostTargetMax: clampedNumber(settings.curveBoostTargetMax, HEATING_TARGET_MIN, HEATING_TARGET_MAX, config.targetMax),
     };
   }
 
@@ -1441,6 +1451,8 @@ function weatherCurveWidgetSettings(input: Record<string, unknown>): Record<stri
     ),
     curveTargetMin: clampedNumber(input.curveTargetMin, HEATING_TARGET_MIN, HEATING_TARGET_MAX, DEFAULT_WEATHER_CURVE_CONFIG.targetMin),
     curveTargetMax: clampedNumber(input.curveTargetMax, HEATING_TARGET_MIN, HEATING_TARGET_MAX, DEFAULT_WEATHER_CURVE_CONFIG.targetMax),
+    curveBoostTargetMin: clampedNumber(input.curveBoostTargetMin, HEATING_TARGET_MIN, HEATING_TARGET_MAX, DEFAULT_WEATHER_CURVE_CONFIG.targetMin),
+    curveBoostTargetMax: clampedNumber(input.curveBoostTargetMax, HEATING_TARGET_MIN, HEATING_TARGET_MAX, DEFAULT_WEATHER_CURVE_CONFIG.targetMax),
     curveShape: shape,
     curveBend: clampedNumber(input.curveBend, -100, 100, DEFAULT_WEATHER_CURVE_CONFIG.bend),
     curveDeadband: clampedNumber(input.curveDeadband, 0, 10, DEFAULT_CURVE_DEADBAND),

@@ -31,4 +31,5 @@
 - Add file output support for guided cooling mode confirmation reports.
 - Add temporary Homey-managed weather-curve boost offsets.
 - Add weather-curve write forecasting to the curve widget.
+- Add separate safety clamps for boosted weather-curve targets.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.
