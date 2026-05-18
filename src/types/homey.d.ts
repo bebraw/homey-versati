@@ -14,8 +14,23 @@ declare module 'homey' {
     getTriggerCard(id: string): FlowCard;
   }
 
+  interface InsightsLog {
+    createEntry(value: number | boolean): Promise<void>;
+  }
+
+  interface InsightsManager {
+    createLog(id: string, options: {
+      title: string;
+      type: 'number' | 'boolean';
+      units?: string;
+      decimals?: number;
+    }): Promise<InsightsLog>;
+    getLog(id: string): Promise<InsightsLog>;
+  }
+
   interface HomeyRuntime {
     flow: FlowManager;
+    insights: InsightsManager;
     drivers: {
       getDriver(id: string): Driver & { getDevices(): Device[] };
     };

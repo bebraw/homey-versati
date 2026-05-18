@@ -106,6 +106,130 @@ const BOOLEAN_FLOW_TRIGGER_IDS: Record<string, { true: string; false: string }> 
     false: 'heatpump_evu_false',
   },
 };
+const INSIGHTS_LOG_SPECS = [
+  {
+    id: 'waterout',
+    title: 'Water out temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (state: GreeVersatiState): number | null => state.waterOutTemperature,
+  },
+  {
+    id: 'waterin',
+    title: 'Water in temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (state: GreeVersatiState): number | null => state.waterInTemperature,
+  },
+  {
+    id: 'hotwater',
+    title: 'Hot water temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (state: GreeVersatiState): number | null => state.hotWaterTemperature,
+  },
+  {
+    id: 'optionalwater',
+    title: 'Optional water temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (state: GreeVersatiState): number | null => state.optimalWaterTemperature,
+  },
+  {
+    id: 'remoteroom',
+    title: 'Remote room temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (state: GreeVersatiState): number | null => state.remoteRoomTemperature,
+  },
+  {
+    id: 'heatingtarget',
+    title: 'Heating target',
+    type: 'number',
+    units: '°C',
+    decimals: 0,
+    value: (state: GreeVersatiState): number | null => state.heatingTargetTemperature,
+  },
+  {
+    id: 'coolingtarget',
+    title: 'Cooling target',
+    type: 'number',
+    units: '°C',
+    decimals: 0,
+    value: (state: GreeVersatiState): number | null => state.coolingTargetTemperature,
+  },
+  {
+    id: 'hotwatertarget',
+    title: 'Hot water target',
+    type: 'number',
+    units: '°C',
+    decimals: 0,
+    value: (state: GreeVersatiState): number | null => state.hotWaterTargetTemperature,
+  },
+  {
+    id: 'curveoutdoor',
+    title: 'Curve outdoor temperature',
+    type: 'number',
+    units: '°C',
+    decimals: 1,
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): number | null => numberOrNull(device.getCapabilityValue('weather_curve_outdoor_temperature')),
+  },
+  {
+    id: 'curvetarget',
+    title: 'Curve heating target',
+    type: 'number',
+    units: '°C',
+    decimals: 0,
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): number | null => numberOrNull(device.getCapabilityValue('weather_curve_heating_target')),
+  },
+  {
+    id: 'power',
+    title: 'Power state',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.power,
+  },
+  {
+    id: 'rapid',
+    title: 'Rapid hot water',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.fastHotWater,
+  },
+  {
+    id: 'silence',
+    title: 'Silence',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.silence,
+  },
+  {
+    id: 'wdepend',
+    title: 'W-depend',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.weatherDependent,
+  },
+  {
+    id: 'disinfect',
+    title: 'Disinfect',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.disinfect,
+  },
+  {
+    id: 'defrosting',
+    title: 'Defrosting',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.defrosting,
+  },
+  {
+    id: 'evu',
+    title: 'EVU',
+    type: 'boolean',
+    value: (state: GreeVersatiState): boolean => state.evuActive,
+  },
+] as const satisfies readonly InsightsLogSpec[];
 
 type VersatiSettings = BoundGreeVersatiDevice & {
   name?: string;
@@ -180,6 +304,15 @@ interface WeatherCurveAuditEntry {
   previousTarget: number | null;
   writtenTarget: number | null;
   message: string;
+}
+
+interface InsightsLogSpec {
+  id: string;
+  title: string;
+  type: 'number' | 'boolean';
+  units?: string;
+  decimals?: number;
+  value(state: GreeVersatiState, device: GreeVersatiDevice): number | boolean | null;
 }
 
 type SettingsValue = boolean | string | number | undefined | null;
@@ -580,6 +713,7 @@ class GreeVersatiDevice extends Homey.Device {
     await this.updateDiagnostics(device, state);
     await this.applyWeatherCurveControl(device, state);
     await this.appendTelemetryHistory(state);
+    await this.appendInsightsLogs(state);
     await this.setAvailable();
     this.reachable = true;
     if (!wasReachable) {
@@ -1253,6 +1387,49 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setStoreValue('telemetryHistory', [...history, sample].slice(-TELEMETRY_HISTORY_LIMIT));
   }
 
+  private async appendInsightsLogs(state: GreeVersatiState): Promise<void> {
+    for (const spec of INSIGHTS_LOG_SPECS) {
+      const value = spec.value(state, this);
+      if (value === null) {
+        continue;
+      }
+      try {
+        const log = await this.insightsLog(spec);
+        await log.createEntry(value);
+      } catch (error) {
+        this.error(`Failed to write Insights log ${spec.id}`, error);
+      }
+    }
+  }
+
+  private async insightsLog(spec: InsightsLogSpec): Promise<{ createEntry(value: number | boolean): Promise<void> }> {
+    const id = this.insightsLogId(spec.id);
+    try {
+      return await this.homey.insights.getLog(id);
+    } catch {
+      const options: {
+        title: string;
+        type: 'number' | 'boolean';
+        units?: string;
+        decimals?: number;
+      } = {
+        title: `${this.getName()} ${spec.title}`,
+        type: spec.type,
+      };
+      if (spec.units) {
+        options.units = spec.units;
+      }
+      if (typeof spec.decimals === 'number') {
+        options.decimals = spec.decimals;
+      }
+      return this.homey.insights.createLog(id, options);
+    }
+  }
+
+  private insightsLogId(metric: string): string {
+    return `gv${stableDeviceHash(String(this.getData().id ?? this.getName()))}${metric}`.replace(/[^a-z0-9]/g, '').slice(0, 64);
+  }
+
   private async persistEndpoint(device: BoundGreeVersatiDevice): Promise<void> {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     const normalizedMac = normalizeMac(device.mac);
@@ -1337,6 +1514,15 @@ function normalizeMac(mac: string): string {
 function redactMac(mac: string): string {
   const normalized = normalizeMac(mac);
   return normalized ? `********${normalized.slice(-4)}` : '';
+}
+
+function stableDeviceHash(value: string): string {
+  let hash = 0x811c9dc5;
+  for (const char of value) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash.toString(16).padStart(8, '0');
 }
 
 function stringStoreValue(value: unknown): string {

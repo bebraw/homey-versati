@@ -64,6 +64,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - actions for changing mode, target temperatures, Rapid, Silence, W-depend, Disinfect, weather-curve pause/resume, and temporary curve boost
 - Use temperature Flow action fields with visible default placeholders for common heating and hot water targets.
 - Track capability history in Homey Insights for the exposed temperatures, targets, operating states, EVU, and Homey-managed weather-curve values.
+- Write explicit app-managed Homey Insights logs for the main Gree temperatures, targets, curve values, and boolean states.
 - Use the `Refresh now` maintenance action in device settings to poll the heat pump immediately.
 - Add the `Versati Weather Curve` Homey dashboard widget to inspect and adjust the Homey-managed curve visually.
 - Add the `Versati Graphs` Homey dashboard widget to view recent in-app telemetry graphs without opening Homey Insights.
@@ -276,6 +277,8 @@ The driver exposes Gree values as Homey capabilities and explicitly leaves Insig
 Open Homey Insights and select the paired Gree Versati device to view the graphs. Static diagnostics such as `ModelType`, `VersatiSeries`, IP address, MAC address, and device key stay in the device store/settings and are not exposed as graphable capabilities.
 
 For quick checks inside Homey dashboards, add the `Versati Graphs` widget. The app keeps a bounded local history of the latest `480` successful polls and graphs water out temperature, hot water temperature, heating target, and curve target directly in the widget. The widget also shows poll health, redacted endpoint details, curve control state, and the latest curve decision. The widget refreshes every 30 seconds and can filter the view to `1h`, `6h`, `24h`, or all retained samples. This local widget history is separate from Homey Insights and starts filling after the updated app has run successfully.
+
+Homey should automatically create device Insights for graphable capabilities. The app also creates explicit app-managed Insights logs as a fallback for the main Gree values. These logs appear under the Gree Versati app after the app has run long enough to poll at least once.
 
 The `Versati Weather Curve` widget also shows the latest curve control decisions. The audit history records whether Homey skipped, wrote, or failed a curve update, together with the outdoor input, calculated target, previous heating target, and reason.
 
