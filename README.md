@@ -234,7 +234,7 @@ Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating tar
 
 Curve shape controls how the target bends between the two configured points. `Linear` keeps the direct line. The bend presets lower the target earlier as outdoor temperature rises. `Custom bend` accepts `-100..100`; negative values keep a higher target for longer, while positive values lower the target earlier.
 
-The `Versati Weather Curve` dashboard widget shows the current target, calculated target, outdoor input, and curve shape. It can update the same curve settings as the device settings page. Widgets require Homey `12.3.0` or newer.
+The `Versati Weather Curve` dashboard widget shows the current target, calculated target, outdoor input, write safety status, last skip reason, last write time, and curve shape. It can update the same curve settings as the device settings page. Widgets require Homey `12.3.0` or newer.
 
 ## Homey Insights
 

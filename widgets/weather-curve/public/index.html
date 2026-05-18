@@ -78,6 +78,41 @@
       letter-spacing: 0;
     }
 
+    .safety {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .pill {
+      min-width: 0;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      background: var(--panel);
+    }
+
+    .pill.warn {
+      border-left-color: var(--accent-2);
+    }
+
+    .pill span {
+      display: block;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 10px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pill strong {
+      display: block;
+      overflow: hidden;
+      margin-top: 2px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .curve {
       width: 100%;
       height: 128px;
@@ -144,7 +179,8 @@
 
     @media (max-width: 360px) {
       .status,
-      .controls {
+      .controls,
+      .safety {
         grid-template-columns: 1fr;
       }
     }
@@ -157,6 +193,13 @@
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
       <div class="metric"><span>Outdoor input</span><strong id="outdoorInput">-</strong></div>
       <div class="metric"><span>Mode</span><strong id="mode">-</strong></div>
+    </section>
+
+    <section class="safety">
+      <div class="pill" id="controlPill"><span>Control</span><strong id="controlState">-</strong></div>
+      <div class="pill" id="writePill"><span>Write allowed</span><strong id="writeAllowed">-</strong></div>
+      <div class="pill warn"><span>Last skip</span><strong id="skipReason">-</strong></div>
+      <div class="pill"><span>Last write</span><strong id="lastWrite">-</strong></div>
     </section>
 
     <svg class="curve" id="curve" viewBox="0 0 320 128" role="img" aria-label="Heating target weather curve">
@@ -291,7 +334,14 @@
       text('currentTarget', celsius(state.values && state.values.heatingTargetTemperature, 0));
       text('curveTarget', celsius(state.values && state.values.curveHeatingTarget, 0));
       text('outdoorInput', celsius(state.values && state.values.curveOutdoorTemperature, 1));
-      text('mode', state.values && state.values.mode ? String(state.values.mode).replaceAll('_', ' ') : '-');
+      const mode = state.values && state.values.mode ? String(state.values.mode) : '';
+      text('mode', mode ? mode.replaceAll('_', ' ') : '-');
+      text('controlState', readableControl(state.controlMode));
+      const canWrite = state.controlMode === 'write' && mode === 'heat_hot_water';
+      text('writeAllowed', canWrite ? 'Yes' : 'No');
+      document.getElementById('writePill').classList.toggle('warn', !canWrite);
+      text('skipReason', state.diagnostics && state.diagnostics.lastSkippedReason ? state.diagnostics.lastSkippedReason : '-');
+      text('lastWrite', state.diagnostics && state.diagnostics.lastWriteAt ? new Date(state.diagnostics.lastWriteAt).toLocaleTimeString() : '-');
       draw(config);
     }
 
@@ -328,6 +378,13 @@
 
     function celsius(value, decimals) {
       return typeof value === 'number' ? `${value.toFixed(decimals)}°C` : '-';
+    }
+
+    function readableControl(value) {
+      if (value === 'dry_run') return 'Dry run';
+      if (value === 'write') return 'Write';
+      if (value === 'disabled') return 'Disabled';
+      return '-';
     }
 
     function text(id, value) {
