@@ -27,4 +27,5 @@
 - Add bounded weather-curve audit history for recent skip, write, and error decisions.
 - Add widget and Flow controls for temporarily pausing and resuming Homey-managed weather-curve writes.
 - Add notification-oriented Flow triggers for weather-curve pause, resume, and blocked write states.
+- Add poll, endpoint, and curve decision status to the `Versati Graphs` widget.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

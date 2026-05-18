@@ -110,6 +110,12 @@
       gap: 8px;
     }
 
+    .status {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
     .metric {
       min-width: 0;
       padding: 8px;
@@ -175,7 +181,8 @@
     }
 
     @media (max-width: 360px) {
-      .metrics {
+      .metrics,
+      .status {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
@@ -208,6 +215,13 @@
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
     </section>
 
+    <section class="status">
+      <div class="metric"><span>Poll health</span><strong id="pollHealth">-</strong></div>
+      <div class="metric"><span>Endpoint</span><strong id="endpoint">-</strong></div>
+      <div class="metric"><span>Curve control</span><strong id="curveMode">-</strong></div>
+      <div class="metric"><span>Last decision</span><strong id="curveDecision">-</strong></div>
+    </section>
+
     <section id="charts"></section>
   </main>
 
@@ -235,7 +249,7 @@
       }
       load().finally(() => {
         refreshTimer = setInterval(load, 30000);
-        Homey.ready({ height: 420 });
+        Homey.ready({ height: 500 });
       });
     }
 
@@ -284,6 +298,7 @@
       text('hotWater', celsius(latest.hotWaterTemperature));
       text('heatingTarget', celsius(latest.heatingTargetTemperature, 0));
       text('curveTarget', celsius(latest.curveHeatingTarget, 0));
+      renderDiagnostics(state.diagnostics || {});
 
       if (history.length < 2) {
         document.getElementById('charts').innerHTML = '<div class="empty">Graphs will appear after at least two successful polls.</div>';
@@ -291,6 +306,19 @@
       }
 
       document.getElementById('charts').innerHTML = SERIES.map((series) => chart(series, history)).join('');
+    }
+
+    function renderDiagnostics(diagnostics) {
+      const failures = Number(diagnostics.consecutivePollFailures || 0);
+      const reachable = diagnostics.reachable !== false;
+      text('pollHealth', reachable ? 'Reachable' : `${failures} failures`);
+      const endpoint = diagnostics.endpoint || {};
+      text('endpoint', endpoint.port ? `${endpoint.mac || '-'} · ${endpoint.port}` : '-');
+      const curve = diagnostics.weatherCurve || {};
+      const paused = curve.pausedUntil ? ' paused' : '';
+      text('curveMode', `${curve.mode || '-'}${paused}`);
+      const decision = curve.lastDecision || {};
+      text('curveDecision', decision.reason || curve.lastSkippedReason || '-');
     }
 
     function rangeHistory(history) {

@@ -377,6 +377,10 @@ class GreeVersatiDevice extends Homey.Device {
   async telemetryWidgetState(): Promise<Record<string, unknown>> {
     const history = telemetryHistory(this.getStore().telemetryHistory);
     const latest = history.at(-1);
+    const settings = this.getSettings() as Partial<VersatiSettings>;
+    const store = this.getStore();
+    const auditHistory = weatherCurveAuditHistory(store.weatherCurveAuditHistory);
+    const lastCurveDecision = auditHistory.at(-1) ?? null;
     return {
       device: {
         id: this.getData().id,
@@ -386,6 +390,25 @@ class GreeVersatiDevice extends Homey.Device {
       sampleCount: history.length,
       history,
       latest: latest ?? null,
+      diagnostics: {
+        reachable: this.reachable,
+        lastSuccessfulPollAt: stringStoreValue(store.lastSuccessfulPollAt),
+        lastPollError: stringStoreValue(store.lastPollError),
+        consecutivePollFailures: Number(store.consecutivePollFailures || 0),
+        endpoint: {
+          ip: '<redacted-ip>',
+          port: Number(settings.port || store.port || 7000),
+          mac: redactMac(String(settings.mac || store.mac || '')),
+          encryptionVersion: Number(settings.encryptionVersion || store.encryptionVersion || 1),
+        },
+        weatherCurve: {
+          mode: stringStoreValue(store.weatherCurveMode),
+          pausedUntil: stringStoreValue(store.weatherCurvePausedUntil),
+          lastSkippedReason: stringStoreValue(store.weatherCurveLastSkippedReason),
+          lastWriteAt: stringStoreValue(store.weatherCurveLastWriteAt),
+          lastDecision: lastCurveDecision,
+        },
+      },
     };
   }
 
