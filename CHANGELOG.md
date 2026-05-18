@@ -17,4 +17,5 @@
 - Add a `Refresh now` maintenance action for immediate polling from device settings.
 - Add visible default placeholders for temperature Flow action and condition fields.
 - Add weather-curve presets and a Homey dashboard widget for visual curve adjustment.
+- Document runtime/energy probe status and add client test coverage for Cool and Hot water mode writes.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

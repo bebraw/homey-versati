@@ -57,6 +57,17 @@ Weather-dependent curve mapping status:
 - Probe one visible curve parameter at a time, preferably with `W-depend` enabled and the unit in heating mode.
 - Do not add write commands for curve fields until a read-only before/after mapping and restore behavior are confirmed.
 
+Runtime and energy mapping status:
+
+- A live probe on the tested unit did not return non-empty values for common compressor frequency, compressor runtime, pump, fan, power input, or energy counter candidates.
+- Do not promote runtime counters to graphable Homey capabilities until a non-empty field is confirmed on real hardware.
+- Keep runtime and energy candidates in the diagnostics probe so future firmware variants can be checked without changing the app.
+
+Cooling mapping status:
+
+- `Cool` uses upstream `Mod: 1` and is covered by the local UDP client tests, but it is not yet live-tested on this heating-only installation.
+- `Cool + hot water` is visible in the official app but is not mapped yet. Do not add a command until a before/after snapshot confirms the raw mode/property combination and restore behavior.
+
 Start with low-risk read/write changes:
 
 1. Identify what the official app calls the current operating mode while raw `Mod` is `2`. Captured: `Mod: 2` means `Hot water`.

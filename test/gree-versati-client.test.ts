@@ -182,6 +182,18 @@ test('writes heat pump mode over UDP command packets', async () => {
     assert.equal(state.mode, 'off');
     assert.equal(state.raw[AWHP_PROPS.power], 0);
     assert.equal(state.raw[AWHP_PROPS.mode], 4);
+
+    await client.setMode(bound, 'cool');
+    state = await client.getState(bound);
+    assert.equal(state.mode, 'cool');
+    assert.equal(state.raw[AWHP_PROPS.power], 1);
+    assert.equal(state.raw[AWHP_PROPS.mode], 1);
+
+    await client.setMode(bound, 'hot_water');
+    state = await client.getState(bound);
+    assert.equal(state.mode, 'hot_water');
+    assert.equal(state.raw[AWHP_PROPS.power], 1);
+    assert.equal(state.raw[AWHP_PROPS.mode], 2);
   } finally {
     await server.close();
   }

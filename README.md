@@ -33,7 +33,7 @@ The app talks directly to the heat pump over the local network using UDP port `7
   - off
   - hot water
   - heat + hot water
-  - cool
+  - cool (mapped from upstream protocol value and unit-tested, but not live-tested on this installation)
 - Change target temperatures:
   - heating target, clamped to `20-55°C`
   - hot water target, clamped to `30-60°C`
@@ -252,11 +252,12 @@ Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
 2. Tune the Homey-managed weather curve against real heating behavior.
-3. Finish mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
+3. Finish `Cool + hot water` mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
 4. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
-5. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
-6. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
-7. Refine app artwork further if needed before distribution outside local development.
+5. Revisit runtime and energy counters only after diagnostics returns non-empty compressor, pump, fan, power, or energy fields on real hardware.
+6. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.
+7. Promote confirmed diagnostics probe fields to read-only Homey diagnostics or capabilities where useful.
+8. Refine app artwork further if needed before distribution outside local development.
 
 ## Protocol Notes
 
