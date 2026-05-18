@@ -1468,7 +1468,7 @@ class GreeVersatiDevice extends Homey.Device {
     if (previous === reason) {
       return;
     }
-    await this.homey.flow.getTriggerCard('weather_curve_skipped').trigger(this, { reason }).catch((error) => {
+    await this.homey.flow.getTriggerCard('weather_curve_skipped').trigger({ reason }).catch((error) => {
       this.error('Failed to trigger weather_curve_skipped flow', error);
     });
     if (this.shouldTriggerWeatherCurveWriteBlocked(reason)) {
@@ -1481,7 +1481,7 @@ class GreeVersatiDevice extends Homey.Device {
     targetTemperature: number,
     previousTarget: number,
   ): Promise<void> {
-    await this.homey.flow.getTriggerCard('weather_curve_written').trigger(this, {
+    await this.homey.flow.getTriggerCard('weather_curve_written').trigger({
       outdoor_temperature: outdoorTemperature,
       heating_target: targetTemperature,
       previous_heating_target: previousTarget,
@@ -1491,7 +1491,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerWeatherCurveError(message: string): Promise<void> {
-    await this.homey.flow.getTriggerCard('weather_curve_error').trigger(this, {
+    await this.homey.flow.getTriggerCard('weather_curve_error').trigger({
       error: message,
     }).catch((error) => {
       this.error('Failed to trigger weather_curve_error flow', error);
@@ -1509,7 +1509,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerWeatherCurveWriteBlocked(reason: string): Promise<void> {
-    await this.homey.flow.getTriggerCard('weather_curve_write_blocked').trigger(this, {
+    await this.homey.flow.getTriggerCard('weather_curve_write_blocked').trigger({
       reason,
       hours_since_write: this.hoursSinceLastWeatherCurveWrite(),
     }).catch((error) => {
@@ -1518,7 +1518,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerWeatherCurvePaused(pausedUntil: string): Promise<void> {
-    await this.homey.flow.getTriggerCard('weather_curve_paused').trigger(this, {
+    await this.homey.flow.getTriggerCard('weather_curve_paused').trigger({
       paused_until: pausedUntil,
     }).catch((error) => {
       this.error('Failed to trigger weather_curve_paused flow', error);
@@ -1526,7 +1526,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private async triggerWeatherCurveResumed(): Promise<void> {
-    await this.homey.flow.getTriggerCard('weather_curve_resumed').trigger(this).catch((error) => {
+    await this.homey.flow.getTriggerCard('weather_curve_resumed').trigger().catch((error) => {
       this.error('Failed to trigger weather_curve_resumed flow', error);
     });
   }
@@ -1535,7 +1535,7 @@ class GreeVersatiDevice extends Homey.Device {
     const previousStatus = stringStoreValue(this.getStore().copLastStatus);
     if (previousStatus !== status) {
       await this.setStoreValue('copLastStatus', status);
-      await this.homey.flow.getTriggerCard('cop_status_changed').trigger(this, { status }).catch((error) => {
+      await this.homey.flow.getTriggerCard('cop_status_changed').trigger({ status }).catch((error) => {
         this.error('Failed to trigger cop_status_changed flow', error);
       });
     }
@@ -1546,7 +1546,7 @@ class GreeVersatiDevice extends Homey.Device {
     const wasBelowThreshold = this.getStore().copWasBelowThreshold === true;
     await this.setStoreValue('copWasBelowThreshold', belowThreshold);
     if (belowThreshold && !wasBelowThreshold) {
-      await this.homey.flow.getTriggerCard('cop_below_threshold').trigger(this, {
+      await this.homey.flow.getTriggerCard('cop_below_threshold').trigger({
         cop: estimate.cop,
         threshold,
         status,
