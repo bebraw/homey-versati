@@ -305,6 +305,19 @@ For the electrical input, the best source is whole heat-pump consumption: outdoo
 
 Cooling mode writes are guarded by default. Enable `Allow cooling mode writes` in device settings only after confirming cooling operation is safe for your installation.
 
+## Operating State And Alerts
+
+The app derives an `Operating state` from the Gree mode, water delta, heater flags, defrosting, Rapid hot water, and frost protection. Possible states include `Heating`, `Hot water`, `Idle`, `Defrosting`, `Backup heater`, `Rapid hot water`, `Cooling`, `Frost protection`, `Off`, and `Unknown`.
+
+Sustained abnormal-operation Flow triggers are available for:
+
+- backup/tank heater active too long
+- defrosting active too long
+- low heating water delta for too long
+- slow hot water recovery
+
+Each alert has a device setting for the delay or threshold. Alerts trigger only after the condition stays active for the configured duration and reset when the condition clears.
+
 ## Homey Insights
 
 The driver exposes Gree values as Homey capabilities and explicitly leaves Insights enabled for telemetry that is useful to graph over time:
@@ -312,6 +325,7 @@ The driver exposes Gree values as Homey capabilities and explicitly leaves Insig
 - water out, water in, hot water, optional water sensor, and remote room temperatures
 - heating, cooling, and hot water targets
 - estimated water delta, heat output, electrical input, and COP
+- operating state
 - power, mode, Rapid, Silence, W-depend, Disinfect, defrosting, heater, frost protection, and EVU states
 - Homey-managed curve outdoor temperature and calculated heating target
 

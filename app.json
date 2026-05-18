@@ -72,6 +72,7 @@
         "measure_power.electrical_input_estimated",
         "measure_cop_estimated",
         "heatpump_cop_status",
+        "heatpump_operating_state",
         "measure_temperature_water_out",
         "measure_temperature_water_in",
         "measure_temperature_hot_water",
@@ -180,6 +181,9 @@
           "preventInsights": false
         },
         "heatpump_cop_status": {
+          "preventInsights": false
+        },
+        "heatpump_operating_state": {
           "preventInsights": false
         },
         "measure_temperature_water_out": {
@@ -741,6 +745,84 @@
           "value": 2,
           "min": 0,
           "max": 10
+        },
+        {
+          "id": "alertDefrostingMinutes",
+          "type": "number",
+          "label": {
+            "en": "Defrosting alert delay"
+          },
+          "hint": {
+            "en": "Trigger an alert after defrosting has stayed active this many minutes. Set to 0 to disable."
+          },
+          "value": 20,
+          "min": 0,
+          "max": 240
+        },
+        {
+          "id": "alertBackupHeaterMinutes",
+          "type": "number",
+          "label": {
+            "en": "Backup heater alert delay"
+          },
+          "hint": {
+            "en": "Trigger an alert after tank/HP heater status has stayed active this many minutes. Set to 0 to disable."
+          },
+          "value": 30,
+          "min": 0,
+          "max": 240
+        },
+        {
+          "id": "alertLowWaterDelta",
+          "type": "number",
+          "label": {
+            "en": "Low water delta threshold"
+          },
+          "hint": {
+            "en": "Trigger when water out minus water in stays below this value during heat mode. Set to 0 to disable."
+          },
+          "value": 1,
+          "min": 0,
+          "max": 20
+        },
+        {
+          "id": "alertLowWaterDeltaMinutes",
+          "type": "number",
+          "label": {
+            "en": "Low water delta alert delay"
+          },
+          "hint": {
+            "en": "Trigger after low water delta has persisted this many minutes."
+          },
+          "value": 20,
+          "min": 0,
+          "max": 240
+        },
+        {
+          "id": "alertHotWaterRecoveryMargin",
+          "type": "number",
+          "label": {
+            "en": "Hot water recovery margin"
+          },
+          "hint": {
+            "en": "Trigger when hot water stays this many degrees below target while hot water mode is active. Set to 0 to disable."
+          },
+          "value": 5,
+          "min": 0,
+          "max": 30
+        },
+        {
+          "id": "alertHotWaterRecoveryMinutes",
+          "type": "number",
+          "label": {
+            "en": "Hot water recovery alert delay"
+          },
+          "hint": {
+            "en": "Trigger after slow hot water recovery has persisted this many minutes."
+          },
+          "value": 120,
+          "min": 0,
+          "max": 480
         }
       ]
     }
@@ -1061,6 +1143,76 @@
           "id": "no_positive_water_delta",
           "title": {
             "en": "No positive water delta"
+          }
+        }
+      ],
+      "getable": true,
+      "setable": false
+    },
+    "heatpump_operating_state": {
+      "type": "enum",
+      "title": {
+        "en": "Operating state"
+      },
+      "values": [
+        {
+          "id": "off",
+          "title": {
+            "en": "Off"
+          }
+        },
+        {
+          "id": "idle",
+          "title": {
+            "en": "Idle"
+          }
+        },
+        {
+          "id": "heating",
+          "title": {
+            "en": "Heating"
+          }
+        },
+        {
+          "id": "hot_water",
+          "title": {
+            "en": "Hot water"
+          }
+        },
+        {
+          "id": "cooling",
+          "title": {
+            "en": "Cooling"
+          }
+        },
+        {
+          "id": "defrosting",
+          "title": {
+            "en": "Defrosting"
+          }
+        },
+        {
+          "id": "backup_heater",
+          "title": {
+            "en": "Backup heater"
+          }
+        },
+        {
+          "id": "rapid_hot_water",
+          "title": {
+            "en": "Rapid hot water"
+          }
+        },
+        {
+          "id": "frost_protection",
+          "title": {
+            "en": "Frost protection"
+          }
+        },
+        {
+          "id": "unknown",
+          "title": {
+            "en": "Unknown"
           }
         }
       ],
@@ -1625,6 +1777,146 @@
             }
           }
         ]
+      },
+      {
+        "id": "operating_state_changed",
+        "title": {
+          "en": "Operating state changed"
+        },
+        "tokens": [
+          {
+            "name": "state",
+            "type": "string",
+            "title": {
+              "en": "State"
+            },
+            "example": {
+              "en": "heating"
+            }
+          }
+        ]
+      },
+      {
+        "id": "backup_heater_active_long",
+        "title": {
+          "en": "Backup heater active too long"
+        },
+        "tokens": [
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": {
+              "en": "30"
+            }
+          },
+          {
+            "name": "state",
+            "type": "string",
+            "title": {
+              "en": "State"
+            },
+            "example": {
+              "en": "backup_heater"
+            }
+          }
+        ]
+      },
+      {
+        "id": "defrosting_active_long",
+        "title": {
+          "en": "Defrosting active too long"
+        },
+        "tokens": [
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": {
+              "en": "20"
+            }
+          }
+        ]
+      },
+      {
+        "id": "water_delta_low_long",
+        "title": {
+          "en": "Water delta low too long"
+        },
+        "tokens": [
+          {
+            "name": "water_delta",
+            "type": "number",
+            "title": {
+              "en": "Water delta"
+            },
+            "example": {
+              "en": "0.6"
+            }
+          },
+          {
+            "name": "threshold",
+            "type": "number",
+            "title": {
+              "en": "Threshold"
+            },
+            "example": {
+              "en": "1"
+            }
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": {
+              "en": "20"
+            }
+          }
+        ]
+      },
+      {
+        "id": "hot_water_recovery_slow",
+        "title": {
+          "en": "Hot water recovery is slow"
+        },
+        "tokens": [
+          {
+            "name": "temperature",
+            "type": "number",
+            "title": {
+              "en": "Temperature"
+            },
+            "example": {
+              "en": "43"
+            }
+          },
+          {
+            "name": "target",
+            "type": "number",
+            "title": {
+              "en": "Target"
+            },
+            "example": {
+              "en": "50"
+            }
+          },
+          {
+            "name": "minutes",
+            "type": "number",
+            "title": {
+              "en": "Minutes"
+            },
+            "example": {
+              "en": "120"
+            }
+          }
+        ]
       }
     ],
     "conditions": [
@@ -2022,6 +2314,88 @@
                 "id": "no_positive_water_delta",
                 "label": {
                   "en": "No positive water delta"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "operating_state_is",
+        "title": {
+          "en": "Operating state !{{is|isn't}} ..."
+        },
+        "titleFormatted": {
+          "en": "Operating state !{{is|isn't}} [[state]]"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=versati"
+          },
+          {
+            "name": "state",
+            "type": "dropdown",
+            "values": [
+              {
+                "id": "off",
+                "label": {
+                  "en": "Off"
+                }
+              },
+              {
+                "id": "idle",
+                "label": {
+                  "en": "Idle"
+                }
+              },
+              {
+                "id": "heating",
+                "label": {
+                  "en": "Heating"
+                }
+              },
+              {
+                "id": "hot_water",
+                "label": {
+                  "en": "Hot water"
+                }
+              },
+              {
+                "id": "cooling",
+                "label": {
+                  "en": "Cooling"
+                }
+              },
+              {
+                "id": "defrosting",
+                "label": {
+                  "en": "Defrosting"
+                }
+              },
+              {
+                "id": "backup_heater",
+                "label": {
+                  "en": "Backup heater"
+                }
+              },
+              {
+                "id": "rapid_hot_water",
+                "label": {
+                  "en": "Rapid hot water"
+                }
+              },
+              {
+                "id": "frost_protection",
+                "label": {
+                  "en": "Frost protection"
+                }
+              },
+              {
+                "id": "unknown",
+                "label": {
+                  "en": "Unknown"
                 }
               }
             ]

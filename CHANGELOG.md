@@ -44,4 +44,5 @@
 - Expose all numeric graphed Gree values through standard Homey temperature capabilities for native device Insights.
 - Add estimated COP, water delta, heat output, and electrical input graphing from configured flow and consumption estimates.
 - Add Flow-fed COP electrical input, COP status/low-COP Flow cards, and a guarded cooling mode write setting.
+- Add derived operating state plus sustained abnormal-operation Flow alerts.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

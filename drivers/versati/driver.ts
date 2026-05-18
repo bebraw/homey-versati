@@ -39,6 +39,7 @@ interface FlowDevice {
   flowHasPollHistory(): boolean;
   flowCopBelow(cop: unknown): boolean;
   flowCopStatusIs(status: unknown): boolean;
+  flowOperatingStateIs(state: unknown): boolean;
 }
 
 class GreeVersatiDriver extends Homey.Driver {
@@ -174,6 +175,10 @@ class GreeVersatiDriver extends Homey.Driver {
 
     this.homey.flow.getConditionCard('cop_status_is').registerRunListener((args) => {
       return flowDevice(args).flowCopStatusIs(dropdownValue(args.status));
+    });
+
+    this.homey.flow.getConditionCard('operating_state_is').registerRunListener((args) => {
+      return flowDevice(args).flowOperatingStateIs(dropdownValue(args.state));
     });
   }
 }
