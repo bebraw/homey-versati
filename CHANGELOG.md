@@ -37,4 +37,5 @@
 - Add explicit app-managed Homey Insights logs for key Gree telemetry and states.
 - Add an Insights status check to the graph widget and diagnostic export.
 - Add a maintenance action to reset app-managed Gree Insights logs.
+- Add a combined interactive cooling mode confirmation script.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.

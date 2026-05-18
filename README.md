@@ -134,6 +134,14 @@ npm run probe:modes:analyze -- tmp/cooling-modes.json
 
 The analyzer summarizes raw mode fields, restore cleanliness, and warnings. Treat its output as a review aid; do not add new command support until the raw mapping is clear.
 
+Run the full interactive cooling confirmation workflow:
+
+```bash
+npm run probe:modes:confirm -- --mac 001122334455
+```
+
+This runs the guided `Cool` and `Cool + hot water` probe, writes `tmp/cooling-modes.json`, and analyzes it immediately after you restore the original mode.
+
 Smoke-test guarded toggle commands against a live unit:
 
 ```bash
