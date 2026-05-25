@@ -226,7 +226,7 @@ const INSIGHTS_LOG_SPECS = [
   },
   {
     id: 'waterdeltaestimated',
-    title: 'Estimated water delta',
+    title: 'Water delta',
     type: 'number',
     units: '°C',
     decimals: 2,
@@ -942,7 +942,7 @@ class GreeVersatiDevice extends Homey.Device {
     await this.setCapabilityIfPresent('measure_temperature.heating_target', state.heatingTargetTemperature);
     await this.setCapabilityIfPresent('measure_temperature.cooling_target', state.coolingTargetTemperature);
     await this.setCapabilityIfPresent('measure_temperature.hot_water_target', state.hotWaterTargetTemperature);
-    await this.setNullableCapabilityIfPresent('measure_temperature.water_delta', copEstimate.status === 'ok' ? copEstimate.waterDeltaTemperature : null);
+    await this.setNullableCapabilityIfPresent('measure_temperature.water_delta', waterDeltaTemperature(state));
     await this.setNullableCapabilityIfPresent('measure_power.heat_output_estimated', copEstimate.status === 'ok' ? copEstimate.heatOutputKw * 1000 : null);
     await this.setNullableCapabilityIfPresent('measure_power.electrical_input_estimated', copEstimate.status === 'ok' ? copEstimate.electricalInputKw * 1000 : null);
     await this.setNullableCapabilityIfPresent('measure_cop_estimated', copEstimate.status === 'ok' ? copEstimate.cop : null);
@@ -1013,9 +1013,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private operatingState(state: GreeVersatiState, estimate: CopEstimate): OperatingState {
-    const waterDelta = state.waterOutTemperature !== null && state.waterInTemperature !== null
-      ? state.waterOutTemperature - state.waterInTemperature
-      : null;
+    const waterDelta = waterDeltaTemperature(state);
     if (!state.power) {
       return 'off';
     }
@@ -1638,9 +1636,7 @@ class GreeVersatiDevice extends Homey.Device {
     operatingState: OperatingState,
   ): Promise<void> {
     const settings = this.getSettings() as Partial<VersatiSettings>;
-    const waterDelta = state.waterOutTemperature !== null && state.waterInTemperature !== null
-      ? state.waterOutTemperature - state.waterInTemperature
-      : null;
+    const waterDelta = waterDeltaTemperature(state);
     const lowWaterDeltaThreshold = numberSetting(settings.alertLowWaterDelta, 1);
     const hotWaterMargin = numberSetting(settings.alertHotWaterRecoveryMargin, 5);
 
@@ -1839,7 +1835,7 @@ class GreeVersatiDevice extends Homey.Device {
       hotWaterTargetTemperature: state.hotWaterTargetTemperature,
       curveOutdoorTemperature: numberOrNull(this.getCapabilityValue('weather_curve_outdoor_temperature')),
       curveHeatingTarget: numberOrNull(this.getCapabilityValue('weather_curve_heating_target')),
-      estimatedWaterDeltaTemperature: copEstimate.status === 'ok' ? copEstimate.waterDeltaTemperature : null,
+      estimatedWaterDeltaTemperature: waterDeltaTemperature(state),
       estimatedHeatOutputW: copEstimate.status === 'ok' ? copEstimate.heatOutputKw * 1000 : null,
       estimatedElectricalInputW: copEstimate.status === 'ok' ? copEstimate.electricalInputKw * 1000 : null,
       estimatedCop: copEstimate.status === 'ok' ? copEstimate.cop : null,
@@ -1996,6 +1992,18 @@ function stringStoreValue(value: unknown): string {
 
 function numberOrNull(value: unknown): number | null {
   return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function waterDeltaTemperature(state: GreeVersatiState): number | null {
+  if (state.waterOutTemperature === null || state.waterInTemperature === null) {
+    return null;
+  }
+  return roundNumber(state.waterOutTemperature - state.waterInTemperature, 2);
+}
+
+function roundNumber(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
 }
 
 function copStatus(value: unknown): CopStatus {
