@@ -388,29 +388,25 @@
   },
   {
     "id": "copWaterFlowNominalKw",
-    "type": "number",
+    "type": "text",
     "label": {
       "en": "COP nominal heat output"
     },
     "hint": {
       "en": "Nominal heat-pump output in kW. When above 0, Homey estimates water flow from this and a 5 degree water delta. Set to 0 to enter water flow manually below."
     },
-    "value": 0,
-    "min": 0,
-    "max": 40
+    "value": "0"
   },
   {
     "id": "copWaterFlowRateLMin",
-    "type": "number",
+    "type": "text",
     "label": {
       "en": "COP water flow"
     },
     "hint": {
       "en": "Manual heating circuit flow in L/min, used when nominal heat output is 0. Examples: 4 kW=11.5, 6=17.2, 8=22.9, 10=28.7, 12=34.4, 14=40.1, 16=45.9. Set both flow inputs to 0 to disable COP."
     },
-    "value": 0,
-    "min": 0,
-    "max": 200
+    "value": "0"
   },
   {
     "id": "copElectricalInputKw",

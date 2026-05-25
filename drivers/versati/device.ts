@@ -382,8 +382,8 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveMinWriteInterval?: number;
   allowCoolingModeWrites?: boolean;
   copElectricalInputSource?: 'fixed' | 'flow';
-  copWaterFlowNominalKw?: number;
-  copWaterFlowRateLMin?: number;
+  copWaterFlowNominalKw?: number | string;
+  copWaterFlowRateLMin?: number | string;
   copElectricalInputKw?: number;
   copLowThreshold?: number;
   alertDefrostingMinutes?: number;
@@ -2082,8 +2082,12 @@ class GreeVersatiDevice extends Homey.Device {
     if (store.mac && !settings.mac) updates.mac = normalizeMac(store.mac);
     if (store.key && !settings.key) updates.key = store.key;
     if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = String(store.encryptionVersion);
-    if (typeof settings.copWaterFlowNominalKw !== 'number') updates.copWaterFlowNominalKw = 0;
-    if (typeof settings.copWaterFlowRateLMin !== 'number') updates.copWaterFlowRateLMin = 0;
+    if (typeof settings.copWaterFlowNominalKw !== 'string') {
+      updates.copWaterFlowNominalKw = String(numberSetting(settings.copWaterFlowNominalKw, 0));
+    }
+    if (typeof settings.copWaterFlowRateLMin !== 'string') {
+      updates.copWaterFlowRateLMin = String(numberSetting(settings.copWaterFlowRateLMin, 0));
+    }
     if (typeof settings.copElectricalInputKw !== 'number') updates.copElectricalInputKw = 0;
     if (typeof settings.copLowThreshold !== 'number') updates.copLowThreshold = 2;
 
