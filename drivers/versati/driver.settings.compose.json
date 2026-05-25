@@ -349,5 +349,171 @@
     "value": 1800,
     "min": 300,
     "max": 86400
+  },
+  {
+    "id": "allowCoolingModeWrites",
+    "type": "checkbox",
+    "label": {
+      "en": "Allow cooling mode writes"
+    },
+    "hint": {
+      "en": "Keeps Cool mode guarded until you have confirmed cooling operation is safe for the installation."
+    },
+    "value": false
+  },
+  {
+    "id": "copElectricalInputSource",
+    "type": "dropdown",
+    "label": {
+      "en": "COP electrical input source"
+    },
+    "hint": {
+      "en": "Use a fixed kW estimate or let a Homey Flow feed live electrical input."
+    },
+    "value": "fixed",
+    "values": [
+      {
+        "id": "fixed",
+        "label": {
+          "en": "Fixed estimate"
+        }
+      },
+      {
+        "id": "flow",
+        "label": {
+          "en": "Flow-provided input"
+        }
+      }
+    ]
+  },
+  {
+    "id": "copWaterFlowNominalKw",
+    "type": "number",
+    "label": {
+      "en": "COP nominal heat output"
+    },
+    "hint": {
+      "en": "Nominal heat-pump output in kW. When above 0, Homey estimates water flow from this and a 5 degree water delta. Set to 0 to enter water flow manually below."
+    },
+    "value": 0,
+    "min": 0,
+    "max": 40
+  },
+  {
+    "id": "copWaterFlowRateLMin",
+    "type": "number",
+    "label": {
+      "en": "COP water flow"
+    },
+    "hint": {
+      "en": "Manual heating circuit flow in L/min, used when nominal heat output is 0. Examples: 4 kW=11.5, 6=17.2, 8=22.9, 10=28.7, 12=34.4, 14=40.1, 16=45.9. Set both flow inputs to 0 to disable COP."
+    },
+    "value": 0,
+    "min": 0,
+    "max": 200
+  },
+  {
+    "id": "copElectricalInputKw",
+    "type": "number",
+    "label": {
+      "en": "COP electrical input"
+    },
+    "hint": {
+      "en": "Estimated whole heat-pump electrical input in kW. Prefer a meter covering indoor and outdoor unit consumption."
+    },
+    "value": 0,
+    "min": 0,
+    "max": 50
+  },
+  {
+    "id": "copLowThreshold",
+    "type": "number",
+    "label": {
+      "en": "Low COP threshold"
+    },
+    "hint": {
+      "en": "Triggers the low-COP Flow when Estimated COP crosses below this value. Set to 0 to disable the alert."
+    },
+    "value": 2,
+    "min": 0,
+    "max": 10
+  },
+  {
+    "id": "alertDefrostingMinutes",
+    "type": "number",
+    "label": {
+      "en": "Defrosting alert delay"
+    },
+    "hint": {
+      "en": "Trigger an alert after defrosting has stayed active this many minutes. Set to 0 to disable."
+    },
+    "value": 20,
+    "min": 0,
+    "max": 240
+  },
+  {
+    "id": "alertBackupHeaterMinutes",
+    "type": "number",
+    "label": {
+      "en": "Backup heater alert delay"
+    },
+    "hint": {
+      "en": "Trigger an alert after tank/HP heater status has stayed active this many minutes. Set to 0 to disable."
+    },
+    "value": 30,
+    "min": 0,
+    "max": 240
+  },
+  {
+    "id": "alertLowWaterDelta",
+    "type": "number",
+    "label": {
+      "en": "Low water delta threshold"
+    },
+    "hint": {
+      "en": "Trigger when water out minus water in stays below this value during heat mode. Set to 0 to disable."
+    },
+    "value": 1,
+    "min": 0,
+    "max": 20
+  },
+  {
+    "id": "alertLowWaterDeltaMinutes",
+    "type": "number",
+    "label": {
+      "en": "Low water delta alert delay"
+    },
+    "hint": {
+      "en": "Trigger after low water delta has persisted this many minutes."
+    },
+    "value": 20,
+    "min": 0,
+    "max": 240
+  },
+  {
+    "id": "alertHotWaterRecoveryMargin",
+    "type": "number",
+    "label": {
+      "en": "Hot water recovery margin"
+    },
+    "hint": {
+      "en": "Trigger when hot water stays this many degrees below target while hot water mode is active. Set to 0 to disable."
+    },
+    "value": 5,
+    "min": 0,
+    "max": 30
+  },
+  {
+    "id": "alertHotWaterRecoveryMinutes",
+    "type": "number",
+    "label": {
+      "en": "Hot water recovery alert delay"
+    },
+    "hint": {
+      "en": "Trigger after slow hot water recovery has persisted this many minutes."
+    },
+    "value": 120,
+    "min": 0,
+    "max": 480
   }
 ]
