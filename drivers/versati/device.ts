@@ -2003,6 +2003,10 @@ class GreeVersatiDevice extends Homey.Device {
     if (store.mac && !settings.mac) updates.mac = normalizeMac(store.mac);
     if (store.key && !settings.key) updates.key = store.key;
     if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = String(store.encryptionVersion);
+    if (typeof settings.copWaterFlowNominalKw !== 'number') updates.copWaterFlowNominalKw = 0;
+    if (typeof settings.copWaterFlowRateLMin !== 'number') updates.copWaterFlowRateLMin = 0;
+    if (typeof settings.copElectricalInputKw !== 'number') updates.copElectricalInputKw = 0;
+    if (typeof settings.copLowThreshold !== 'number') updates.copLowThreshold = 2;
 
     if (Object.keys(updates).length) {
       await this.setSettings(updates);
