@@ -219,7 +219,7 @@
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
       <div class="metric"><span>Estimated COP</span><strong id="estimatedCop">-</strong></div>
       <div class="metric"><span>COP status</span><strong id="copStatus">-</strong></div>
-      <div class="metric"><span>Operating</span><strong id="operatingState">-</strong></div>
+      <div class="metric"><span>Mode</span><strong id="mode">-</strong></div>
     </section>
 
     <section class="status">
@@ -325,7 +325,7 @@
       text('hotWaterTarget', celsius(latest.hotWaterTargetTemperature, 0));
       text('curveTarget', celsius(latest.curveHeatingTarget, 0));
       text('estimatedCop', formatValue(latest.estimatedCop, '', 2));
-      text('operatingState', label(latest.operatingState || (state.values && state.values.operatingState) || '-'));
+      text('mode', label(latest.mode || (state.values && state.values.mode) || '-'));
       renderDiagnostics(state.diagnostics || {});
 
       if (history.length < 2) {

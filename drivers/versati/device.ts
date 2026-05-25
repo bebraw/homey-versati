@@ -374,6 +374,7 @@ interface TelemetryHistorySample {
   estimatedElectricalInputW: number | null;
   estimatedCop: number | null;
   estimatedCopStatus: CopStatus;
+  mode: GreeVersatiState['mode'] | null;
   operatingState: OperatingState;
 }
 
@@ -739,6 +740,10 @@ class GreeVersatiDevice extends Homey.Device {
       sampleCount: history.length,
       history,
       latest: latest ?? null,
+      values: {
+        mode: this.getCapabilityValue('heatpump_mode'),
+        operatingState: this.getCapabilityValue('heatpump_operating_state'),
+      },
       diagnostics: {
         reachable: this.reachable,
         lastSuccessfulPollAt: stringStoreValue(store.lastSuccessfulPollAt),
@@ -1840,6 +1845,7 @@ class GreeVersatiDevice extends Homey.Device {
       estimatedElectricalInputW: copEstimate.status === 'ok' ? copEstimate.electricalInputKw * 1000 : null,
       estimatedCop: copEstimate.status === 'ok' ? copEstimate.cop : null,
       estimatedCopStatus: copStatus,
+      mode: state.mode,
       operatingState,
     };
     await this.setStoreValue('telemetryHistory', [...history, sample].slice(-TELEMETRY_HISTORY_LIMIT));
@@ -2057,6 +2063,7 @@ function telemetryHistory(value: unknown): TelemetryHistorySample[] {
       estimatedElectricalInputW: numberOrNull(sample.estimatedElectricalInputW),
       estimatedCop: numberOrNull(sample.estimatedCop),
       estimatedCopStatus: copStatus(sample.estimatedCopStatus),
+      mode: weatherCurveHeatPumpMode(sample.mode),
       operatingState: operatingState(sample.operatingState),
     }];
   }).slice(-TELEMETRY_HISTORY_LIMIT);
