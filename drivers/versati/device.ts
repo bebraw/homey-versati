@@ -297,6 +297,66 @@ const INSIGHTS_LOG_SPECS = [
     type: 'boolean',
     value: (state: GreeVersatiState): boolean => state.evuActive,
   },
+  {
+    id: 'stateoff',
+    title: 'Operating: Off',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'off',
+  },
+  {
+    id: 'stateidle',
+    title: 'Operating: Idle',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'idle',
+  },
+  {
+    id: 'stateheating',
+    title: 'Operating: Heating',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'heating',
+  },
+  {
+    id: 'statehotwater',
+    title: 'Operating: Hot water',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'hot_water',
+  },
+  {
+    id: 'statecooling',
+    title: 'Operating: Cooling',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'cooling',
+  },
+  {
+    id: 'statedefrosting',
+    title: 'Operating: Defrosting',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'defrosting',
+  },
+  {
+    id: 'statebackupheater',
+    title: 'Operating: Backup heater',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'backup_heater',
+  },
+  {
+    id: 'staterapidhotwater',
+    title: 'Operating: Rapid hot water',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'rapid_hot_water',
+  },
+  {
+    id: 'statefrostprotection',
+    title: 'Operating: Frost protection',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'frost_protection',
+  },
+  {
+    id: 'stateunknown',
+    title: 'Operating: Unknown',
+    type: 'boolean',
+    value: (_state: GreeVersatiState, device: GreeVersatiDevice): boolean => device.getCapabilityValue('heatpump_operating_state') === 'unknown',
+  },
 ] as const satisfies readonly InsightsLogSpec[];
 
 type VersatiSettings = BoundGreeVersatiDevice & {

@@ -325,7 +325,7 @@ The driver exposes Gree values as Homey capabilities and explicitly leaves Insig
 - water out, water in, hot water, optional water sensor, and remote room temperatures
 - heating, cooling, and hot water targets
 - water delta, estimated heat output, estimated electrical input, and estimated COP
-- operating state
+- operating state timelines for off, idle, heating, hot water, cooling, defrosting, backup heater, Rapid hot water, frost protection, and unknown
 - power, mode, Rapid, Silence, W-depend, Disinfect, defrosting, heater, frost protection, and EVU states
 - Homey-managed curve outdoor temperature and calculated heating target
 
