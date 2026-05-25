@@ -348,6 +348,8 @@ The curve widget includes a forecast pill showing whether the next poll would wr
 
 Use the curve widget export/import buttons to save a weather-curve profile before experimenting. Profile exports include curve points, shape, deadband, write interval, outdoor source, and boost safety limits; they do not include endpoint credentials or device identifiers.
 
+For using PV overproduction with the heat pump, see [Solar Surplus Flows for Gree Versati](docs/solar-surplus-flows.md).
+
 The `Versati Graphs` widget also has an `Export` button for a redacted diagnostic snapshot. It includes current capabilities, poll health, selected raw diagnostics, weather-curve status, and telemetry sample count. IP address and device key are not exported, and MAC addresses are masked.
 
 ## Roadmap
