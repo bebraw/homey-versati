@@ -215,6 +215,7 @@
       <div class="metric"><span>Water out</span><strong id="waterOut">-</strong></div>
       <div class="metric"><span>Hot water</span><strong id="hotWater">-</strong></div>
       <div class="metric"><span>Heating target</span><strong id="heatingTarget">-</strong></div>
+      <div class="metric"><span>Hot water target</span><strong id="hotWaterTarget">-</strong></div>
       <div class="metric"><span>Curve target</span><strong id="curveTarget">-</strong></div>
       <div class="metric"><span>Estimated COP</span><strong id="estimatedCop">-</strong></div>
       <div class="metric"><span>COP status</span><strong id="copStatus">-</strong></div>
@@ -321,6 +322,7 @@
       text('waterOut', celsius(latest.waterOutTemperature));
       text('hotWater', celsius(latest.hotWaterTemperature));
       text('heatingTarget', celsius(latest.heatingTargetTemperature, 0));
+      text('hotWaterTarget', celsius(latest.hotWaterTargetTemperature, 0));
       text('curveTarget', celsius(latest.curveHeatingTarget, 0));
       text('estimatedCop', formatValue(latest.estimatedCop, '', 2));
       text('operatingState', label(latest.operatingState || (state.values && state.values.operatingState) || '-'));

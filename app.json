@@ -890,6 +890,7 @@
     },
     "target_temperature_heating": {
       "type": "number",
+      "uiComponent": "sensor",
       "title": {
         "en": "Heating target"
       },
@@ -917,6 +918,7 @@
     },
     "target_temperature_hot_water": {
       "type": "number",
+      "uiComponent": "sensor",
       "title": {
         "en": "Hot water target"
       },
