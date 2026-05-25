@@ -708,13 +708,74 @@
           ]
         },
         {
+          "id": "copWaterFlowPreset",
+          "type": "dropdown",
+          "label": {
+            "en": "COP water flow preset"
+          },
+          "hint": {
+            "en": "Choose a nominal Gree Versati size to estimate heating circuit flow from rated capacity and a 5°C water delta, or use Custom to enter the flow manually."
+          },
+          "value": "custom",
+          "values": [
+            {
+              "id": "custom",
+              "label": {
+                "en": "Custom"
+              }
+            },
+            {
+              "id": "gree_versati_4kw",
+              "label": {
+                "en": "Gree Versati 4 kW (~11.5 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_6kw",
+              "label": {
+                "en": "Gree Versati 6 kW (~17.2 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_8kw",
+              "label": {
+                "en": "Gree Versati 8 kW (~22.9 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_10kw",
+              "label": {
+                "en": "Gree Versati 10 kW (~28.7 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_12kw",
+              "label": {
+                "en": "Gree Versati 12 kW (~34.4 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_14kw",
+              "label": {
+                "en": "Gree Versati 14 kW (~40.1 L/min)"
+              }
+            },
+            {
+              "id": "gree_versati_16kw",
+              "label": {
+                "en": "Gree Versati 16 kW (~45.9 L/min)"
+              }
+            }
+          ]
+        },
+        {
           "id": "copWaterFlowRateLMin",
           "type": "number",
           "label": {
             "en": "COP water flow"
           },
           "hint": {
-            "en": "Estimated heating circuit flow in liters per minute. Set to 0 to disable COP estimation."
+            "en": "Estimated heating circuit flow in liters per minute. Used directly when the preset is Custom; otherwise updated from the selected nominal model. Set to 0 to disable COP estimation."
           },
           "value": 0,
           "min": 0,
