@@ -86,17 +86,6 @@ const WEATHER_CURVE_PRESETS = {
   },
 } as const satisfies Record<string, (WeatherCurveConfig & { shape: WeatherCurveShape }) | null>;
 type WeatherCurvePreset = keyof typeof WEATHER_CURVE_PRESETS;
-const COP_WATER_FLOW_PRESETS = {
-  custom: null,
-  gree_versati_4kw: nominalWaterFlowRate(4),
-  gree_versati_6kw: nominalWaterFlowRate(6),
-  gree_versati_8kw: nominalWaterFlowRate(8),
-  gree_versati_10kw: nominalWaterFlowRate(10),
-  gree_versati_12kw: nominalWaterFlowRate(12),
-  gree_versati_14kw: nominalWaterFlowRate(14),
-  gree_versati_16kw: nominalWaterFlowRate(16),
-} as const satisfies Record<string, number | null>;
-type CopWaterFlowPreset = keyof typeof COP_WATER_FLOW_PRESETS;
 const CURVE_SETTING_KEYS = [
   'curvePreset',
   'curveControlMode',
@@ -117,7 +106,7 @@ const CURVE_SETTING_KEYS = [
 ] as const;
 const COP_SETTING_KEYS = [
   'copElectricalInputSource',
-  'copWaterFlowPreset',
+  'copWaterFlowNominalKw',
   'copWaterFlowRateLMin',
   'copElectricalInputKw',
   'copLowThreshold',
@@ -393,7 +382,7 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveMinWriteInterval?: number;
   allowCoolingModeWrites?: boolean;
   copElectricalInputSource?: 'fixed' | 'flow';
-  copWaterFlowPreset?: CopWaterFlowPreset;
+  copWaterFlowNominalKw?: number;
   copWaterFlowRateLMin?: number;
   copElectricalInputKw?: number;
   copLowThreshold?: number;
@@ -553,9 +542,6 @@ class GreeVersatiDevice extends Homey.Device {
         return 'Gree Versati weather curve settings updated.';
       }
       if (changedKeys.some((key) => COP_SETTING_KEYS.includes(key as typeof COP_SETTING_KEYS[number]))) {
-        if (changedKeys.includes('copWaterFlowPreset')) {
-          await this.applyCopWaterFlowPreset(newSettings);
-        }
         await this.refreshState();
         return 'Gree Versati COP estimate settings updated.';
       }
@@ -1067,18 +1053,10 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   private copWaterFlowRateLMin(settings = this.getSettings() as Partial<VersatiSettings>): number {
-    const preset = copWaterFlowPreset(settings.copWaterFlowPreset);
-    const presetFlow = COP_WATER_FLOW_PRESETS[preset];
-    return presetFlow ?? numberSetting(settings.copWaterFlowRateLMin, 0);
-  }
-
-  private async applyCopWaterFlowPreset(settings: Record<string, SettingsValue>): Promise<void> {
-    const preset = copWaterFlowPreset(settings.copWaterFlowPreset);
-    const presetFlow = COP_WATER_FLOW_PRESETS[preset];
-    if (presetFlow === null || numberSetting(settings.copWaterFlowRateLMin, 0) === presetFlow) {
-      return;
-    }
-    await this.setSettings({ copWaterFlowRateLMin: presetFlow });
+    const nominalKw = numberSetting(settings.copWaterFlowNominalKw, 0);
+    return nominalKw > 0
+      ? nominalWaterFlowRate(nominalKw)
+      : numberSetting(settings.copWaterFlowRateLMin, 0);
   }
 
   private copElectricalInputKw(settings = this.getSettings() as Partial<VersatiSettings>): number {
@@ -1100,7 +1078,7 @@ class GreeVersatiDevice extends Homey.Device {
     const settings = this.getSettings() as Partial<VersatiSettings>;
     return {
       inputSource: settings.copElectricalInputSource ?? 'fixed',
-      waterFlowPreset: copWaterFlowPreset(settings.copWaterFlowPreset),
+      waterFlowNominalKw: numberSetting(settings.copWaterFlowNominalKw, 0),
       waterFlowRateLMin: this.copWaterFlowRateLMin(settings),
       fixedElectricalInputKw: numberSetting(settings.copElectricalInputKw, 0),
       flowElectricalInputKw: numberOrNull(this.getStore().copFlowElectricalInputKw),
@@ -2202,12 +2180,6 @@ function numberSetting(value: unknown, fallback: number): number {
 function weatherCurvePreset(value: unknown): WeatherCurvePreset {
   return value === 'mild_floor' || value === 'radiators' || value === 'conservative'
     ? value
-    : 'custom';
-}
-
-function copWaterFlowPreset(value: unknown): CopWaterFlowPreset {
-  return typeof value === 'string' && value in COP_WATER_FLOW_PRESETS
-    ? value as CopWaterFlowPreset
     : 'custom';
 }
 

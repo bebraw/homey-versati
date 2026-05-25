@@ -295,12 +295,12 @@ The app can calculate an estimated coefficient of performance from the measured 
 Configure these device settings to enable the estimate:
 
 - `COP electrical input source`: `Fixed estimate` or `Flow-provided input`
-- `COP water flow preset`: select a nominal Gree Versati size to estimate flow from rated output and a `5°C` water delta, or choose `Custom`
-- `COP water flow`: heating circuit flow in liters per minute; this is filled from the preset unless `Custom` is selected
+- `COP nominal heat output`: rated heat-pump output in kW; set to `0` to use manual flow instead
+- `COP water flow`: manual heating circuit flow in liters per minute; used when nominal heat output is `0`
 - `COP electrical input`: electrical input in kW
 - `Low COP threshold`: optional Flow alert threshold
 
-Preset water flow uses `flow L/min = heat output kW * 60 / (4.186 * 5°C)`, so the `10 kW` preset becomes about `28.7 L/min`. Use a measured or installer-provided flow rate when available; the preset is only a nominal COP estimate.
+Nominal water flow uses `flow L/min = heat output kW * 60 / (4.186 * 5°C)`, so `10 kW` becomes about `28.7 L/min`. Use a measured or installer-provided flow rate when available; the nominal output field is only a rough COP estimate.
 
 Use the `Set COP electrical input` Flow action when the source is `Flow-provided input`. Feed it from a smart meter, energy plug, or another Homey energy app in kW. The app stores the latest Flow-fed value and uses it on the next poll.
 

@@ -708,65 +708,21 @@
           ]
         },
         {
-          "id": "copWaterFlowPreset",
-          "type": "dropdown",
+          "id": "copWaterFlowNominalKw",
+          "type": "number",
           "label": {
-            "en": "COP water flow preset"
+            "en": "COP nominal heat output"
           },
           "hint": {
-            "en": "Choose a nominal Gree Versati size to estimate heating circuit flow from rated capacity and a 5°C water delta, or use Custom to enter the flow manually."
+            "en": "Nominal heat-pump output in kW. When above 0, Homey estimates water flow from this and a 5°C water delta. Set to 0 to enter water flow manually below."
           },
-          "value": "custom",
-          "values": [
-            {
-              "id": "custom",
-              "label": {
-                "en": "Custom"
-              }
-            },
-            {
-              "id": "gree_versati_4kw",
-              "label": {
-                "en": "Gree Versati 4 kW (~11.5 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_6kw",
-              "label": {
-                "en": "Gree Versati 6 kW (~17.2 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_8kw",
-              "label": {
-                "en": "Gree Versati 8 kW (~22.9 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_10kw",
-              "label": {
-                "en": "Gree Versati 10 kW (~28.7 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_12kw",
-              "label": {
-                "en": "Gree Versati 12 kW (~34.4 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_14kw",
-              "label": {
-                "en": "Gree Versati 14 kW (~40.1 L/min)"
-              }
-            },
-            {
-              "id": "gree_versati_16kw",
-              "label": {
-                "en": "Gree Versati 16 kW (~45.9 L/min)"
-              }
-            }
-          ]
+          "value": 0,
+          "min": 0,
+          "max": 40,
+          "step": 0.1,
+          "units": {
+            "en": "kW"
+          }
         },
         {
           "id": "copWaterFlowRateLMin",
@@ -775,7 +731,7 @@
             "en": "COP water flow"
           },
           "hint": {
-            "en": "Estimated heating circuit flow in liters per minute. Used directly when the preset is Custom; otherwise updated from the selected nominal model. Set to 0 to disable COP estimation."
+            "en": "Estimated heating circuit flow in liters per minute. Used when nominal heat output is 0. Set both flow inputs to 0 to disable COP estimation."
           },
           "value": 0,
           "min": 0,
