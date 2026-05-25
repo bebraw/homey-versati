@@ -535,45 +535,57 @@ class GreeVersatiDevice extends Homey.Device {
     }
   }
 
-  async onSettings({ newSettings, changedKeys }: SettingsEvent): Promise<string | void> {
-    if (!changedKeys.some((key) => ['ip', 'port', 'mac', 'key', 'encryptionVersion', 'pollInterval'].includes(key))) {
-      if (changedKeys.some((key) => CURVE_SETTING_KEYS.includes(key as typeof CURVE_SETTING_KEYS[number]))) {
-        await this.refreshState();
-        return 'Gree Versati weather curve settings updated.';
+  async onSettings(event: SettingsEvent): Promise<string | void> {
+    const { newSettings, changedKeys } = event;
+    await this.recordSettingsDebug('start', event);
+    try {
+      if (!changedKeys.some((key) => ['ip', 'port', 'mac', 'key', 'encryptionVersion', 'pollInterval'].includes(key))) {
+        if (changedKeys.some((key) => CURVE_SETTING_KEYS.includes(key as typeof CURVE_SETTING_KEYS[number]))) {
+          await this.refreshState();
+          await this.recordSettingsDebug('success', event);
+          return 'Gree Versati weather curve settings updated.';
+        }
+        if (changedKeys.some((key) => COP_SETTING_KEYS.includes(key as typeof COP_SETTING_KEYS[number]))) {
+          await this.refreshState();
+          await this.recordSettingsDebug('success', event);
+          return 'Gree Versati COP estimate settings updated.';
+        }
+        if (changedKeys.some((key) => ALERT_SETTING_KEYS.includes(key as typeof ALERT_SETTING_KEYS[number]))) {
+          await this.refreshState();
+          await this.recordSettingsDebug('success', event);
+          return 'Gree Versati alert settings updated.';
+        }
+        await this.recordSettingsDebug('success', event);
+        return;
       }
-      if (changedKeys.some((key) => COP_SETTING_KEYS.includes(key as typeof COP_SETTING_KEYS[number]))) {
-        await this.refreshState();
-        return 'Gree Versati COP estimate settings updated.';
+
+      const endpoint = endpointFromSettings(newSettings);
+      const client = this.clientOrThrow();
+      let bound: BoundGreeVersatiDevice;
+
+      if (endpoint.key) {
+        bound = {
+          ip: endpoint.ip,
+          port: endpoint.port,
+          mac: endpoint.mac,
+          key: endpoint.key,
+          encryptionVersion: endpoint.encryptionVersion,
+        };
+        await client.getState(bound);
+      } else {
+        bound = await client.bind(endpoint);
+        await client.getState(bound);
       }
-      if (changedKeys.some((key) => ALERT_SETTING_KEYS.includes(key as typeof ALERT_SETTING_KEYS[number]))) {
-        await this.refreshState();
-        return 'Gree Versati alert settings updated.';
-      }
-      return;
+
+      await this.persistEndpoint(bound);
+      this.consecutiveFailures = 0;
+      await this.refreshState();
+      await this.recordSettingsDebug('success', event);
+      return 'Gree Versati connection updated.';
+    } catch (error) {
+      await this.recordSettingsDebug('error', event, error);
+      throw error;
     }
-
-    const endpoint = endpointFromSettings(newSettings);
-    const client = this.clientOrThrow();
-    let bound: BoundGreeVersatiDevice;
-
-    if (endpoint.key) {
-      bound = {
-        ip: endpoint.ip,
-        port: endpoint.port,
-        mac: endpoint.mac,
-        key: endpoint.key,
-        encryptionVersion: endpoint.encryptionVersion,
-      };
-      await client.getState(bound);
-    } else {
-      bound = await client.bind(endpoint);
-      await client.getState(bound);
-    }
-
-    await this.persistEndpoint(bound);
-    this.consecutiveFailures = 0;
-    await this.refreshState();
-    return 'Gree Versati connection updated.';
   }
 
   async flowSetMode(mode: unknown): Promise<void> {
@@ -949,6 +961,14 @@ class GreeVersatiDevice extends Homey.Device {
         lastPollError: stringStoreValue(store.lastPollError),
         lastPollErrorAt: stringStoreValue(store.lastPollErrorAt),
         consecutivePollFailures: Number(store.consecutivePollFailures || 0),
+        lastSettingsUpdate: this.settingsDebugSnapshot(),
+        copSettingTypes: this.settingsTypeSnapshot([
+          'copElectricalInputSource',
+          'copWaterFlowNominalKw',
+          'copWaterFlowRateLMin',
+          'copElectricalInputKw',
+          'copLowThreshold',
+        ]),
         normalizedMode: store.diagnosticNormalizedMode,
         rawPower: store.diagnosticPower,
         rawMode: store.diagnosticMode,
@@ -1086,6 +1106,39 @@ class GreeVersatiDevice extends Homey.Device {
       lowThreshold: numberSetting(settings.copLowThreshold, 2),
       status: this.getCapabilityValue('heatpump_cop_status'),
     };
+  }
+
+  private async recordSettingsDebug(status: string, event: SettingsEvent, error?: unknown): Promise<void> {
+    const snapshot = {
+      at: new Date().toISOString(),
+      status,
+      changedKeys: event.changedKeys,
+      changed: Object.fromEntries(event.changedKeys.map((key) => [
+        key,
+        settingDebugValue(event.newSettings[key]),
+      ])),
+      copSettings: Object.fromEntries(COP_SETTING_KEYS.map((key) => [
+        key,
+        settingDebugValue(event.newSettings[key]),
+      ])),
+      error: error ? errorMessage(error) : '',
+    };
+    this.log('Settings update debug', snapshot);
+    await this.setStoreValue('lastSettingsUpdateDebug', snapshot);
+  }
+
+  private settingsDebugSnapshot(): unknown {
+    return isRecord(this.getStore().lastSettingsUpdateDebug)
+      ? this.getStore().lastSettingsUpdateDebug
+      : null;
+  }
+
+  private settingsTypeSnapshot(keys: readonly string[]): Record<string, unknown> {
+    const settings = this.getSettings();
+    return Object.fromEntries(keys.map((key) => [
+      key,
+      settingDebugValue(settings[key]),
+    ]));
   }
 
   private operatingState(state: GreeVersatiState, estimate: CopEstimate): OperatingState {
@@ -2069,6 +2122,28 @@ function stableDeviceHash(value: string): string {
 
 function stringStoreValue(value: unknown): string {
   return typeof value === 'string' ? value : '';
+}
+
+function settingDebugValue(value: unknown): Record<string, unknown> {
+  return {
+    type: value === null ? 'null' : Array.isArray(value) ? 'array' : typeof value,
+    value: redactedSettingValue(value),
+    finiteNumber: typeof value === 'number' && Number.isFinite(value),
+  };
+}
+
+function redactedSettingValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value.length > 8 ? `${value.slice(0, 2)}...${value.slice(-2)}` : value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null || typeof value === 'undefined') {
+    return value;
+  }
+  return '[complex]';
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function numberOrNull(value: unknown): number | null {
