@@ -1123,7 +1123,11 @@ class GreeVersatiDevice extends Homey.Device {
       ])),
       error: error ? errorMessage(error) : '',
     };
-    this.log('Settings update debug', snapshot);
+    if (error) {
+      this.error('Settings update failed', snapshot, error);
+    } else {
+      this.log('Settings update debug', snapshot);
+    }
     await this.setStoreValue('lastSettingsUpdateDebug', snapshot);
   }
 
