@@ -493,6 +493,7 @@ class GreeVersatiDevice extends Homey.Device {
   async onInit(): Promise<void> {
     this.client = new GreeVersatiClient();
     await this.syncSettingsFromStore();
+    this.logSettingsTypes('startup');
     await this.ensureRequiredCapabilities();
     this.registerCapabilityListener('heatpump_mode', async (value) => {
       await this.setModeFromHomey(value);
@@ -1143,6 +1144,27 @@ class GreeVersatiDevice extends Homey.Device {
       key,
       settingDebugValue(settings[key]),
     ]));
+  }
+
+  private logSettingsTypes(source: string): void {
+    this.log('Settings type debug', {
+      source,
+      copSettings: this.settingsTypeSnapshot([
+        'copElectricalInputSource',
+        'copWaterFlowNominalKw',
+        'copWaterFlowRateLMin',
+        'copElectricalInputKw',
+        'copLowThreshold',
+      ]),
+      endpointSettings: this.settingsTypeSnapshot([
+        'ip',
+        'port',
+        'mac',
+        'key',
+        'encryptionVersion',
+        'pollInterval',
+      ]),
+    });
   }
 
   private operatingState(state: GreeVersatiState, estimate: CopEstimate): OperatingState {
