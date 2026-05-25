@@ -2082,11 +2082,14 @@ class GreeVersatiDevice extends Homey.Device {
     if (store.mac && !settings.mac) updates.mac = normalizeMac(store.mac);
     if (store.key && !settings.key) updates.key = store.key;
     if (store.encryptionVersion && !settings.encryptionVersion) updates.encryptionVersion = String(store.encryptionVersion);
-    if (typeof settings.copWaterFlowNominalKw !== 'string') {
-      updates.copWaterFlowNominalKw = String(numberSetting(settings.copWaterFlowNominalKw, 0));
+    if (settings.encryptionVersion && typeof settings.encryptionVersion !== 'string') {
+      updates.encryptionVersion = String(settings.encryptionVersion);
     }
-    if (typeof settings.copWaterFlowRateLMin !== 'string') {
-      updates.copWaterFlowRateLMin = String(numberSetting(settings.copWaterFlowRateLMin, 0));
+    if (typeof settings.copWaterFlowNominalKw !== 'number') {
+      updates.copWaterFlowNominalKw = numberSetting(settings.copWaterFlowNominalKw, 0);
+    }
+    if (typeof settings.copWaterFlowRateLMin !== 'number') {
+      updates.copWaterFlowRateLMin = numberSetting(settings.copWaterFlowRateLMin, 0);
     }
     if (typeof settings.copElectricalInputKw !== 'number') updates.copElectricalInputKw = 0;
     if (typeof settings.copLowThreshold !== 'number') updates.copLowThreshold = 2;
