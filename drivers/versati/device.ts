@@ -380,7 +380,6 @@ type VersatiSettings = BoundGreeVersatiDevice & {
   curveBend?: number;
   curveDeadband?: number;
   curveMinWriteInterval?: number;
-  allowCoolingModeWrites?: boolean;
   copElectricalInputSource?: 'fixed' | 'flow';
   copWaterFlowNominalKw?: number | string;
   copWaterFlowRateLMin?: number | string;
@@ -679,7 +678,7 @@ class GreeVersatiDevice extends Homey.Device {
   }
 
   flowCurveWriteAllowed(): boolean {
-    return this.getStore().weatherCurveMode === 'write' && this.getCapabilityValue('heatpump_mode') === 'heat_hot_water';
+    return this.getStore().weatherCurveMode === 'write' && isHeatingMode(this.getCapabilityValue('heatpump_mode'));
   }
 
   flowHasPollHistory(): boolean {
@@ -1184,13 +1183,10 @@ class GreeVersatiDevice extends Homey.Device {
     if (state.frostProtection) {
       return 'frost_protection';
     }
-    if (state.mode === 'cool') {
-      return 'cooling';
-    }
     if (state.mode === 'hot_water') {
       return 'hot_water';
     }
-    if (state.mode === 'heat_hot_water') {
+    if (isHeatingMode(state.mode)) {
       return (estimate.status === 'ok' ? estimate.waterDeltaTemperature : waterDelta ?? 0) > 0.5 ? 'heating' : 'idle';
     }
     return 'unknown';
@@ -1293,10 +1289,6 @@ class GreeVersatiDevice extends Homey.Device {
   private async setModeFromHomey(value: unknown): Promise<void> {
     if (!isWritableMode(value)) {
       throw new Error(`Unsupported Gree Versati mode: ${String(value)}`);
-    }
-    const settings = this.getSettings() as Partial<VersatiSettings>;
-    if (value === 'cool' && settings.allowCoolingModeWrites !== true) {
-      throw new Error('Cool mode writes are disabled. Enable "Allow cooling mode writes" in device settings after confirming cooling is safe for this installation.');
     }
     await this.clientOrThrow().setMode(this.boundDevice(), value);
     await this.refreshState();
@@ -1470,7 +1462,7 @@ class GreeVersatiDevice extends Homey.Device {
         await this.setWeatherCurveSkipped('dry_run');
         return;
       }
-      if (state.mode !== 'heat_hot_water') {
+      if (!isHeatingMode(state.mode)) {
         const reason = `mode:${state.mode}`;
         await this.appendWeatherCurveAudit({
           action: 'skip',
@@ -1637,7 +1629,7 @@ class GreeVersatiDevice extends Homey.Device {
       if (settings.controlMode === 'dry_run') {
         return { ...withTarget, reason: 'dry_run' };
       }
-      if (mode !== 'heat_hot_water') {
+      if (!isHeatingMode(mode)) {
         return { ...withTarget, reason: `mode:${mode ?? 'unknown'}` };
       }
       if (currentTarget === null) {
@@ -1813,7 +1805,7 @@ class GreeVersatiDevice extends Homey.Device {
       key: 'low_water_delta',
       active: Boolean(
         state.power &&
-        state.mode === 'heat_hot_water' &&
+        isHeatingMode(state.mode) &&
         !state.defrosting &&
         lowWaterDeltaThreshold > 0 &&
         waterDelta !== null &&
@@ -2304,7 +2296,7 @@ function weatherCurveControlMode(value: unknown): WeatherCurveSettings['controlM
 }
 
 function weatherCurveHeatPumpMode(value: unknown): GreeVersatiState['mode'] | null {
-  return value === 'off' || value === 'heat_hot_water' || value === 'cool' || value === 'hot_water' || value === 'other'
+  return value === 'off' || value === 'heat' || value === 'heat_hot_water' || value === 'hot_water' || value === 'other'
     ? value
     : null;
 }
@@ -2390,7 +2382,11 @@ function clampedNumber(value: unknown, min: number, max: number, fallback: numbe
 }
 
 function isWritableMode(value: unknown): value is WritableGreeVersatiMode {
-  return value === 'off' || value === 'heat_hot_water' || value === 'hot_water' || value === 'cool';
+  return value === 'off' || value === 'heat' || value === 'heat_hot_water' || value === 'hot_water';
+}
+
+function isHeatingMode(value: unknown): value is 'heat' | 'heat_hot_water' {
+  return value === 'heat' || value === 'heat_hot_water';
 }
 
 function parseTemperature(value: unknown, min: number, max: number, label: string): number {

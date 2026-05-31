@@ -2,10 +2,10 @@ import dgram from 'node:dgram';
 import os from 'node:os';
 import {
   AWHP_PROPS,
-  COOL_MODE,
   Cipher,
   CipherV1,
   CipherV2,
+  HEAT_HOT_WATER_MODE,
   HEAT_MODE,
   HOT_WATER_MODE,
   PacketEnvelope,
@@ -46,7 +46,7 @@ export interface GreeVersatiState {
   coolingTargetTemperature: number | null;
   hotWaterTargetTemperature: number | null;
   power: boolean;
-  mode: 'off' | 'heat_hot_water' | 'cool' | 'hot_water' | 'other';
+  mode: 'off' | 'heat' | 'heat_hot_water' | 'hot_water' | 'other';
   fastHotWater: boolean;
   silence: boolean;
   weatherDependent: boolean;
@@ -61,7 +61,7 @@ export interface GreeVersatiState {
   versatiSeries: unknown;
 }
 
-export type WritableGreeVersatiMode = 'off' | 'heat_hot_water' | 'hot_water' | 'cool';
+export type WritableGreeVersatiMode = 'off' | 'heat' | 'heat_hot_water' | 'hot_water';
 
 export interface GreeVersatiClientOptions {
   port?: number;
@@ -201,11 +201,11 @@ export class GreeVersatiClient {
       return;
     }
 
-    const modeValue = mode === 'heat_hot_water'
+    const modeValue = mode === 'heat'
       ? HEAT_MODE
-      : mode === 'hot_water'
-        ? HOT_WATER_MODE
-        : COOL_MODE;
+      : mode === 'heat_hot_water'
+        ? HEAT_HOT_WATER_MODE
+        : HOT_WATER_MODE;
 
     await this.setProperties(device, {
       [AWHP_PROPS.mode]: modeValue,
@@ -310,9 +310,9 @@ export function normalizeState(raw: Record<string, unknown>): GreeVersatiState {
     mode: !power
       ? 'off'
       : modeNumber === HEAT_MODE
-        ? 'heat_hot_water'
-        : modeNumber === COOL_MODE
-          ? 'cool'
+        ? 'heat'
+        : modeNumber === HEAT_HOT_WATER_MODE
+          ? 'heat_hot_water'
           : modeNumber === HOT_WATER_MODE
             ? 'hot_water'
             : 'other',

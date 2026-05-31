@@ -159,6 +159,23 @@ test('normalizes heat plus hot water mode', async () => {
   }
 });
 
+test('normalizes heat mode', async () => {
+  const server = await startFakeDevice({ encryptedDiscovery: false, state: { [AWHP_PROPS.mode]: 1 } });
+  try {
+    const client = new GreeVersatiClient({ port: server.port, timeoutMs: 500 });
+    const state = await client.getState({
+      ip: '127.0.0.1',
+      port: server.port,
+      mac: MAC,
+      key: DEVICE_KEY,
+      encryptionVersion: 1,
+    });
+    assert.equal(state.mode, 'heat');
+  } finally {
+    await server.close();
+  }
+});
+
 test('writes heat pump mode over UDP command packets', async () => {
   const server = await startFakeDevice({ encryptedDiscovery: false });
   try {
@@ -183,9 +200,9 @@ test('writes heat pump mode over UDP command packets', async () => {
     assert.equal(state.raw[AWHP_PROPS.power], 0);
     assert.equal(state.raw[AWHP_PROPS.mode], 4);
 
-    await client.setMode(bound, 'cool');
+    await client.setMode(bound, 'heat');
     state = await client.getState(bound);
-    assert.equal(state.mode, 'cool');
+    assert.equal(state.mode, 'heat');
     assert.equal(state.raw[AWHP_PROPS.power], 1);
     assert.equal(state.raw[AWHP_PROPS.mode], 1);
 

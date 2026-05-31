@@ -33,8 +33,8 @@ The app talks directly to the heat pump over the local network using UDP port `7
 - Change heat pump mode:
   - off
   - hot water
+  - heat
   - heat + hot water
-  - cool (mapped from upstream protocol value and unit-tested, but not live-tested on this installation)
 - Change target temperatures:
   - heating target, clamped to `20-55°C`
   - hot water target, clamped to `30-60°C`
@@ -274,7 +274,7 @@ Default settings are conservative:
 - write deadband: `1°C`
 - minimum write interval: `1800` seconds
 
-Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat + hot water`.
+Use `Dry run` first and watch `Curve outdoor temperature` and `Curve heating target`. To feed an outdoor sensor or weather value, set the outdoor source to `Flow-provided temperature` and create a Flow that calls `Set curve outdoor temperature`. Switch to `Write heating target` only after the calculated targets look sensible for your heating system. The controller writes only while the heat pump mode is `Heat` or `Heat + hot water`.
 
 Use the curve widget or Flow actions to pause Homey-managed curve writes for 1 hour, 6 hours, 24 hours, or until manually resumed. Pausing only stops automatic curve writes; telemetry, graphing, and manual Homey controls continue to work.
 
@@ -306,7 +306,7 @@ Use the `Set COP electrical input` Flow action when the source is `Flow-provided
 
 For the electrical input, the best source is whole heat-pump consumption: outdoor unit compressor/fans plus indoor unit pumps, controls, and backup/tank heaters. A meter covering both indoor and outdoor units, or the entire heat-pump supply, gives the least misleading estimate. Outdoor-unit-only consumption makes COP look too optimistic when indoor pumps or heaters are active. Indoor-unit-only consumption usually misses the compressor and is not enough for COP. Until a real meter is connected, use a conservative fixed kW estimate and treat `Estimated COP`, `Estimated heat output`, and `Estimated electrical input` as trend signals rather than lab-grade performance data. The `COP status` capability and widget field explain why the estimate is unavailable or whether it currently uses a fixed estimate.
 
-Cooling mode writes are guarded by default. Enable `Allow cooling mode writes` in device settings only after confirming cooling operation is safe for your installation.
+Cooling mode writes are disabled until the raw cooling mappings are confirmed on real hardware.
 
 ## Operating State And Alerts
 
@@ -357,13 +357,13 @@ The `Versati Graphs` widget also has an `Export` button for a redacted diagnosti
 Planned follow-up work, roughly in priority order:
 
 1. Run the live integration harness against a real unit, especially with `--include-risky` when ready to verify W-depend and Disinfect because they may affect operating schedules.
-2. Add a settings sanity checker in the widget and diagnostic export for missing COP inputs, stale Flow-fed power, curve write enabled without a usable outdoor source, cooling writes enabled, disabled alert thresholds, and missing graph history.
+2. Add a settings sanity checker in the widget and diagnostic export for missing COP inputs, stale Flow-fed power, curve write enabled without a usable outdoor source, unmapped cooling modes, disabled alert thresholds, and missing graph history.
 3. Add rolling energy summary rollups for selected ranges: average/min/max COP, estimated heat output, water delta, and time spent in each operating state.
 4. Add an operating timeline strip to `Versati Graphs` showing heating, hot water, defrosting, backup heater, idle, and cooling transitions over the selected range.
 5. Document concrete Homey Flow recipes for feeding COP electrical input, feeding outdoor temperature, low-COP notifications, hot-water recovery alerts, and curve pause/boost.
 6. Add a Homey-level live smoke script for non-risky surfaces: COP settings, operating state derivation, Insights values, alert thresholds, and widget diagnostic output.
 7. Tune the Homey-managed weather curve against real heating behavior.
-8. Finish `Cool + hot water` mode mapping when safe to test cooling. Confirmed modes are `Hot water` (`Mod: 2`) and `Heat + hot water` (`Mod: 4`); `Cool` uses the upstream value `Mod: 1` but is intentionally untested on the live system.
+8. Finish cooling mode mapping when safe to test cooling. Confirmed modes are `Heat` (`Mod: 1`), `Hot water` (`Mod: 2`), and `Heat + hot water` (`Mod: 4`).
 9. Continue outdoor-temperature field probing only if new Gree app or firmware evidence appears; do not use `AirOutTem` as it returned `0` while the indoor controller showed a warmer outdoor value.
 10. Revisit runtime and energy counters only after diagnostics returns non-empty compressor, pump, fan, power, or energy fields on real hardware.
 11. Add more Flow cards only where they create practical automation value, especially for newly mapped telemetry fields.

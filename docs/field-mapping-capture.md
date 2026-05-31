@@ -95,13 +95,13 @@ Runtime and energy mapping status:
 
 Cooling mapping status:
 
-- `Cool` uses upstream `Mod: 1` and is covered by the local UDP client tests, but it is not yet live-tested on this heating-only installation. Use `npm run probe:modes` to confirm it on real hardware without sending commands from this app.
-- `Cool + hot water` is visible in the official app but is not mapped yet. Use `npm run probe:modes -- --modes cool_hot_water` to confirm the raw mode/property combination and restore behavior before adding a command.
+- `Heat` is captured as `Mod: 1` on the live installation.
+- Cooling modes are not mapped yet. Use `npm run probe:modes -- --modes cool,cool_hot_water` to confirm the raw mode/property combinations and restore behavior before adding commands.
 
 Start with low-risk read/write changes:
 
 1. Identify what the official app calls the current operating mode while raw `Mod` is `2`. Captured: `Mod: 2` means `Hot water`.
-2. Identify heat mode mapping. Captured: `Mod: 4` means `Heat + hot water`.
+2. Identify heat mode mapping. Captured: `Mod: 1` means `Heat`; `Mod: 4` means `Heat + hot water`.
 3. Increase heating target by 1 degree, then set it back. Captured: heating target maps to `HeWatOutTemSet`.
 4. Increase hot water target by 1 degree, then set it back. Captured: hot water target maps to `WatBoxTemSet`.
 5. Toggle Rapid hot water if visible, then set it back. Captured: official `Rapid` maps to `FastHtWter`.

@@ -73,7 +73,7 @@ Trigger:
 And:
 
 - Grid export has stayed greater than `1500 W` for `10-15 min`
-- Gree mode is `Heat + hot water` or `Hot water`
+- Gree mode is `Heat`, `Heat + hot water`, or `Hot water`
 - Gree is not defrosting
 - Hot water temperature is below the solar target, for example below `52 deg C`
 - Optional: electricity price is not high
@@ -103,7 +103,7 @@ Trigger:
 And:
 
 - Grid export has stayed greater than `1500 W` for `10-15 min`
-- Gree mode is `Heat + hot water`
+- Gree mode is `Heat` or `Heat + hot water`
 - Gree is not defrosting
 - Hot water temperature is already near the solar target, for example above
   `50 deg C`

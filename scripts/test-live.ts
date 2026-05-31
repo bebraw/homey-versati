@@ -299,7 +299,7 @@ function baselineFromState(state: GreeVersatiState, toggleIds: ToggleId[]): Base
 }
 
 function writableModeOrThrow(mode: GreeVersatiState['mode']): WritableGreeVersatiMode {
-  if (mode === 'off' || mode === 'heat_hot_water' || mode === 'hot_water' || mode === 'cool') {
+  if (mode === 'off' || mode === 'heat' || mode === 'heat_hot_water' || mode === 'hot_water') {
     return mode;
   }
   throw new Error(`Live test cannot restore unsupported mode: ${mode}`);

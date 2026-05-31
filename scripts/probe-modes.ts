@@ -62,7 +62,7 @@ interface ProbeReport {
   restoreChangedFields: Record<string, { before: unknown; after: unknown }>;
 }
 
-type ProbeMode = 'cool' | 'cool_hot_water';
+type ProbeMode = 'heat' | 'heat_hot_water' | 'hot_water' | 'cool' | 'cool_hot_water';
 
 const DEFAULT_MODES: ProbeMode[] = ['cool', 'cool_hot_water'];
 const RAW_MODE_FIELDS = [
@@ -79,6 +79,9 @@ const RAW_MODE_FIELDS = [
   'SwDisFct',
 ] as const;
 const MODE_LABELS: Record<ProbeMode, string> = {
+  heat: 'Heat',
+  heat_hot_water: 'Heat + hot water',
+  hot_water: 'Hot water',
   cool: 'Cool',
   cool_hot_water: 'Cool + hot water',
 };
@@ -145,7 +148,7 @@ async function main(): Promise<void> {
       fields: RAW_MODE_FIELDS,
       guidance: [
         'This script is read-only; all mode changes are made externally.',
-        'Use changedFields to confirm which raw status fields distinguish each cooling mode.',
+        'Use changedFields to confirm which raw status fields distinguish each probed mode.',
         'Run again with --no-redact only for private debugging output.',
       ],
       baseline,
@@ -280,7 +283,13 @@ function parseArgs(args: string[]): CliOptions {
 function parseModes(value: string): ProbeMode[] {
   const modes = value.split(',').map((mode) => mode.trim()).filter(Boolean);
   const parsed = modes.map((mode) => {
-    if (mode !== 'cool' && mode !== 'cool_hot_water') {
+    if (
+      mode !== 'heat' &&
+      mode !== 'heat_hot_water' &&
+      mode !== 'hot_water' &&
+      mode !== 'cool' &&
+      mode !== 'cool_hot_water'
+    ) {
       throw new Error(`Unsupported mode probe: ${mode}`);
     }
     return mode;
@@ -332,7 +341,7 @@ function redactIp(ip: string, redact: boolean): string {
 }
 
 function printHelp(): void {
-  console.log(`Usage: npm run probe:modes -- [--ip <address>] [--mac <mac>] [--port 7000] [--modes cool,cool_hot_water] [--output report.json] [--no-redact]
+  console.log(`Usage: npm run probe:modes -- [--ip <address>] [--mac <mac>] [--port 7000] [--modes heat,cool,cool_hot_water] [--output report.json] [--no-redact]
 
 Workflow:
   1. Run the script while the heat pump is in its normal mode.

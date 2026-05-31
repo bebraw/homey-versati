@@ -46,3 +46,4 @@
 - Add Flow-fed COP electrical input, COP status/low-COP Flow cards, and a guarded cooling mode write setting.
 - Add derived operating state plus sustained abnormal-operation Flow alerts.
 - Add repair settings, diagnostics, live smoke-test scripts, and privacy-redacted script output.
+- Add confirmed Heat-only mode mapping and remove unconfirmed Cool writes/settings from mode selectors.

@@ -124,9 +124,9 @@ export const AWHP_PROPS = {
 
 export const READ_ONLY_COLUMNS = Object.values(AWHP_PROPS);
 
-export const HEAT_MODE = 4;
+export const HEAT_MODE = 1;
+export const HEAT_HOT_WATER_MODE = 4;
 export const HOT_WATER_MODE = 2;
-export const COOL_MODE = 1;
 
 export interface PacketEnvelope {
   t: string;

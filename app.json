@@ -672,17 +672,6 @@
           "max": 86400
         },
         {
-          "id": "allowCoolingModeWrites",
-          "type": "checkbox",
-          "label": {
-            "en": "Allow cooling mode writes"
-          },
-          "hint": {
-            "en": "Keeps Cool mode guarded until you have confirmed cooling operation is safe for the installation."
-          },
-          "value": false
-        },
-        {
           "id": "copElectricalInputSource",
           "type": "dropdown",
           "label": {
@@ -970,9 +959,9 @@
           }
         },
         {
-          "id": "cool",
+          "id": "heat",
           "title": {
-            "en": "Cool"
+            "en": "Heat"
           }
         },
         {
@@ -1964,15 +1953,15 @@
                 }
               },
               {
-                "id": "heat_hot_water",
+                "id": "heat",
                 "label": {
-                  "en": "Heat + hot water"
+                  "en": "Heat"
                 }
               },
               {
-                "id": "cool",
+                "id": "heat_hot_water",
                 "label": {
-                  "en": "Cool"
+                  "en": "Heat + hot water"
                 }
               }
             ]
@@ -2163,15 +2152,15 @@
                 }
               },
               {
-                "id": "mode:hot_water",
+                "id": "mode:heat",
                 "label": {
-                  "en": "Mode: hot water"
+                  "en": "Mode: heat"
                 }
               },
               {
-                "id": "mode:cool",
+                "id": "mode:hot_water",
                 "label": {
-                  "en": "Mode: cool"
+                  "en": "Mode: hot water"
                 }
               },
               {
@@ -2448,15 +2437,15 @@
                 }
               },
               {
-                "id": "heat_hot_water",
+                "id": "heat",
                 "label": {
-                  "en": "Heat + hot water"
+                  "en": "Heat"
                 }
               },
               {
-                "id": "cool",
+                "id": "heat_hot_water",
                 "label": {
-                  "en": "Cool"
+                  "en": "Heat + hot water"
                 }
               }
             ]

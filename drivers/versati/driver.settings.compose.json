@@ -351,17 +351,6 @@
     "max": 86400
   },
   {
-    "id": "allowCoolingModeWrites",
-    "type": "checkbox",
-    "label": {
-      "en": "Allow cooling mode writes"
-    },
-    "hint": {
-      "en": "Keeps Cool mode guarded until you have confirmed cooling operation is safe for the installation."
-    },
-    "value": false
-  },
-  {
     "id": "copElectricalInputSource",
     "type": "dropdown",
     "label": {

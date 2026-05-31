@@ -282,15 +282,15 @@
               }
             },
             {
-              "id": "heat_hot_water",
+              "id": "heat",
               "label": {
-                "en": "Heat + hot water"
+                "en": "Heat"
               }
             },
             {
-              "id": "cool",
+              "id": "heat_hot_water",
               "label": {
-                "en": "Cool"
+                "en": "Heat + hot water"
               }
             }
           ]
@@ -379,15 +379,15 @@
               }
             },
             {
-              "id": "heat_hot_water",
+              "id": "heat",
               "label": {
-                "en": "Heat + hot water"
+                "en": "Heat"
               }
             },
             {
-              "id": "cool",
+              "id": "heat_hot_water",
               "label": {
-                "en": "Cool"
+                "en": "Heat + hot water"
               }
             }
           ]

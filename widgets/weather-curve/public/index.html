@@ -520,7 +520,7 @@
       const mode = state.values && state.values.mode ? String(state.values.mode) : '';
       text('mode', mode ? mode.replaceAll('_', ' ') : '-');
       text('controlState', readableControl(state.controlMode));
-      const canWrite = state.controlMode === 'write' && mode === 'heat_hot_water';
+      const canWrite = state.controlMode === 'write' && (mode === 'heat' || mode === 'heat_hot_water');
       text('writeAllowed', canWrite ? 'Yes' : 'No');
       document.getElementById('writePill').classList.toggle('warn', !canWrite);
       text('skipReason', state.diagnostics && state.diagnostics.lastSkippedReason ? state.diagnostics.lastSkippedReason : '-');
